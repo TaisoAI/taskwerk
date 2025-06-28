@@ -1,4 +1,5 @@
 import { TaskWerkToolRegistry } from './tool-registry.js';
+import { saveConfig } from '../utils/config.js';
 
 export class LLMManager {
   constructor(config = {}, taskManager = null) {
@@ -62,7 +63,16 @@ export class LLMManager {
     for (const toolCall of toolCalls) {
       try {
         const { function: func } = toolCall;
-        const parameters = JSON.parse(func.arguments);
+
+        // Handle both string and object arguments
+        let parameters;
+        if (typeof func.arguments === 'string') {
+          parameters = JSON.parse(func.arguments);
+        } else if (typeof func.arguments === 'object') {
+          parameters = func.arguments;
+        } else {
+          throw new Error(`Invalid function arguments type: ${typeof func.arguments}`);
+        }
 
         this.toolRegistry.validateParameters(func.name, parameters);
         const result = await this.toolRegistry.executeTool(func.name, parameters);
@@ -121,6 +131,94 @@ export class LLMManager {
     }
 
     return false;
+  }
+
+  async getModelUnavailabilityReason(modelName) {
+    if (this.isRemoteModel(modelName)) {
+      const provider = this.getProviderFromModelName(modelName);
+      if (!this.hasValidApiKey(provider)) {
+        const envKey = provider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY';
+        return {
+          reason: 'missing_api_key',
+          provider,
+          envKey,
+          message: `Missing API key for ${provider}. Set ${envKey} environment variable.`,
+        };
+      }
+      return { reason: 'available' };
+    }
+
+    if (this.isLocalModel(modelName)) {
+      const provider = this.getProviderFromModelName(modelName);
+
+      if (provider === 'ollama') {
+        try {
+          const { OllamaModel } = await import('./providers/ollama-model.js');
+          const model = new OllamaModel(modelName);
+
+          if (!(await model.isAvailable())) {
+            return {
+              reason: 'service_unavailable',
+              provider: 'ollama',
+              message: 'Ollama service is not running. Start it with: ollama serve',
+            };
+          }
+
+          const models = await model.listAvailableModels();
+          if (!models.some(m => m.name === modelName)) {
+            return {
+              reason: 'model_not_found',
+              provider: 'ollama',
+              modelName,
+              message: `Model '${modelName}' not found in Ollama. Pull it with: ollama pull ${modelName}`,
+            };
+          }
+
+          return { reason: 'available' };
+        } catch (error) {
+          return {
+            reason: 'service_error',
+            provider: 'ollama',
+            error: error.message,
+            message: 'Ollama not installed or not working. Install from: https://ollama.ai',
+          };
+        }
+      }
+
+      if (provider === 'lmstudio') {
+        try {
+          const { LMStudioModel } = await import('./providers/lmstudio-model.js');
+          const model = new LMStudioModel(modelName);
+          if (!(await model.isAvailable())) {
+            return {
+              reason: 'service_unavailable',
+              provider: 'lmstudio',
+              message: 'LM Studio is not running. Start it and load a model.',
+            };
+          }
+          return { reason: 'available' };
+        } catch (error) {
+          return {
+            reason: 'service_error',
+            provider: 'lmstudio',
+            error: error.message,
+            message: 'LM Studio not installed or not working. Install from: https://lmstudio.ai',
+          };
+        }
+      }
+
+      return {
+        reason: 'unknown_provider',
+        provider,
+        message: `Unknown local model provider: ${provider}`,
+      };
+    }
+
+    return {
+      reason: 'unknown_model',
+      modelName,
+      message: `Unknown model type: ${modelName}`,
+    };
   }
 
   async checkLocalModelAvailability(modelName) {
@@ -328,10 +426,22 @@ export class LLMManager {
     }
 
     this.config.defaultModel = modelName;
+
+    // Save to persistent config
+    try {
+      await saveConfig(this.config);
+    } catch (error) {
+      console.warn(`Warning: Could not save default model to config: ${error.message}`);
+    }
+
     return true;
   }
 
   getDefaultModel() {
-    return this.config.defaultModel || 'llama3.2';
+    // If no default model is configured, suggest setup
+    if (!this.config.defaultModel) {
+      return null;
+    }
+    return this.config.defaultModel;
   }
 }

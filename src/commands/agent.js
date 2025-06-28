@@ -2,7 +2,7 @@ import { TaskManager } from '../core/task-manager.js';
 import { LLMManager } from '../llm/llm-manager.js';
 import { loadConfig } from '../utils/config.js';
 
-export async function askCommand(query, options = {}) {
+export async function agentCommand(query, options = {}) {
   try {
     const config = await loadConfig();
     const taskManager = new TaskManager(config);
@@ -13,10 +13,12 @@ export async function askCommand(query, options = {}) {
     if (!options.model && !defaultModel) {
       console.error('❌ No model specified and no default model configured.');
       console.error('\n🔧 Quick setup (choose one):');
-      console.error('   taskwerk llmconfig --choose               # Interactive model selection');
-      console.error('   taskwerk llmconfig --model llama3.2:1b    # Set specific model as default');
+      console.error('   taskwerk llmconfig --choose                # Interactive model selection');
       console.error(
-        '   taskwerk ask "question" --model gpt-4     # Use model once (saves as default)'
+        '   taskwerk llmconfig --model llama3.2:1b     # Set specific model as default'
+      );
+      console.error(
+        '   taskwerk agent "request" --model gpt-4     # Use model once (saves as default)'
       );
       console.error('\n📚 Full setup guide:');
       console.error('   taskwerk llmconfig');
@@ -57,7 +59,7 @@ export async function askCommand(query, options = {}) {
         console.error('   ollama serve');
         console.error('\n💡 Or try a cloud model:');
         console.error(
-          '   export OPENAI_API_KEY="your-key" && taskwerk ask "your question" --model gpt-4'
+          '   export OPENAI_API_KEY="your-key" && taskwerk agent "your request" --model gpt-4'
         );
       } else if (reason.reason === 'model_not_found' && reason.provider === 'ollama') {
         console.error('\n🔧 To fix this:');
@@ -73,7 +75,7 @@ export async function askCommand(query, options = {}) {
         }
         console.error('\n💡 Or try a cloud model:');
         console.error(
-          '   export OPENAI_API_KEY="your-key" && taskwerk ask "your question" --model gpt-4'
+          '   export OPENAI_API_KEY="your-key" && taskwerk agent "your request" --model gpt-4'
         );
       }
 
@@ -90,22 +92,40 @@ export async function askCommand(query, options = {}) {
     }
     await llmManager.loadModel(modelName);
 
-    console.log('💭 Processing your question...');
-
-    // For ask command, we don't provide tools - it's question-only
-    const response = await llmManager.loadedModel.process(query, {
-      session: await llmManager.getSessionContext(),
-      tools: [], // No tools for ask command
-    });
+    console.log('🚀 Agent processing your request...');
+    const response = await llmManager.processNaturalLanguage(query);
 
     if (response.content) {
-      console.log('\n💬 TaskWerk Assistant:');
+      console.log('\n💬 TaskWerk Agent:');
       console.log(response.content);
-    } else {
-      console.log('\n💬 TaskWerk Assistant:');
-      console.log(
-        'I understand your question but cannot provide a specific answer. Try using "taskwerk agent" if you need me to perform actions.'
-      );
+    }
+
+    if (response.toolResults && response.toolResults.length > 0) {
+      console.log('\n📋 Actions taken:');
+      for (const result of response.toolResults) {
+        if (result.success) {
+          if (result.result && typeof result.result === 'object') {
+            // Display meaningful output for different result types
+            if (Array.isArray(result.result)) {
+              console.log(`✅ Found ${result.result.length} items`);
+              if (result.result.length > 0 && result.result[0].id) {
+                // Display tasks
+                result.result.forEach(task => {
+                  console.log(`   - ${task.id}: ${task.description} (${task.status})`);
+                });
+              }
+            } else if (result.result.message) {
+              console.log(`✅ ${result.result.message}`);
+            } else {
+              console.log(`✅ Action completed successfully`);
+            }
+          } else {
+            console.log(`✅ ${result.result || 'Action completed'}`);
+          }
+        } else {
+          console.log(`❌ Error: ${result.error}`);
+        }
+      }
     }
 
     if (options.verbose && response.usage) {
@@ -114,7 +134,7 @@ export async function askCommand(query, options = {}) {
       );
     }
   } catch (error) {
-    console.error('❌ Failed to process request:', error.message);
+    console.error('❌ Failed to process agent request:', error.message);
     process.exit(1);
   }
 }

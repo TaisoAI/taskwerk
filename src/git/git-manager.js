@@ -159,4 +159,65 @@ export class GitManager {
       return false;
     }
   }
+
+  async stageFiles(files) {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    try {
+      // Stage specific files
+      for (const file of files) {
+        await execAsync(`git add "${file}"`);
+      }
+      return true;
+    } catch (error) {
+      throw new Error(`Failed to stage files: ${error.message}`);
+    }
+  }
+
+  async stageAllFiles() {
+    try {
+      await execAsync('git add .');
+      return true;
+    } catch (error) {
+      throw new Error(`Failed to stage all files: ${error.message}`);
+    }
+  }
+
+  async getStagedFiles() {
+    try {
+      const { stdout } = await execAsync('git diff --cached --name-only');
+      return stdout
+        .trim()
+        .split('\n')
+        .filter(f => f);
+    } catch {
+      return [];
+    }
+  }
+
+  async getUnstagedFiles() {
+    try {
+      const { stdout } = await execAsync('git diff --name-only');
+      return stdout
+        .trim()
+        .split('\n')
+        .filter(f => f);
+    } catch {
+      return [];
+    }
+  }
+
+  async getUntrackedFiles() {
+    try {
+      const { stdout } = await execAsync('git ls-files --others --exclude-standard');
+      return stdout
+        .trim()
+        .split('\n')
+        .filter(f => f);
+    } catch {
+      return [];
+    }
+  }
 }

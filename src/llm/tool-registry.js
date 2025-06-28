@@ -1,6 +1,9 @@
+import { DocumentationLookup } from './documentation-lookup.js';
+
 export class TaskWerkToolRegistry {
   constructor(taskManager) {
     this.taskManager = taskManager;
+    this.documentationLookup = new DocumentationLookup();
     this.tools = this.defineTools();
   }
 
@@ -136,20 +139,57 @@ export class TaskWerkToolRegistry {
           required: ['query'],
         },
       },
+      {
+        name: 'taskwerk_help',
+        description: 'Get help documentation for TaskWerk commands or topics',
+        parameters: {
+          type: 'object',
+          properties: {
+            topic: {
+              type: 'string',
+              description: 'Command name or topic to get help for (optional)',
+            },
+          },
+          required: [],
+        },
+      },
+      {
+        name: 'taskwerk_search_docs',
+        description: 'Search TaskWerk documentation for specific information',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search query for documentation lookup',
+            },
+          },
+          required: ['query'],
+        },
+      },
+      {
+        name: 'taskwerk_get_commands',
+        description: 'Get list of all available TaskWerk commands',
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
     ];
   }
 
   async executeTool(toolName, parameters) {
     switch (toolName) {
       case 'taskwerk_add':
-        return this.taskManager.addTask(
-          parameters.description,
-          parameters.priority || 'medium',
-          parameters.category
-        );
+        return this.taskManager.addTask({
+          description: parameters.description,
+          priority: parameters.priority || 'medium',
+          category: parameters.category,
+        });
 
       case 'taskwerk_list':
-        return this.taskManager.listTasks({
+        return this.taskManager.getTasks({
           priority: parameters.priority,
           category: parameters.category,
           completed: parameters.completed,
@@ -159,19 +199,30 @@ export class TaskWerkToolRegistry {
         return this.taskManager.startTask(parameters.taskId);
 
       case 'taskwerk_complete':
-        return this.taskManager.completeTask(parameters.taskId, parameters.note);
+        return this.taskManager.completeTask(parameters.taskId, {
+          note: parameters.note,
+        });
 
       case 'taskwerk_pause':
         return this.taskManager.pauseTask(parameters.taskId);
 
       case 'taskwerk_status':
-        return this.taskManager.getStatus();
+        return this.taskManager.getCurrentSession();
 
       case 'taskwerk_stats':
-        return this.taskManager.getStats(parameters.format);
+        return this.taskManager.getStats();
 
       case 'taskwerk_search':
         return this.taskManager.searchTasks(parameters.query);
+
+      case 'taskwerk_help':
+        return this.documentationLookup.getHelp(parameters.topic);
+
+      case 'taskwerk_search_docs':
+        return this.documentationLookup.searchDocumentation(parameters.query);
+
+      case 'taskwerk_get_commands':
+        return this.documentationLookup.getAvailableCommands();
 
       default:
         throw new Error(`Unknown tool: ${toolName}`);

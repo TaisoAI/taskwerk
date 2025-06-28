@@ -1,4 +1,4 @@
-import { readFile, access } from 'fs/promises';
+import { readFile, writeFile, access } from 'fs/promises';
 import { join } from 'path';
 
 const DEFAULT_CONFIG = {
@@ -7,6 +7,7 @@ const DEFAULT_CONFIG = {
   autoCommit: false,
   autoCreateBranch: true,
   defaultPriority: 'medium',
+  defaultModel: null,
   categories: {
     bugs: 'Bug Fixes',
     features: 'Features',
@@ -51,4 +52,23 @@ export function validateConfig(config) {
   }
 
   return true;
+}
+
+export async function saveConfig(config) {
+  const configPath = join(process.cwd(), '.taskrc.json');
+
+  try {
+    const configToSave = { ...config };
+    // Remove default values to keep config clean
+    Object.keys(DEFAULT_CONFIG).forEach(key => {
+      if (configToSave[key] === DEFAULT_CONFIG[key]) {
+        delete configToSave[key];
+      }
+    });
+
+    await writeFile(configPath, JSON.stringify(configToSave, null, 2));
+    return true;
+  } catch (error) {
+    throw new Error(`Failed to save config: ${error.message}`);
+  }
 }

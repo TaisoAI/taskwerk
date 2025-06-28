@@ -1,3 +1,5 @@
+import { buildTaskWerkSystemPrompt } from '../system-prompt.js';
+
 export class LMStudioModel {
   constructor(modelName, config = {}) {
     this.modelName = modelName;
@@ -105,24 +107,6 @@ export class LMStudioModel {
   }
 
   buildSystemPrompt(context) {
-    const sessionInfo = context.session
-      ? `Current session: ${JSON.stringify(context.session, null, 2)}`
-      : '';
-
-    return `You are TaskWerk Assistant, an AI helper for task management.
-You have access to TaskWerk commands via function calls.
-Convert user requests to appropriate TaskWerk actions.
-
-${sessionInfo}
-
-Guidelines:
-- Always use function calls to execute TaskWerk commands when possible
-- Provide helpful summaries of actions taken
-- Ask for clarification when requests are ambiguous
-- Be concise and focused on task management
-- When listing tasks, format the output clearly
-- Maintain context about current tasks and session state
-
-Available TaskWerk functions will be provided as tools. Use them to help users manage their tasks effectively.`;
+    return buildTaskWerkSystemPrompt(context);
   }
 }

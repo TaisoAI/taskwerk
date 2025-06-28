@@ -1,5 +1,21 @@
 # Completed Tasks
 
+- [x] **TASK-050** Integrate automatic version bumping and commits into task completion workflow *[2025-06-28T23:26:41.377Z]*
+  Implemented automatic version bumping and commits into task completion workflow
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-049** Implement comprehensive AI task workflow rules system *[2025-06-28T23:22:01.755Z]*
+  Implemented comprehensive AI workflow rules system with quality gates and mode detection
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-044** Fix LLM system prompt so AI correctly identifies TaskWerk as CLI tool, not web *[2025-06-28T18:03:27.207Z]*
+  Created comprehensive system prompt that clearly identifies TaskWerk as CLI tool, updated all three LLM providers
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-038** Fix LLM JSON parsing error and default model tag handling *[2025-06-28T16:57:55.105Z]*
+  Fixed JSON parsing error in tool execution and corrected default model to use available llama3.2:3b instead of non-existent llama3.2:latest
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-037** fix llmmodel chooser, tried granite3.3:2b from chooser and it failed *[2025-06-28T16:40:27.674Z]*
   Fixed LLM model chooser by adding granite and other missing model patterns, plus improved model availability validation
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

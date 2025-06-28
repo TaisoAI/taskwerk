@@ -13,6 +13,9 @@ export async function llmConfigCommand(options = {}) {
       await showModelInfo(llmManager, options.modelInfo);
     } else if (options.setDefault) {
       await setDefaultModel(llmManager, options.setDefault);
+    } else if (options.model) {
+      // --model is an alias for --set-default
+      await setDefaultModel(llmManager, options.model);
     } else if (options.pull) {
       await pullModel(llmManager, options.pull);
     } else if (options.choose) {
@@ -99,33 +102,75 @@ async function setDefaultModel(llmManager, modelName) {
 async function showStatus(llmManager) {
   console.log('# LLM Configuration Status\n');
 
+  const hasOpenAI = !!process.env.OPENAI_API_KEY;
   const defaultModel = llmManager.getDefaultModel();
-  const isAvailable = await llmManager.isModelAvailable(defaultModel);
+  const models = await llmManager.listAvailableModels();
+  const hasModels = models.length > 0;
 
-  console.log(`**Default Model**: ${defaultModel}`);
-  console.log(`**Status**: ${isAvailable ? '✅ Available' : '❌ Not available'}`);
+  // Show current status
+  if (defaultModel) {
+    const isAvailable = await llmManager.isModelAvailable(defaultModel);
+    console.log(`**Default Model**: ${defaultModel}`);
+    console.log(`**Status**: ${isAvailable ? '✅ Available and ready' : '❌ Not available'}`);
 
-  console.log('\n## Quick Setup\n');
-  console.log('```bash');
-  console.log('# Option 1: OpenAI API');
-  console.log('export OPENAI_API_KEY="your-api-key-here"');
-  console.log('');
-  console.log('# Option 2: Local with Ollama');
-  console.log('# Install from https://ollama.ai');
-  console.log('ollama pull llama3.2');
-  console.log('');
-  console.log('# Option 3: Local with LM Studio');
-  console.log('# Install from https://lmstudio.ai and start server');
-  console.log('');
-  console.log('# Test the assistant');
-  console.log('taskwerk ask "show me my tasks"');
-  console.log('```');
+    if (!isAvailable) {
+      const reason = await llmManager.getModelUnavailabilityReason(defaultModel);
+      console.log(`**Issue**: ${reason.message}`);
+    }
+  } else {
+    console.log('**Default Model**: None configured');
+    console.log('**Status**: ⚠️  Setup required');
+  }
+
+  console.log(`**Available Models**: ${models.length} found`);
+
+  // Adaptive guidance based on current state
+  if (hasModels && defaultModel) {
+    console.log(`\n## ✅ You're all set! Try these commands:\n`);
+    console.log('```bash');
+    console.log('taskwerk ask "what are my current tasks?"');
+    console.log('taskwerk agent "add a task to fix the login bug"');
+    console.log('taskwerk llmconfig --list-models  # See all available models');
+    console.log('```');
+  } else if (hasModels && !defaultModel) {
+    console.log('\n## 🔧 Models found! Choose your default:\n');
+    console.log('```bash');
+    console.log('taskwerk llmconfig --choose          # Interactive selection');
+    console.log('taskwerk llmconfig --list-models     # See all options');
+    console.log('```');
+  } else {
+    console.log('\n## 🚀 Get Started - Choose Your Setup:\n');
+
+    if (!hasOpenAI) {
+      console.log('**Option 1: Cloud AI (Recommended)**');
+      console.log('```bash');
+      console.log('export OPENAI_API_KEY="your-api-key-here"');
+      console.log('taskwerk ask "what are my tasks?"  # Test it out');
+      console.log('```');
+      console.log('');
+    }
+
+    console.log('**Option 2: Free Local AI**');
+    console.log('```bash');
+    console.log('# Install Ollama from https://ollama.ai');
+    console.log('ollama pull llama3.2:3b            # Download a model');
+    console.log('taskwerk llmconfig --choose         # Select model');
+    console.log('```');
+    console.log('');
+
+    console.log('**Option 3: LM Studio**');
+    console.log('```bash');
+    console.log('# Install LM Studio from https://lmstudio.ai');
+    console.log('# Start server and load a model');
+    console.log('taskwerk llmconfig --choose         # Select model');
+    console.log('```');
+  }
 
   console.log('\n## Available Commands\n');
+  console.log('- `taskwerk llmconfig --choose` - Interactive model setup');
   console.log('- `taskwerk llmconfig --list-models` - List available models');
-  console.log('- `taskwerk llmconfig --model-info <model>` - Show model details');
-  console.log('- `taskwerk llmconfig --set-default <model>` - Set default model');
-  console.log('- `taskwerk ask "your question"` - Ask the AI assistant');
+  console.log('- `taskwerk ask "question"` - Ask questions (no actions taken)');
+  console.log('- `taskwerk agent "request"` - Perform actions via AI');
 }
 
 async function pullModel(llmManager, modelName) {

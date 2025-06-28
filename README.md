@@ -6,13 +6,13 @@ A lightweight CLI task manager optimized for human-AI collaboration workflows wi
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-TaskWerk is a git-native, markdown-based task management system that bridges the gap between human project management and AI-powered development. With natural language support via local and remote LLMs, TaskWerk enables seamless collaboration between developers and AI assistants.
+TaskWerk is a markdown-based task management system that bridges the gap between human project management and AI-powered development. With natural language support via local and remote LLMs, TaskWerk enables seamless collaboration between developers and AI assistants.
 
 ## Why TaskWerk?
 
 **The Problem**: LLMs lose context between sessions and lack persistent task state management. Current tools don't bridge the gap between human project management and AI code generation effectively.
 
-**The Solution**: A git-native, markdown-based task system with integrated LLM support that both humans and AI can read, write, and maintain collaboratively.
+**The Solution**: A markdown-based task system with integrated LLM support that both humans and AI can read, write, and maintain collaboratively.
 
 ### Key Features
 

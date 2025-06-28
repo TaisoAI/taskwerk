@@ -20,7 +20,6 @@
 - [ ] **TASK-033** help
 - [ ] **TASK-034** for many commands, such as stats or status the output at the cli is markdown.  Instead it should be gracefully formatted for a cli output.  But all commands should have the option to output as md or json (for automation).
 - [ ] **TASK-035** make sure taskwerk commands are pipeable
-- [>] **TASK-037** fix llmmodel chooser, tried granite3.3:2b from chooser and it failed
 ### Refactoring
 
 - [ ] **TASK-027** Review usability and workflows for TaskWerk CLI tool

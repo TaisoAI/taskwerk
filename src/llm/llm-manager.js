@@ -127,15 +127,31 @@ export class LLMManager {
     const provider = this.getProviderFromModelName(modelName);
 
     if (provider === 'ollama') {
-      const { OllamaModel } = await import('./providers/ollama-model.js');
-      const model = new OllamaModel(modelName);
-      return model.isAvailable();
+      try {
+        const { OllamaModel } = await import('./providers/ollama-model.js');
+        const model = new OllamaModel(modelName);
+
+        // First check if Ollama is running
+        if (!(await model.isAvailable())) {
+          return false;
+        }
+
+        // Then check if the specific model exists
+        const models = await model.listAvailableModels();
+        return models.some(m => m.name === modelName);
+      } catch (error) {
+        return false;
+      }
     }
 
     if (provider === 'lmstudio') {
-      const { LMStudioModel } = await import('./providers/lmstudio-model.js');
-      const model = new LMStudioModel(modelName);
-      return model.isAvailable();
+      try {
+        const { LMStudioModel } = await import('./providers/lmstudio-model.js');
+        const model = new LMStudioModel(modelName);
+        return model.isAvailable();
+      } catch (error) {
+        return false;
+      }
     }
 
     return false;
@@ -176,7 +192,9 @@ export class LLMManager {
       modelName.includes('devstral') ||
       modelName === 'ollama' ||
       // If model name contains colon (version tag), it's likely Ollama format
-      (modelName.includes(':') && !modelName.includes('ollama:') && !modelName.includes('lmstudio:'))
+      (modelName.includes(':') &&
+        !modelName.includes('ollama:') &&
+        !modelName.includes('lmstudio:'))
     );
   }
 

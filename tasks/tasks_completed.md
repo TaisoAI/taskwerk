@@ -1,5 +1,9 @@
 # Completed Tasks
 
+- [x] **TASK-037** fix llmmodel chooser, tried granite3.3:2b from chooser and it failed *[2025-06-28T16:40:27.674Z]*
+  Fixed LLM model chooser by adding granite and other missing model patterns, plus improved model availability validation
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-036** Fix and update README.md with current features and user comments *[2025-06-28T16:35:40.278Z]*
   Completely rewrote README.md with current LLM features, comprehensive examples, and updated file structure
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

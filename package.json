@@ -1,0 +1,50 @@
+{
+  "name": "taskwerk",
+  "version": "0.1.0",
+  "description": "A lightweight CLI task manager optimized for human-AI collaboration workflows",
+  "main": "src/cli.js",
+  "type": "module",
+  "bin": {
+    "taskwerk": "./bin/taskwerk.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node bin/taskwerk.js",
+    "test": "node scripts/test.js",
+    "test:watch": "node --test --watch tests/**/*.test.js",
+    "lint": "eslint src/ tests/ bin/",
+    "lint:fix": "eslint src/ tests/ bin/ --fix",
+    "format": "prettier --write src/ tests/ bin/",
+    "format:check": "prettier --check src/ tests/ bin/",
+    "prepack": "npm run lint && npm run format:check && npm run test",
+    "prepublishOnly": "npm run prepack",
+    "dev": "node bin/taskwerk.js",
+    "build": "node scripts/build.js",
+    "clean": "rm -rf dist/ build/ coverage/ .nyc_output/"
+  },
+  "keywords": [
+    "task",
+    "cli",
+    "project-management",
+    "ai",
+    "llm",
+    "git",
+    "markdown"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md"
+  ]
+}

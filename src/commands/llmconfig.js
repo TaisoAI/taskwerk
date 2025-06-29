@@ -145,7 +145,7 @@ async function showModelInfo(llmManager, modelName) {
 }
 
 /**
- * Sets the default model for TaskWerk.
+ * Sets the default model for taskwerk.
  * @param {LLMManager} llmManager - LLM manager instance
  * @param {string} modelName - Name of the model to set as default
  */

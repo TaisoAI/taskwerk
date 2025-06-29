@@ -1,6 +1,6 @@
 # Tests
 
-This directory contains the test suite for TaskWerk.
+This directory contains the test suite for taskwerk.
 
 ## Running Tests
 

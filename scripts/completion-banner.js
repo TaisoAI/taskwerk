@@ -28,9 +28,9 @@ const exitCode = process.argv[3] || '0';
 
 console.log('─'.repeat(60));
 if (exitCode === '0') {
-  console.log(`✅ TaskWerk v${version} - ${action} successfully`);
+  console.log(`✅ taskwerk v${version} - ${action} successfully`);
 } else {
-  console.log(`❌ TaskWerk v${version} - ${action} failed (exit code: ${exitCode})`);
+  console.log(`❌ taskwerk v${version} - ${action} failed (exit code: ${exitCode})`);
 }
 console.log(`⏰ ${timestamp}`);
 console.log('─'.repeat(60));

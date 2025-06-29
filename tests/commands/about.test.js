@@ -30,7 +30,7 @@ describe('aboutCommand', () => {
       assert(output.includes('████████╗'));
 
       // Check for version and title
-      assert(output.includes('🚀 TaskWerk v'));
+      assert(output.includes('🚀 taskwerk v'));
       assert(
         output.includes(
           'A lightweight CLI task manager optimized for human-AI collaboration workflows'
@@ -134,7 +134,7 @@ describe('aboutCommand', () => {
       const output = consoleOutput.join('\n');
 
       // Should include a version number pattern
-      assert(/🚀 TaskWerk v\d+\.\d+\.\d+/.test(output));
+      assert(/🚀 taskwerk v\d+\.\d+\.\d+/.test(output));
     });
 
     it('should display consistent version in multiple places', async () => {
@@ -175,7 +175,7 @@ describe('aboutCommand', () => {
         const output = consoleOutput.join('\n');
 
         // Should still show version information (fallback values)
-        assert(output.includes('🚀 TaskWerk v'));
+        assert(output.includes('🚀 taskwerk v'));
         assert(output.includes('Name: taskwerk'));
         assert(
           output.includes(

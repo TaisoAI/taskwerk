@@ -1,4 +1,4 @@
-# TaskWerk - A Simple Task Manager CLI
+# taskwerk - A Simple Task Manager CLI
 
 A lightweight command-line tool designed for LLM-assisted development workflows. Manages project tasks in markdown files with git integration, optimized for human-AI collaboration.
 
@@ -174,7 +174,7 @@ task complete TASK-003 --note "Implemented using React hooks pattern"
 ```
 
 ### MCP (Model Context Protocol) Support
-TaskWerk will support MCP for direct integration with AI editors like Cursor, enabling natural language task management through the AI interface.
+taskwerk will support MCP for direct integration with AI editors like Cursor, enabling natural language task management through the AI interface.
 
 ### Context Preservation
 Tasks include rich context for AI understanding:

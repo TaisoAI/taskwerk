@@ -26,7 +26,7 @@ const timestamp = getTimestamp();
 const action = process.argv[2] || 'running';
 
 console.log('─'.repeat(60));
-console.log(`📦 TaskWerk v${version}`);
+console.log(`📦 taskwerk v${version}`);
 console.log(`⏰ ${timestamp}`);
 console.log(`🚀 ${action.charAt(0).toUpperCase() + action.slice(1)}...`);
 console.log('─'.repeat(60));

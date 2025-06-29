@@ -1,5 +1,25 @@
 # Completed Tasks
 
+- [x] **TASK-073** Fix failing tests and build system to enable stable development workflow *[2025-06-29T21:20:00.598Z]*
+  Fixed critical build failures by resolving failing tests. Key fixes: 1) Fixed task parser bug where active task regex matched completed tasks before completed task regex, causing undefined completedAt timestamps. 2) Updated commit message format to match test expectations ('Tasks completed since last commit'). 3) Fixed version bump logic to allow commits when bumping versions without completed tasks. 4) Updated minified bundle test expectations from v0.1.6 to v0.1.7. 5) Temporarily skipped tests for removed workflow automation features. Result: All critical Git safety tests now pass (173 tests passing, 0 failing, 16 skipped). Build system now works end-to-end with successful minified bundle generation.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-072** Fix remaining TaskWerk references in test files and other locations to prevent test failures and inconsistencies *[2025-06-29T20:09:54.964Z]*
+  Fixed all remaining TaskWerk references throughout the codebase. Updated test files, source code function names, tool registries, system prompts, development documents, and task files. All key tests pass with the new lowercase 'taskwerk' branding. The codebase now has completely consistent branding.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-071** Standardize branding to use 'taskwerk' (lowercase) throughout documentation and help strings, except when beginning sentences where it should be 'Taskwerk' *[2025-06-29T20:03:16.707Z]*
+  Standardized branding to use 'taskwerk' (lowercase) throughout documentation and help strings. Updated README.md, docs/taskwerk-flow.md, BUILD.md, CLI help strings, about command output, system prompts, and build scripts. Some test files still need updating to match new expected output, but core functionality is working correctly with consistent lowercase branding.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-070** Improve README.md to focus on simple flow and practical usage - update docs/taskwerk-flow.md for clarity and consider reorganizing documentation structure *[2025-06-29T19:48:00.083Z]*
+  Completely rewrote README.md to focus on simple workflow and practical usage. Made AI features optional/advanced section. Updated docs/taskwerk-flow.md for clarity. Moved docs/build-and-test.md to BUILD.md in root. Documentation now leads with simplicity and core task management workflow.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-068** Update taskwerk commit and branch help text to clearly explain Git behavior and prevent user confusion *[2025-06-29T19:18:29.536Z]*
+  Updated help text for commit and branch commands to clearly explain Git behavior and prevent user confusion. Key changes: 1) Emphasized that 'taskwerk commit' by default only shows preview and does NOT commit 2) Added Git safety warnings and clear workflow steps 3) Warned about branch proliferation with 'taskwerk branch' 4) Updated documentation to match help text 5) Made it clear users control staging and commits
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-066** Remove AI mode detection and workflow branching from all commands - AI should just automate the unified workflow *[2025-06-29T18:56:38.641Z]*
   Simplified commit and complete commands to remove AI mode detection and workflow branching. Commands now have predictable behavior regardless of who uses them. Removed auto-staging, auto-version bumping, and Co-Authored-By logic. Commit command focuses on generating intelligent messages from completed tasks.
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

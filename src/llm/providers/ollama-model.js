@@ -1,4 +1,4 @@
-import { buildTaskWerkSystemPrompt } from '../system-prompt.js';
+import { buildTaskwerkSystemPrompt } from '../system-prompt.js';
 
 export class OllamaModel {
   constructor(modelName, config = {}) {
@@ -157,6 +157,6 @@ export class OllamaModel {
   }
 
   buildSystemPrompt(context) {
-    return buildTaskWerkSystemPrompt(context);
+    return buildTaskwerkSystemPrompt(context);
   }
 }

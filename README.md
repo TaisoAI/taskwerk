@@ -1,50 +1,42 @@
-# TaskWerk
-
-A lightweight CLI task manager optimized for human-AI collaboration workflows with built-in LLM integration.
-
 [![npm version](https://badge.fury.io/js/taskwerk.svg)](https://www.npmjs.com/package/taskwerk)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-TaskWerk is a markdown-based task management system that bridges the gap between human project management and AI-powered development. With natural language support via local and remote LLMs, TaskWerk enables seamless collaboration between developers and AI assistants.
+# taskwerk
 
-## Why TaskWerk?
+A simple, markdown-based task management CLI tool that works with your existing development workflow.
 
-**The Problem**: LLMs lose context between sessions and lack persistent task state management. Current tools don't bridge the gap between human project management and AI code generation effectively.
+## Why taskwerk?
 
-**The Solution**: A markdown-based task system with integrated LLM support that both humans and AI can read, write, and maintain collaboratively.
-
-### Key Features
-
-- 🤖 **LLM Integration**: Chat with your tasks using OpenAI, Ollama, or LM Studio
-- 🔄 **Human-AI Handoffs**: Seamless collaboration between human oversight and AI execution  
-- 📁 **Git-Integrated**: Tasks tracked alongside code changes with automatic branching
-- 📝 **Markdown-Native**: Plain text files that work everywhere, no vendor lock-in
-- ⚡ **Zero Setup**: Available via `npx` without installation
-- 🏠 **Privacy-First**: Full support for local LLMs (Ollama, LM Studio)
+- **Markdown-native**: Tasks stored in plain text files you can edit anywhere
+- **Git-integrated**: Track tasks alongside your code changes
+- **Zero vendor lock-in**: Just markdown files, works without the CLI
+- **AI-ready**: Optional LLM integration for natural language task management
 
 ## Quick Start
 
 ```bash
-# Initialize in your project
+# Initialize TaskWerk in your project
 npx taskwerk init
 
-# Add a task
+# Add your first task
 npx taskwerk add "Fix login validation bug"
 
-# Set up AI assistant (optional)
-npx taskwerk llmconfig --choose
-
-# Chat with your tasks
-npx taskwerk ask "what should I work on next?"
-
-# Traditional workflow
-npx taskwerk list
+# Start working on it
 npx taskwerk start TASK-001
-npx taskwerk complete TASK-001
+
+# Complete when done
+npx taskwerk complete TASK-001 --note "Fixed session timeout issue"
 ```
 
+That's it! taskwerk creates simple markdown files to track your tasks.
+
 ## Installation
+
+### No Installation Required
+```bash
+npx taskwerk init          # Use directly with npx
+```
 
 ### Global Installation
 ```bash
@@ -61,145 +53,89 @@ taskwerk --help
   }
 }
 
-npm run task add "Refactor auth module"
+npm run task list
 ```
 
-## LLM Integration
+## Core Workflow
 
-TaskWerk supports multiple LLM providers for natural language task management:
-
-### Setup Options
-
-#### 1. OpenAI (Remote)
-```bash
-export OPENAI_API_KEY="your-key-here"
-taskwerk ask "show me my high priority tasks"
-```
-
-#### 2. Ollama (Local)
-```bash
-# Install Ollama from https://ollama.ai
-ollama pull llama3.2
-taskwerk llmconfig --set-default llama3.2
-taskwerk ask "create a task for implementing dark mode"
-```
-
-#### 3. LM Studio (Local)
-```bash
-# Install LM Studio from https://lmstudio.ai
-# Start the local server
-taskwerk llmconfig --set-default lmstudio
-taskwerk ask "what tasks are currently in progress?"
-```
-
-### Interactive Setup
-```bash
-taskwerk llmconfig --choose    # Interactive model selection
-taskwerk llmconfig --help      # Full setup guide
-```
-
-### Natural Language Commands
-```bash
-# Task management via chat
-taskwerk ask "add a task for fixing the memory leak"
-taskwerk ask "mark TASK-003 as completed"
-taskwerk ask "show me all bug-related tasks"
-taskwerk ask "what should I prioritize today?"
-
-# Get help and context
-taskwerk ask "how do I create a feature branch?"
-taskwerk ask "show me the current project status"
-```
-
-## Core Commands
-
-### Task Management
+### 1. Task Management
 ```bash
 # Add tasks
-taskwerk add "Task description" [--priority high|medium|low] [--category "category"]
-taskwerk add "Fix memory leak in authentication"
-taskwerk add "Add PDF export feature" --priority high --category features
+taskwerk add "Task description"
+taskwerk add "Fix memory leak" --priority high --category bugs
 
-# List and filter tasks
+# View tasks
 taskwerk list                    # All active tasks
 taskwerk list --priority high   # Filter by priority
-taskwerk list --category bugs   # Filter by category
-taskwerk list --completed       # Show completed tasks
+taskwerk status                  # Current session info
 
 # Work with tasks
-taskwerk start TASK-001         # Mark in-progress
-taskwerk complete TASK-001      # Mark completed
-taskwerk pause TASK-001         # Return to todo state
+taskwerk start TASK-001          # Begin work
+taskwerk complete TASK-001       # Mark done
+taskwerk search "login"          # Find tasks
 ```
 
-### Context and Status
+### 2. Git Integration (Optional)
 ```bash
-taskwerk status                 # Current session status
-taskwerk context TASK-001       # Task details and related files
-taskwerk search "auth"          # Search task descriptions
-taskwerk stats                  # Task statistics
-taskwerk recent                 # Recently completed tasks
+# Create feature branch for task
+taskwerk branch TASK-001         # Creates: feature/task-001-fix-memory-leak
+
+# Make your code changes...
+git add src/auth.js
+
+# Generate intelligent commit message
+taskwerk commit                  # Shows preview
+taskwerk commit --auto          # Actually commits
 ```
 
-### Git Integration
+### 3. Progress Tracking
 ```bash
-taskwerk branch TASK-001        # Create/switch to feature branch
-taskwerk commit                 # Commit with task context
-```
-
-### LLM Configuration
-```bash
-taskwerk llmconfig              # Show LLM status and setup guide
-taskwerk llmconfig --list-models    # List available models
-taskwerk llmconfig --choose     # Interactive model selection
-taskwerk llmconfig --pull llama3.2  # Download Ollama models
-taskwerk llmconfig --set-default gpt-4  # Set default model
+taskwerk stats                   # Project overview
+taskwerk recent                  # Recently completed
+taskwerk context TASK-001       # Task details
 ```
 
 ## File Structure
 
-TaskWerk creates these files in your project:
+taskwerk creates these files in your project:
 
 ```
 tasks/
-├── tasks.md              # Active tasks
-└── tasks-completed.md    # Completed tasks with metadata
-.task-session.json        # Current session state (git-ignored)
-.taskrc.json              # Optional configuration
+├── tasks.md              # Active tasks (hand-editable)
+├── tasks_completed.md    # Completed tasks archive
+├── tasks-how-to.md       # Quick reference
+└── taskwerk-rules.md     # Project workflow rules
+.taskrc.json              # Configuration (optional)
 ```
 
 ## Task Format
 
-Tasks are stored in clean, readable Markdown:
+Tasks are stored in clean, readable markdown:
 
 ```markdown
 # Project Tasks
 
-*Last updated: 2025-06-28*
-*Current session: CLI*
-*Next ID: TASK-007*
+*Last updated: 2025-06-29*
+*Next ID: TASK-004*
 
 ## HIGH Priority
 
 ### Bug Fixes
 - [>] **TASK-001** Fix authentication timeout on mobile Safari
-- [ ] **TASK-004** Memory leak in WebSocket connection handling
+- [ ] **TASK-003** Memory leak in WebSocket connections
 
 ### Features  
 - [ ] **TASK-002** Add two-factor authentication support
 
 ## MEDIUM Priority
-
-### Refactoring
-- [ ] **TASK-003** Migrate user service from REST to GraphQL
-- [!] **TASK-006** Update deprecated crypto library
+- [ ] **TASK-004** Update API documentation
 ```
 
-### Task States
-- `[ ]` - Todo
-- `[>]` - In Progress  
-- `[x]` - Completed
-- `[!]` - Blocked
+**Task States:**
+- `[ ]` Todo
+- `[>]` In Progress  
+- `[x]` Completed
+- `[!]` Blocked
 
 ## Configuration
 
@@ -207,59 +143,112 @@ Create `.taskrc.json` in your project root:
 
 ```json
 {
-  "tasksFile": "tasks/tasks.md",
-  "completedFile": "tasks/tasks-completed.md",
-  "autoCommit": false,
-  "autoCreateBranch": true,
   "defaultPriority": "medium",
-  "ollamaUrl": "http://localhost:11434",
-  "lmstudioUrl": "http://localhost:1234"
+  "autoCreateBranch": true,
+  "categories": {
+    "bugs": "Bug Fixes",
+    "features": "Features",
+    "docs": "Documentation"
+  }
 }
 ```
 
-## Workflows
+## Common Workflows
 
-### Human-AI Collaborative Development
+### Simple Project Management
 ```bash
-# Morning standup
-taskwerk ask "what's the current project status?"
-
-# AI creates tasks from requirements
-taskwerk ask "create tasks for implementing user authentication with OAuth"
-
-# Human reviews and prioritizes
-taskwerk list --priority high
+# Daily workflow
+taskwerk add "Implement user settings page" --priority high
+taskwerk list
 taskwerk start TASK-005
-
-# AI provides implementation guidance
-taskwerk ask "how should I implement rate limiting for TASK-005?"
-
-# Human/AI completes work
-taskwerk complete TASK-005 --note "Implemented with Redis backend"
-
-# Review progress
+# ... do the work ...
+taskwerk complete TASK-005 --note "Added profile, preferences, and notifications"
 taskwerk stats
 ```
 
-### Traditional Development
+### Git-Integrated Development
 ```bash
-# Manual task management
-taskwerk add "Fix login bug" --priority high
-taskwerk list
-taskwerk start TASK-001
-# ... do the work ...
-taskwerk complete TASK-001
+# Feature development workflow
+taskwerk add "Add dark mode toggle"
+taskwerk branch TASK-006        # Create feature branch
+# ... implement feature ...
+git add src/components/
+taskwerk commit                 # Smart commit message from completed tasks
 ```
+
+### Team Collaboration
+```bash
+# Tasks are just markdown - works great with teams
+git pull                        # Get latest tasks
+taskwerk list --priority high  # See what needs attention
+taskwerk start TASK-007         # Claim a task
+# ... work collaboratively ...
+taskwerk complete TASK-007 --note "Implemented with Redis caching"
+git push                        # Share completed work
+```
+
+## AI Integration (Optional)
+
+taskwerk supports optional AI assistance for natural language task management:
+
+### Setup
+```bash
+# Interactive setup
+taskwerk llmconfig --choose     # Select from available models
+
+# Or set environment variable
+export OPENAI_API_KEY="your-key"
+```
+
+### Usage
+```bash
+# Natural language commands
+taskwerk ask "what should I work on next?"
+taskwerk ask "add a task for fixing the memory leak"
+taskwerk ask "show me all high priority bugs"
+
+# AI can also work with tasks like:
+taskwerk agent "start working on the authentication task"
+```
+
+**Supported Models:**
+- **OpenAI**: GPT-4, GPT-3.5 (remote)
+- **Ollama**: Local models (llama3.2, etc.)
+- **LM Studio**: Local model server
+
+See `taskwerk llmconfig --help` for complete setup guide.
+
+## Commands Reference
+
+### Task Management
+- `taskwerk add "description" [--priority] [--category]` - Add new task
+- `taskwerk list [--priority] [--category] [--completed]` - List tasks
+- `taskwerk start TASK-ID` - Begin working on task
+- `taskwerk complete TASK-ID [--note]` - Mark task completed
+- `taskwerk pause TASK-ID` - Return task to todo state
+- `taskwerk search "keyword"` - Search task descriptions
+
+### Information & Context
+- `taskwerk status` - Current session and active tasks
+- `taskwerk context TASK-ID` - Detailed task information
+- `taskwerk stats` - Project statistics and progress
+- `taskwerk recent` - Recently completed tasks
 
 ### Git Integration
-```bash
-# Automatic branch creation
-taskwerk branch TASK-003        # Creates feature/TASK-003-migrate-user-service
-# ... implement feature ...
-taskwerk commit                 # Commits with task context
-```
+- `taskwerk branch TASK-ID` - Create/switch to feature branch
+- `taskwerk commit [--auto] [--message]` - Commit with task context
 
-## Development
+### AI Features (Optional)
+- `taskwerk ask "question"` - Ask questions about tasks
+- `taskwerk agent "instruction"` - Have AI perform task operations
+- `taskwerk llmconfig` - Configure AI models
+
+### Configuration
+- `taskwerk init` - Initialize TaskWerk in project
+- `taskwerk rules` - View/edit workflow rules
+- `taskwerk about` - Version and help information
+
+## Development & Contributing
 
 ### Setup
 ```bash
@@ -268,55 +257,36 @@ cd taskwerk
 npm install
 ```
 
-### Scripts
+### Build & Test
 ```bash
-npm test              # Run tests with version banners
-npm run build         # Lint and format check
-npm run lint          # Check code style
-npm run format        # Format code
-npm start             # Run local version (bin/taskwerk.js)
+npm test                 # Run all tests
+npm run build           # Lint, format, test, and build
+npm run lint            # Check code style
+npm start               # Run local development version
 ```
 
-## API and Automation
-
-TaskWerk supports programmatic access:
-
-```bash
-# JSON output for automation
-taskwerk list --format json
-taskwerk stats --format json
-
-# Pipeable commands
-taskwerk list | grep "high priority"
-taskwerk search "auth" | taskwerk start
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Run the test suite: `npm test`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
+See [BUILD.md](BUILD.md) for detailed build instructions.
 
 ## Requirements
 
-- Node.js >= 18.0.0
-- Git (for git integration features)
-- Optional: Ollama or LM Studio for local LLMs
+- **Node.js**: 18.0.0 or higher
+- **Git**: For git integration features (optional)
+- **AI Models**: For natural language features (optional)
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## Built for the AI Era
+## Philosophy
 
-TaskWerk is designed for human-AI collaborative development. Whether you're working solo, with AI assistants like Claude, Cursor, or GitHub Copilot, or managing a team, TaskWerk provides the shared context and intelligent task management needed for effective collaboration.
+taskwerk believes task management should be:
+- **Simple**: Add, work, complete
+- **Transparent**: Plain text files you can read and edit
+- **Integrated**: Works with your existing Git workflow
+- **Flexible**: Use as little or as much as you need
 
-The future of software development is collaborative. TaskWerk makes it seamless.
+Whether you're working solo, with a team, or with AI assistants, taskwerk provides the shared context and intelligent task management you need.
 
 ---
 
-*Made with ❤️ for developers and their AI partners*
+*Simple task management for modern development*

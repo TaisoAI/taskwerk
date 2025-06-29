@@ -24,7 +24,7 @@ export async function rulesCommand(options) {
 }
 
 async function initializeRules(taskRules) {
-  console.log('🔧 Initializing TaskWerk workflow rules...');
+  console.log('🔧 Initializing taskwerk workflow rules...');
 
   const rules = await taskRules.loadRules();
   const mode = await taskRules.detectWorkflowMode();
@@ -119,7 +119,7 @@ async function showRulesStatus(taskRules) {
   const rules = await taskRules.loadRules();
   const mode = await taskRules.detectWorkflowMode();
 
-  console.log(`📋 TaskWerk Rules Status`);
+  console.log(`📋 taskwerk Rules Status`);
   console.log(`\n🤖 Current Mode: ${mode.toUpperCase()}`);
   console.log(`⚡ Enforcement: ${rules[mode].enforceWorkflow ? 'ENABLED' : 'DISABLED'}`);
 
@@ -156,7 +156,7 @@ async function showRulesOverview(taskRules) {
   const rules = await taskRules.loadRules();
   const mode = await taskRules.detectWorkflowMode();
 
-  console.log(`📋 TaskWerk Workflow Rules`);
+  console.log(`📋 taskwerk Workflow Rules`);
   console.log(`\n🤖 Current mode: ${mode.toUpperCase()}`);
   console.log(`⚡ Enforcement: ${rules[mode].enforceWorkflow ? 'ENABLED' : 'DISABLED'}`);
 
@@ -182,5 +182,5 @@ async function showRulesOverview(taskRules) {
 
   console.log(`\n📁 Configuration files:`);
   console.log(`   tasks/taskwerk-rules.md     Workflow rules and documentation`);
-  console.log(`   .taskrc.json          TaskWerk configuration`);
+  console.log(`   .taskrc.json          taskwerk configuration`);
 }

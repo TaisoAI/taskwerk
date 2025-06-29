@@ -1,4 +1,4 @@
-# TaskWerk-Assisted Git Workflow Plan
+# taskwerk-Assisted Git Workflow Plan
 
 ## Current State Analysis
 
@@ -15,7 +15,7 @@
 - **TASK-035**: Making commands pipeable
 - **TASK-027**: General workflow usability review
 
-## Proposed TaskWerk-Assisted Git Workflow
+## Proposed taskwerk-Assisted Git Workflow
 
 ### Core Principles
 1. **Task-Centric Development**: Every code change should be associated with a task
@@ -31,7 +31,7 @@
 # Start working on a task (creates branch, tracks start time)
 taskwerk start TASK-001
 
-# TaskWerk tracks:
+# taskwerk tracks:
 # - Current task ID
 # - Start timestamp
 # - Initial git state (branch, last commit)
@@ -40,11 +40,11 @@ taskwerk start TASK-001
 
 #### 2. Development Phase
 ```bash
-# During development, TaskWerk can track file changes
+# During development, taskwerk can track file changes
 taskwerk track [files...]  # manually add files to tracking
 taskwerk status           # show current task, tracked files, changes
 
-# TaskWerk automatically detects:
+# taskwerk automatically detects:
 # - Modified files in git working directory
 # - New files created
 # - Dependencies added/removed (package.json changes)
@@ -89,7 +89,7 @@ taskwerk commit [--version-bump minor|patch|major] [--review]
 ### Enhanced Task Completion Tracking
 
 #### Task Completion Metadata
-When completing a task, TaskWerk should capture:
+When completing a task, taskwerk should capture:
 
 ```json
 {
@@ -268,6 +268,6 @@ taskwerk status [--verbose]
 1. **Granularity**: How detailed should file change tracking be?
 2. **Automation vs Control**: Balance between automatic tracking and manual control
 3. **Performance**: Impact of extensive tracking on CLI responsiveness
-4. **Backward Compatibility**: Migration path for existing TaskWerk projects
+4. **Backward Compatibility**: Migration path for existing taskwerk projects
 5. **Error Handling**: What happens when git operations fail during task completion?
 6. **Branch Management**: How does this integrate with feature branch workflows?

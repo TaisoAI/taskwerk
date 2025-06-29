@@ -2,7 +2,7 @@
 
 *Last updated: 06/27/2025*
 *Current session: CLI*
-*Next ID: TASK-067*
+*Next ID: TASK-074*
 
 ## HIGH Priority
 
@@ -12,6 +12,7 @@
 - [ ] **TASK-053** Make TaskWerk npm installable with bin directory and compact alias 'twrk'
 - [ ] **TASK-063** Remove confusing human vs AI mode distinction - implement unified workflow for everyone
 - [ ] **TASK-064** Audit all taskwerk commands to remove unexpected side effects and align with unified workflow
+- [>] **TASK-069** Add comprehensive test coverage for Git safety behaviors in commit and branch commands
 ### Bug Fixes
 
 - [x] **TASK-023** Improve LLM error messages with setup guidance when no API key configured
@@ -36,6 +37,7 @@
 - [ ] **TASK-055** taskwerk interactive cli mode -- Instead of typing in each command at the terminal, the user can enter cli mode such as taskwerk cli.  All the basic taskwerk commands become slash commands /list /add etc.  It should have syntax highlighting so the user can clear see what taskwerk is doing and what they type.  if they don't type in anything taskwerk will be in agent mode by default - so it takes free form responses.  Note that cli mode should be able to toggle between agent mode and ask mode via a slash command (think about what this should be.   perhaps /toggle-mode agent or /toggle-mode ask.
 - [ ] **TASK-056** enable optional logging -- taskwerk should have an option to log all commands and responses to separate log file.  There should be options to log all or some commands such as logging --off (no logging), logggin --all (every command input and output is appended to a log with timestamp), and then specific filters could be set like loigging ai commands etc.  logging could be part of the config file and stored there.
 - [ ] **TASK-058** Update dev/taskwerk-overview.md to reflect current v0.1.6 implementation and remove outdated features
+- [ ] **TASK-067** Update tests to reflect simplified command behavior - remove AI mode and auto-workflow test expectations
 ### Refactoring
 
 - [ ] **TASK-027** Review usability and workflows for TaskWerk CLI tool

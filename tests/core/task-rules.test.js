@@ -295,7 +295,7 @@ describe('TaskRules', () => {
       assert.strictEqual(typeof message, 'string');
       assert(message.includes('TASK-001'));
       assert(message.includes('feat:'));
-      assert(message.includes('Auto-committed by TaskWerk'));
+      assert(message.includes('Auto-committed by taskwerk'));
     });
 
     it('should include version in commit message', async () => {
@@ -340,7 +340,7 @@ describe('TaskRules', () => {
       const markdown = taskRules.generateRulesMarkdown(rules);
 
       assert.strictEqual(typeof markdown, 'string');
-      assert(markdown.includes('# TaskWerk Workflow Rules'));
+      assert(markdown.includes('# taskwerk Workflow Rules'));
       assert(markdown.includes('## AI Agent Workflow Rules'));
       assert(markdown.includes('## Human Workflow Rules'));
       assert(markdown.includes('### Quality Gates'));

@@ -161,7 +161,7 @@ describe('rulesCommand', () => {
       await rulesCommand({ status: true });
 
       const output = consoleOutput.join('\n');
-      assert(output.includes('TaskWerk Rules Status'));
+      assert(output.includes('taskwerk Rules Status'));
       assert(output.includes('Current Mode:'));
       assert(output.includes('Enforcement:'));
       assert(output.includes('Configuration:'));
@@ -190,7 +190,7 @@ describe('rulesCommand', () => {
       await rulesCommand({});
 
       const output = consoleOutput.join('\n');
-      assert(output.includes('TaskWerk Workflow Rules'));
+      assert(output.includes('taskwerk Workflow Rules'));
       assert(output.includes('Current mode:'));
       assert(output.includes('Available commands:'));
       assert(output.includes('Configuration files:'));
@@ -246,7 +246,7 @@ describe('rulesCommand', () => {
       const rulesFile = join(tempDir, 'tasks', 'taskwerk-rules.md');
       const content = await fs.readFile(rulesFile, 'utf8');
 
-      assert(content.includes('# TaskWerk Workflow Rules'));
+      assert(content.includes('# taskwerk Workflow Rules'));
       assert(content.includes('## AI Agent Workflow Rules'));
       assert(content.includes('## Human Workflow Rules'));
       assert(content.includes('### Quality Gates'));

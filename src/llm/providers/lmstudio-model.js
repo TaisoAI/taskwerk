@@ -1,4 +1,4 @@
-import { buildTaskWerkSystemPrompt } from '../system-prompt.js';
+import { buildTaskwerkSystemPrompt } from '../system-prompt.js';
 
 export class LMStudioModel {
   constructor(modelName, config = {}) {
@@ -107,6 +107,6 @@ export class LMStudioModel {
   }
 
   buildSystemPrompt(context) {
-    return buildTaskWerkSystemPrompt(context);
+    return buildTaskwerkSystemPrompt(context);
   }
 }

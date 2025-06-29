@@ -1,4 +1,4 @@
-import { TaskWerkToolRegistry } from './tool-registry.js';
+import { TaskwerkToolRegistry } from './tool-registry.js';
 import { saveConfig } from '../utils/config.js';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -10,7 +10,7 @@ export class LLMManager {
     this.loadedModel = null;
     this.modelConfig = null;
     this.taskManager = taskManager;
-    this.toolRegistry = taskManager ? new TaskWerkToolRegistry(taskManager) : null;
+    this.toolRegistry = taskManager ? new TaskwerkToolRegistry(taskManager) : null;
   }
 
   async installModel(_modelName, _progressCallback) {

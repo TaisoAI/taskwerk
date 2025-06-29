@@ -99,10 +99,10 @@ export async function askCommand(query, options = {}) {
     });
 
     if (response.content) {
-      console.log('\n💬 TaskWerk Assistant:');
+      console.log('\n💬 taskwerk Assistant:');
       console.log(response.content);
     } else {
-      console.log('\n💬 TaskWerk Assistant:');
+      console.log('\n💬 taskwerk Assistant:');
       console.log(
         'I understand your question but cannot provide a specific answer. Try using "taskwerk agent" if you need me to perform actions.'
       );

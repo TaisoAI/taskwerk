@@ -1,16 +1,16 @@
-# TaskWerk Build and Test Guide
+# taskwerk Build and Test Guide
 
-This document provides comprehensive instructions for building and testing TaskWerk properly.
+This document provides comprehensive instructions for building and testing taskwerk properly.
 
 ## Overview
 
-TaskWerk uses a Node.js-based build system with ESBuild for minification, ESLint for linting, Prettier for formatting, and Node.js built-in test runner for testing.
+taskwerk uses a Node.js-based build system with ESBuild for minification, ESLint for linting, Prettier for formatting, and Node.js built-in test runner for testing.
 
 ## Prerequisites
 
 - **Node.js**: Version 18.0.0 or higher (specified in `package.json` engines)
 - **npm**: Comes with Node.js installation
-- **Git**: Required for TaskWerk's git integration features
+- **Git**: Required for taskwerk's git integration features
 
 ## Project Structure
 
@@ -40,7 +40,7 @@ taskwerk/
 
 ### Development Commands
 
-- `npm start` - Run TaskWerk CLI directly
+- `npm start` - Run taskwerk CLI directly
 - `npm run dev` - Alias for start (development mode)
 
 ### Build Commands
@@ -99,7 +99,7 @@ The minified build:
 
 ## Testing Framework
 
-TaskWerk uses Node.js built-in test runner with comprehensive test coverage:
+taskwerk uses Node.js built-in test runner with comprehensive test coverage:
 
 ### Test Organization
 
@@ -335,4 +335,4 @@ For build issues:
 
 ---
 
-*This documentation is maintained alongside TaskWerk development. Last updated: v0.1.6*
+*This documentation is maintained alongside taskwerk development. Last updated: v0.1.6*

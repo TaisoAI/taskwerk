@@ -46,7 +46,7 @@ export async function aboutCommand() {
 `;
 
     console.log(banner);
-    console.log(`🚀 TaskWerk v${version}`);
+    console.log(`🚀 taskwerk v${version}`);
     console.log('A lightweight CLI task manager optimized for human-AI collaboration workflows');
     console.log('');
     console.log('📦 Package Information:');
@@ -71,7 +71,7 @@ export async function aboutCommand() {
     console.log('   • Human-AI collaborative workflows');
     console.log('');
     console.log('🚀 Quick Start:');
-    console.log('   $ taskwerk init                    # Initialize TaskWerk in your project');
+    console.log('   $ taskwerk init                    # Initialize taskwerk in your project');
     console.log('   $ taskwerk add "My first task"     # Add a new task');
     console.log('   $ taskwerk list                    # View your tasks');
     console.log('   $ taskwerk llmconfig               # Set up AI integration');

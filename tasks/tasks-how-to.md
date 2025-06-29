@@ -1,10 +1,10 @@
-# TaskWerk How-To Guide
+# taskwerk How-To Guide
 
-This guide explains how to effectively use TaskWerk for managing tasks in your development workflow.
+This guide explains how to effectively use taskwerk for managing tasks in your development workflow.
 
 ## Quick Start
 
-### 1. Initialize TaskWerk
+### 1. Initialize taskwerk
 ```bash
 # Initialize in current project
 taskwerk init
@@ -150,7 +150,7 @@ taskwerk complete TASK-003 --note "Implemented using React hooks pattern"
 ```
 
 ### Session Management
-TaskWerk automatically tracks:
+taskwerk automatically tracks:
 - Current active task
 - When work started
 - Which AI agent is working
@@ -184,7 +184,7 @@ taskwerk complete TASK-001 --note "Added rate limiting with Redis backend, 100 r
 
 ## File Structure
 
-TaskWerk creates these files:
+taskwerk creates these files:
 
 ```
 your-project/
@@ -220,7 +220,7 @@ taskwerk start TASK-001  # Not task-1 or TASK-1
 # Make sure you're in a git repository
 git status
 
-# TaskWerk gracefully degrades without git
+# taskwerk gracefully degrades without git
 ```
 
 ### Tips

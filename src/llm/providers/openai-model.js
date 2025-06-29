@@ -1,4 +1,4 @@
-import { buildTaskWerkSystemPrompt } from '../system-prompt.js';
+import { buildTaskwerkSystemPrompt } from '../system-prompt.js';
 
 export class OpenAIModel {
   constructor(modelName, config) {
@@ -72,6 +72,6 @@ export class OpenAIModel {
   }
 
   buildSystemPrompt(context) {
-    return buildTaskWerkSystemPrompt(context);
+    return buildTaskwerkSystemPrompt(context);
   }
 }

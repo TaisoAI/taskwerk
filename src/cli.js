@@ -27,13 +27,13 @@ const program = new Command();
 program
   .name('taskwerk')
   .description('A lightweight CLI task manager optimized for human-AI collaboration workflows')
-  .version('0.1.6')
+  .version('0.1.7')
   .addHelpText(
     'after',
     `
 
 🚀 Quick Start:
-  $ taskwerk init                    # Set up TaskWerk in your project
+  $ taskwerk init                    # Set up taskwerk in your project
   $ taskwerk add "My first task"     # Add a new task
   $ taskwerk list                    # View your tasks
   $ taskwerk start TASK-001          # Begin working on a task
@@ -53,13 +53,13 @@ Note: AI features require either an OpenAI API key or local models (Ollama/LM St
 // Initialize command
 program
   .command('init')
-  .description('Initialize TaskWerk in the current project')
+  .description('Initialize taskwerk in the current project')
   .argument('[path]', 'Path to initialize tasks (default: tasks)', 'tasks')
   .addHelpText(
     'after',
     `
 
-Sets up TaskWerk for your project by creating:
+Sets up taskwerk for your project by creating:
   - tasks/ directory with tasks.md and tasks-completed.md files
   - Basic project structure and configuration
 
@@ -240,14 +240,57 @@ program
     'after',
     `
 
-Creates a Git feature branch named after the task:
-  format: feature/task-001-description
+⚠️  WARNING: This command creates/switches Git branches automatically!
 
-If the branch already exists, switches to it.
-Helps organize work by task for better Git history.
+🔧 What this command does:
+  1. Creates a new Git branch named: feature/task-{id}-{description}
+  2. If the branch already exists, switches to it
+  3. Updates your current working directory to that branch
 
-Examples:
-  $ taskwerk branch TASK-001    # Creates: feature/task-001-fix-login-bug`
+📋 Prerequisites:
+  • Must be in a Git repository
+  • Recommended: commit or stash current changes first
+
+⚠️  Branch Management Warnings:
+  • Each task creates a separate branch - you may end up with many branches
+  • Be aware of which branch you're on when making commits
+  • Consider if you really need separate branches for each task
+  • Use 'git branch' to see all branches and 'git status' to see current branch
+
+🔄 Recommended workflow if using branches:
+  Step 1: Check your current state
+    $ git status                    # See current branch and changes
+    $ git commit -am "save work"    # Commit current work if needed
+
+  Step 2: Create task branch
+    $ taskwerk branch TASK-001      # Creates: feature/task-001-fix-login-bug
+
+  Step 3: Work on the task
+    $ taskwerk start TASK-001
+    [... do your work ...]
+    $ taskwerk complete TASK-001
+
+  Step 4: Commit and merge
+    $ git add .
+    $ taskwerk commit --auto
+    $ git checkout main             # Switch back to main
+    $ git merge feature/task-001-fix-login-bug
+
+🚀 Examples:
+  $ taskwerk branch TASK-001      # Creates: feature/task-001-fix-login-bug
+  $ taskwerk branch TASK-002      # Creates: feature/task-002-add-dark-mode
+
+💡 Alternative (simpler) workflow:
+  Many users prefer to work on main branch and use taskwerk for task tracking
+  without creating separate Git branches. Consider if you really need branches
+  for each task, as it can complicate your Git workflow.
+
+  Simple approach:
+    $ taskwerk add "Fix login bug"
+    $ taskwerk start TASK-001
+    [... work on main branch ...]
+    $ taskwerk complete TASK-001
+    $ git add . && taskwerk commit --auto`
   )
   .action(branchCommand);
 
@@ -327,7 +370,7 @@ What this command does:
   - Generates a preview of the commit message
   - Optionally stages files for the next commit
 
-This is the first step in the TaskWerk git workflow:
+This is the first step in the taskwerk git workflow:
   1. Complete tasks: taskwerk complete TASK-XXX
   2. Stage changes: taskwerk stage --auto
   3. Create commit: taskwerk commit --auto
@@ -341,78 +384,74 @@ Examples:
 
 program
   .command('commit')
-  .description('Create intelligent Git commits from completed tasks')
-  .option('--auto', 'Commit without review')
-  .option('--review', 'Show commit message preview (default)')
-  .option('-m, --message <msg>', 'Use custom commit message')
-  .option('--version-bump <type>', 'Bump version (patch|minor|major)')
+  .description('Generate intelligent Git commit messages from completed tasks')
+  .option('--auto', 'Actually execute git commit after showing preview')
+  .option('--review', 'Show commit message preview only (default)')
+  .option('-m, --message <msg>', 'Use custom commit message instead of generating one')
+  .option('--version-bump <type>', 'Bump version in package.json (patch|minor|major)')
   .option('--allow-empty', 'Allow commit even if no completed tasks found')
   .addHelpText(
     'after',
     `
 
+⚠️  IMPORTANT: By default, this command ONLY shows a preview - it does NOT commit!
+
 🔧 What this command does:
-  TaskWerk commit creates intelligent Git commits by analyzing your completed tasks
-  and generating conventional commit messages that document what work was done.
-  It follows workflow rules and automatically handles Co-Authored-By tags, version bumping, and file staging based on your workflow mode (AI vs human).
+  1. Analyzes your completed tasks since the last Git commit
+  2. Generates an intelligent conventional commit message
+  3. Shows you a preview of the message
+  4. STOPS without committing (unless you use --auto)
 
 📋 Prerequisites:
-  • Must be in a Git repository (git init if needed)
-  • Have completed tasks since last commit (optional with --allow-empty)
-  • Files will be auto-staged in AI mode, or use 'git add' to stage manually
+  • Must be in a Git repository (run 'git init' if needed)
+  • Files must be staged first (run 'git add <files>' before this command)
+  • Have completed tasks since last commit (or use --allow-empty)
 
-🔄 How it works:
-  1. Checks for staged files in Git working directory
-  2. Finds tasks completed since your last Git commit
-  3. Generates conventional commit message (feat:, fix:, docs:, etc.)
-  4. Shows preview by default, commits with --auto flag
-  5. Can optionally bump version numbers in package.json
-
-📊 TaskWerk Git Workflow (Recommended):
-  Step 1: Work on tasks
+🔄 Safe workflow:
+  Step 1: Do your work and complete tasks
     $ taskwerk add "Fix login bug"
     $ taskwerk start TASK-001
-    [... do your work ...]
-    $ taskwerk complete TASK-001
+    [... do your development work ...]
+    $ taskwerk complete TASK-001 --note "Fixed session timeout logic"
 
-  Step 2: Commit changes
-    $ taskwerk commit              # Auto-stages in AI mode, shows preview
-    $ taskwerk commit --auto       # Auto-stages and commits immediately
-    # OR manually: git add src/auth.js && taskwerk commit
+  Step 2: Stage your changes manually
+    $ git add src/auth.js tests/auth.test.js
 
-📝 Generated commit message format:
-  feat: Complete 2 tasks (or fix:, docs:, etc. based on task content)
+  Step 3: Generate and review commit message
+    $ taskwerk commit              # Shows preview, does NOT commit
+
+  Step 4: Commit if you approve
+    $ taskwerk commit --auto       # Actually executes git commit
+    # OR use regular git: git commit -m "your own message"
+
+📝 Generated message format:
+  feat: Fix login bug (or fix:, docs:, etc. based on task content)
   
   Tasks completed since last commit:
-  - TASK-001: Fix login validation bug
-  - TASK-002: Add user authentication
+  - TASK-001: Fix login bug
   
   Files modified:
   - src/auth.js
-  - src/components/Login.tsx
   - tests/auth.test.js
 
-🚀 Common usage patterns:
-  $ taskwerk commit                        # Review message then commit (safest)
-  $ taskwerk commit --auto                 # Skip preview, commit immediately
-  $ taskwerk commit --review               # Force preview mode (default behavior)
-  $ taskwerk commit -m "Custom message"    # Override with custom message
-  $ taskwerk commit --version-bump patch   # Commit + bump patch version
+🚀 Usage patterns:
+  $ taskwerk commit                        # Preview only (SAFE - no commit)
+  $ taskwerk commit --auto                 # Preview + actually commit
+  $ taskwerk commit -m "Custom message"    # Use custom message + commit
+  $ taskwerk commit --version-bump patch   # Bump version + commit
   $ taskwerk commit --allow-empty          # Commit even with no completed tasks
 
-⚠️  Troubleshooting:
-  "No files staged": Run 'git add <files>' or enable auto-staging in AI mode
-  "No completed tasks": Complete tasks with 'taskwerk complete TASK-XXX'
-  "Not a git repository": Run 'git init' in your project directory
-  "No changes to commit": All changes already committed, check 'git status'
+⚠️  Git Safety:
+  • This command never stages files for you - always use 'git add' first
+  • Default behavior is preview-only - your code won't be committed unexpectedly
+  • Use --auto when you're confident in the generated message
+  • You can always use regular 'git commit -m "message"' instead
 
 💡 Pro tips:
-  • In AI mode: auto-staging, version bumping, and Co-Authored-By tags are automatic
-  • In human mode: minimal automation, manual control over staging and commits
-  • The --auto flag is great for scripting and CI/CD pipelines
-  • Version bumping follows semantic versioning (patch/minor/major)
-  • Custom messages with -m bypass task-based message generation
-  • Commit messages follow conventional commit format with proper co-authorship`
+  • Run 'git status' first to see what files will be committed
+  • Use the preview to understand what taskwerk detected as changes
+  • Custom messages with -m skip the task-based generation entirely
+  • Version bumping updates package.json before committing`
   )
   .action(commitCommand);
 
@@ -457,7 +496,7 @@ Examples:
 
 Configuration:
   - tasks/taskwerk-rules.md   Workflow rules and documentation
-  - .taskrc.json              TaskWerk configuration with rule settings`
+  - .taskrc.json              taskwerk configuration with rule settings`
   )
   .action(rulesCommand);
 
@@ -467,7 +506,7 @@ program
   .description('Manage LLM configuration and models')
   .option('--list-models', 'List all available models')
   .option('--model-info <model>', 'Show detailed model information')
-  .option('--set-default <model>', 'Set default model for TaskWerk')
+  .option('--set-default <model>', 'Set default model for taskwerk')
   .option('--model <model>', 'Set default model (alias for --set-default)')
   .option('--pull <model>', 'Download model from Ollama')
   .option('--choose', 'Interactive model selection')
@@ -529,12 +568,12 @@ program
 
 program
   .command('about')
-  .description('Show TaskWerk information, version, and project links')
+  .description('Show taskwerk information, version, and project links')
   .addHelpText(
     'after',
     `
 
-Displays comprehensive information about TaskWerk:
+Displays comprehensive information about taskwerk:
   - ASCII banner and version information
   - Package details and description
   - GitHub repository and npm package links
@@ -543,7 +582,7 @@ Displays comprehensive information about TaskWerk:
   - Quick start guide and help resources
 
 Example:
-  $ taskwerk about    # Show all information about TaskWerk`
+  $ taskwerk about    # Show all information about taskwerk`
   )
   .action(aboutCommand);
 

@@ -8,8 +8,6 @@ export async function completeCommand(taskId, options) {
     const taskManager = new TaskManager(config);
     const gitManager = new GitManager();
 
-    const task = await taskManager.getTask(taskId);
-
     // Get changed files from git (optional, for context)
     let files = [];
     if (options.files) {
@@ -46,7 +44,6 @@ export async function completeCommand(taskId, options) {
     if (options.sideEffects) {
       console.log(`⚠️  Side effects: ${options.sideEffects}`);
     }
-
   } catch (error) {
     console.error('❌ Failed to complete task:', error.message);
     process.exit(1);

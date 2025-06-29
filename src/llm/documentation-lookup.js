@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 
 /**
- * Documentation lookup system for TaskWerk LLM integration
+ * Documentation lookup system for taskwerk LLM integration
  * Provides dynamic access to help information and command details
  */
 export class DocumentationLookup {
@@ -129,7 +129,7 @@ export class DocumentationLookup {
   }
 
   /**
-   * Get information about TaskWerk's current configuration
+   * Get information about taskwerk's current configuration
    */
   async getConfigInfo() {
     try {

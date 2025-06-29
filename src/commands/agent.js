@@ -96,7 +96,7 @@ export async function agentCommand(query, options = {}) {
     const response = await llmManager.processNaturalLanguage(query);
 
     if (response.content) {
-      console.log('\n💬 TaskWerk Agent:');
+      console.log('\n💬 taskwerk Agent:');
       console.log(response.content);
     }
 

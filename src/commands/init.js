@@ -38,7 +38,7 @@ export async function initCommand(path) {
       console.log('✅ Created .taskrc.json');
     }
 
-    console.log('\n🎉 TaskWerk initialized successfully!');
+    console.log('\n🎉 taskwerk initialized successfully!');
     console.log('\nNext steps:');
     console.log('  taskwerk add "Your first task"');
     console.log('  taskwerk list');

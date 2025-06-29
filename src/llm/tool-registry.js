@@ -1,6 +1,6 @@
 import { DocumentationLookup } from './documentation-lookup.js';
 
-export class TaskWerkToolRegistry {
+export class TaskwerkToolRegistry {
   constructor(taskManager) {
     this.taskManager = taskManager;
     this.documentationLookup = new DocumentationLookup();
@@ -141,7 +141,7 @@ export class TaskWerkToolRegistry {
       },
       {
         name: 'taskwerk_help',
-        description: 'Get help documentation for TaskWerk commands or topics',
+        description: 'Get help documentation for taskwerk commands or topics',
         parameters: {
           type: 'object',
           properties: {
@@ -155,7 +155,7 @@ export class TaskWerkToolRegistry {
       },
       {
         name: 'taskwerk_search_docs',
-        description: 'Search TaskWerk documentation for specific information',
+        description: 'Search taskwerk documentation for specific information',
         parameters: {
           type: 'object',
           properties: {
@@ -169,7 +169,7 @@ export class TaskWerkToolRegistry {
       },
       {
         name: 'taskwerk_get_commands',
-        description: 'Get list of all available TaskWerk commands',
+        description: 'Get list of all available taskwerk commands',
         parameters: {
           type: 'object',
           properties: {},

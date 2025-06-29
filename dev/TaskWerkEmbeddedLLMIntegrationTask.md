@@ -1,17 +1,17 @@
-# TaskWerk Embedded LLM Integration Task
+# taskwerk Embedded LLM Integration Task
 
 ## 🎯 **Project Overview**
 
-Integrate a tiny local LLM into TaskWerk to provide natural language interface for task management, making the CLI more accessible and intelligent while maintaining privacy and zero API costs.
+Integrate a tiny local LLM into taskwerk to provide natural language interface for task management, making the CLI more accessible and intelligent while maintaining privacy and zero API costs.
 
 ## 🚀 **Core Concept**
 
-Create an optional AI assistant that understands natural language requests and converts them to TaskWerk CLI commands via **built-in tool calling**. The LLM has direct access to TaskWerk's command system, enabling seamless human-AI collaboration.
+Create an optional AI assistant that understands natural language requests and converts them to taskwerk CLI commands via **built-in tool calling**. The LLM has direct access to taskwerk's command system, enabling seamless human-AI collaboration.
 
 
-### **Key Idea: LLM with TaskWerk Tool Integration**
+### **Key Idea: LLM with taskwerk Tool Integration**
 ```javascript
-// The LLM has TaskWerk CLI as a built-in tool
+// The LLM has taskwerk CLI as a built-in tool
 const tools = [
   {
     name: "taskwerk_add",
@@ -28,7 +28,7 @@ const tools = [
     description: "Mark task as completed",
     parameters: { id: string, note: string }
   }
-  // ... all TaskWerk commands as tools
+  // ... all taskwerk commands as tools
 ];
 ```
 
@@ -61,8 +61,8 @@ class LLMManager {
 ```
 
 #### **1.3 Tool Integration System**
-- [ ] **TaskWerk Tool Registry**
-  - Define all TaskWerk commands as LLM tools
+- [ ] **taskwerk Tool Registry**
+  - Define all taskwerk commands as LLM tools
   - Create tool schemas with parameter validation
   - Implement tool execution bridge
   - Add result formatting for LLM responses
@@ -94,14 +94,14 @@ taskwerk llm  ... just make a raw llm call but not a taskwerk command, allows sp
 #### **2.1 Prompt Engineering**
 - [ ] **System Prompt Design**
 ```
-You are TaskWerk Assistant, an AI helper for task management.
-You have access to TaskWerk commands via function calls.
-Convert user requests to appropriate TaskWerk actions.
+You are taskwerk Assistant, an AI helper for task management.
+You have access to taskwerk commands via function calls.
+Convert user requests to appropriate taskwerk actions.
 
 Available tools: taskwerk_add, taskwerk_list, taskwerk_start, taskwerk_complete, taskwerk_status
 
 Always:
-- Use function calls to execute TaskWerk commands
+- Use function calls to execute taskwerk commands
 - Provide helpful summaries of actions taken
 - Ask for clarification when requests are ambiguous
 - Maintain context about current tasks and session

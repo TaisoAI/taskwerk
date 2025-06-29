@@ -69,16 +69,31 @@ async function listModels(llmManager) {
 
     for (const model of providerModels) {
       const status = model.status === 'available' ? '✅' : '❌';
-      let info = `${status} **${model.name}** (${model.type})`;
-
-      if (model.size) {
-        info += ` - ${model.size}`;
+      
+      // Parse parameter size from model name if available
+      let paramSize = '';
+      const sizeMatch = model.name.match(/:(\d+[bm]?)$/i);
+      if (sizeMatch) {
+        paramSize = sizeMatch[1].toUpperCase();
+      } else if (model.size) {
+        // Check if it's a reasonable parameter size (not a file size)
+        const sizeStr = model.size.toString();
+        if (sizeStr.match(/^\d+[BMK]?$/i) && parseInt(sizeStr) < 1000000) {
+          paramSize = model.size;
+        }
       }
-      if (model.modified) {
-        info += ` - Modified: ${new Date(model.modified).toLocaleDateString()}`;
+      
+      // Format: [PROVIDER] [MODELNAME] [PARAM_SIZE]
+      const providerTag = `[${provider.toUpperCase()}]`;
+      const modelName = model.name.replace(/:.*$/, ''); // Remove size suffix
+      const paramTag = paramSize ? `[${paramSize}]` : '';
+      
+      console.log(`${status} ${providerTag} ${modelName} ${paramTag}`.trim());
+      
+      // Add secondary info if available
+      if (model.type === 'local' && model.modified) {
+        console.log(`     Modified: ${new Date(model.modified).toLocaleDateString()}`);
       }
-
-      console.log(info);
     }
     console.log('');
   }

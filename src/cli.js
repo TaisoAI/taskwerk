@@ -27,7 +27,7 @@ const program = new Command();
 program
   .name('taskwerk')
   .description('A lightweight CLI task manager optimized for human-AI collaboration workflows')
-  .version('0.1.5')
+  .version('0.1.6')
   .addHelpText(
     'after',
     `
@@ -468,15 +468,15 @@ program
   .option('--model <model>', 'Set default model (alias for --set-default)')
   .option('--pull <model>', 'Download model from Ollama')
   .option('--choose', 'Interactive model selection')
-  .option('--add-key <provider>', 'Add API key for provider (openai, anthropic)')
-  .option('--remove-key <provider>', 'Remove API key for provider')
+  .option('--add-key <provider>', 'Add API key for provider. Specify: openai OR anthropic')
+  .option('--remove-key <provider>', 'Remove API key for provider. Specify: openai OR anthropic')
   .option('--list-keys', 'List configured API keys (without revealing values)')
-  .option('--test-key <provider>', 'Test API key for provider')
+  .option('--test-key <provider>', 'Test API key for provider. Specify: openai OR anthropic')
   .addHelpText(
     'after',
     `
 
-Examples:
+🔧 Configuration Examples:
   $ taskwerk llmconfig                      # Show current LLM status and setup guide
   $ taskwerk llmconfig --list-models        # List all available models
   $ taskwerk llmconfig --choose             # Interactively choose and set a model
@@ -484,21 +484,27 @@ Examples:
   $ taskwerk llmconfig --set-default gpt-4  # Set GPT-4 as default model
   $ taskwerk llmconfig --pull llama3.2      # Download llama3.2 from Ollama
 
-API Key Management:
-  $ taskwerk llmconfig --add-key openai     # Add OpenAI API key
-  $ taskwerk llmconfig --add-key anthropic  # Add Anthropic/Claude API key
-  $ taskwerk llmconfig --list-keys          # Show configured API keys
-  $ taskwerk llmconfig --test-key openai    # Test OpenAI API key
-  $ taskwerk llmconfig --remove-key openai  # Remove OpenAI API key
+🔑 API Key Management:
+To use cloud AI models (GPT-4, Claude), you need to store API keys securely.
+You MUST specify the provider (openai or anthropic) when managing keys:
 
-LLM Commands:
-  $ taskwerk ask "what is my status?"     # Ask questions (no actions taken)
-  $ taskwerk agent "show me my tasks"     # Perform actions via AI agent
+  $ taskwerk llmconfig --add-key openai     # Will prompt: "Enter your OpenAI API key:"
+  $ taskwerk llmconfig --add-key anthropic  # Will prompt: "Enter your Anthropic API key:"
+  $ taskwerk llmconfig --list-keys          # Show which keys are configured (masked)
+  $ taskwerk llmconfig --test-key openai    # Test if OpenAI key works
+  $ taskwerk llmconfig --remove-key openai  # Remove stored OpenAI key
 
-Quick Setup:
-  1. For cloud AI: taskwerk llmconfig --add-key openai (or --add-key anthropic)
-  2. For local models: Install Ollama (https://ollama.ai) or LM Studio (https://lmstudio.ai)
-  3. Run: taskwerk llmconfig --choose`
+⚠️  Provider must be specified: 'openai' for GPT models, 'anthropic' for Claude models
+
+Keys are stored securely in ~/.taskwerk/keys.json and take priority over environment variables.
+
+🚀 Quick Setup:
+  1. For GPT-4/OpenAI: Get API key from https://platform.openai.com/api-keys
+                       Run: taskwerk llmconfig --add-key openai
+  2. For Claude:       Get API key from https://console.anthropic.com/
+                       Run: taskwerk llmconfig --add-key anthropic
+  3. For local models: Install Ollama (https://ollama.ai) or LM Studio (https://lmstudio.ai)
+  4. Run: taskwerk llmconfig --choose      # Select your preferred model`
   )
   .action(llmConfigCommand);
 

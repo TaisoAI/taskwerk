@@ -400,8 +400,8 @@ export class LLMManager {
   async listAvailableModels() {
     const models = [];
 
-    // Remote models
-    if (process.env.OPENAI_API_KEY) {
+    // Remote models - OpenAI
+    if (this.getApiKey('openai')) {
       models.push({
         name: 'gpt-3.5-turbo',
         type: 'remote',
@@ -412,6 +412,40 @@ export class LLMManager {
         name: 'gpt-4',
         type: 'remote',
         provider: 'openai',
+        status: 'available',
+      });
+      models.push({
+        name: 'gpt-4o',
+        type: 'remote',
+        provider: 'openai',
+        status: 'available',
+      });
+      models.push({
+        name: 'gpt-4o-mini',
+        type: 'remote',
+        provider: 'openai',
+        status: 'available',
+      });
+    }
+
+    // Remote models - Anthropic
+    if (this.getApiKey('anthropic')) {
+      models.push({
+        name: 'claude-3-5-sonnet-20241022',
+        type: 'remote',
+        provider: 'anthropic',
+        status: 'available',
+      });
+      models.push({
+        name: 'claude-3-5-haiku-20241022',
+        type: 'remote',
+        provider: 'anthropic',
+        status: 'available',
+      });
+      models.push({
+        name: 'claude-3-opus-20240229',
+        type: 'remote',
+        provider: 'anthropic',
         status: 'available',
       });
     }

@@ -59,9 +59,9 @@ export async function saveConfig(config) {
 
   try {
     const configToSave = { ...config };
-    // Remove default values to keep config clean
+    // Remove default values to keep config clean, but preserve explicit settings
     Object.keys(DEFAULT_CONFIG).forEach(key => {
-      if (configToSave[key] === DEFAULT_CONFIG[key]) {
+      if (configToSave[key] === DEFAULT_CONFIG[key] && key !== 'defaultModel') {
         delete configToSave[key];
       }
     });

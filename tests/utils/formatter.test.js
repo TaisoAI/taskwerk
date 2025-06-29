@@ -58,6 +58,7 @@ test('formatStats creates statistics summary', () => {
     inProgress: 1,
     blocked: 1,
     completed: 10,
+    archived: 3,
     priorities: {
       high: 1,
       medium: 3,
@@ -69,10 +70,12 @@ test('formatStats creates statistics summary', () => {
 
   assert(formatted.includes('**Total Active Tasks**: 5'));
   assert(formatted.includes('**Completed Tasks**: 10'));
+  assert(formatted.includes('**Archived Tasks**: 3'));
   assert(formatted.includes('**Todo**: 2'));
   assert(formatted.includes('**In Progress**: 1'));
   assert(formatted.includes('High**: 1'));
-  assert(formatted.includes('**Completion Rate**: 67%'));
+  // Completion rate: 10 / (5 + 10 + 3) = 10/18 = 56%
+  assert(formatted.includes('**Completion Rate**: 56%'));
 });
 
 test('formatSessionStatus shows current session', () => {

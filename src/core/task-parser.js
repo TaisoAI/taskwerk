@@ -64,23 +64,39 @@ export class TaskParser {
     // Match completed task patterns: - [x] **TASK-001** Description *[timestamp]* or - ✅ **TASK-001** Description *[timestamp]*
     const completedRegexNew = /^[-*]\s*\[x\]\s*\*\*([A-Z]+-\d+)\*\*\s*(.+?)\s*\*\[([^\]]+)\]\*$/;
     const completedRegexOld = /^[-*]\s*✅\s*\*\*([A-Z]+-\d+)\*\*\s*(.+?)\s*\*\[([^\]]+)\]\*$/;
+    // Match archived task pattern: - [~] **TASK-001** Description *[timestamp]*
+    const archivedRegex = /^[-*]\s*\[~\]\s*\*\*([A-Z]+-\d+)\*\*\s*(.+?)\s*\*\[([^\]]+)\]\*$/;
 
-    const match = line.match(completedRegexNew) || line.match(completedRegexOld);
+    const completedMatch = line.match(completedRegexNew) || line.match(completedRegexOld);
+    const archivedMatch = line.match(archivedRegex);
 
-    if (!match) {
-      return null;
+    if (completedMatch) {
+      const [, id, description, timestamp] = completedMatch;
+
+      return {
+        id,
+        description: description.trim(),
+        status: 'completed',
+        completedAt: timestamp,
+        priority: 'medium', // Default for completed tasks
+        category: null,
+      };
     }
 
-    const [, id, description, timestamp] = match;
+    if (archivedMatch) {
+      const [, id, description, timestamp] = archivedMatch;
 
-    return {
-      id,
-      description: description.trim(),
-      status: 'completed',
-      completedAt: timestamp,
-      priority: 'medium', // Default for completed tasks
-      category: null,
-    };
+      return {
+        id,
+        description: description.trim(),
+        status: 'archived',
+        archivedAt: timestamp,
+        priority: 'medium', // Default for archived tasks
+        category: null,
+      };
+    }
+
+    return null;
   }
 
   parseStatus(statusChar) {
@@ -93,6 +109,8 @@ export class TaskParser {
         return 'completed';
       case '!':
         return 'blocked';
+      case '~':
+        return 'archived';
       default:
         return 'todo';
     }
@@ -261,6 +279,27 @@ export class TaskParser {
     return lines.join('\n');
   }
 
+  addArchivedTask(content, task) {
+    const lines = content.split('\n');
+
+    const taskEntry = this.formatArchivedTask(task);
+
+    // Insert at the top after the header (most recent first)
+    let insertIndex = 2; // After "# Completed Tasks" header
+
+    // Skip any existing header comments or empty lines
+    while (
+      insertIndex < lines.length &&
+      (lines[insertIndex].trim() === '' || lines[insertIndex].startsWith('*'))
+    ) {
+      insertIndex++;
+    }
+
+    lines.splice(insertIndex, 0, ...taskEntry);
+
+    return lines.join('\n');
+  }
+
   formatTaskLine(task) {
     const statusChar = this.statusToChar(task.status);
     return `- [${statusChar}] **${task.id}** ${task.description}`;
@@ -283,6 +322,29 @@ export class TaskParser {
     return lines;
   }
 
+  formatArchivedTask(task) {
+    const timestamp = new Date(task.archivedAt).toISOString();
+    const lines = [`- [~] **${task.id}** ${task.description} *[${timestamp}]*`];
+
+    lines.push(`  **Archived:** ${task.archiveReason}`);
+
+    if (task.supersededBy) {
+      lines.push(`  **Superseded by:** ${task.supersededBy}`);
+    }
+
+    if (task.note) {
+      lines.push(`  **Note:** ${task.note}`);
+    }
+
+    if (task.filesChanged && task.filesChanged.length > 0) {
+      lines.push(`  Files: ${task.filesChanged.join(', ')}`);
+    }
+
+    lines.push('');
+
+    return lines;
+  }
+
   statusToChar(status) {
     switch (status) {
       case 'todo':
@@ -293,6 +355,8 @@ export class TaskParser {
         return 'x';
       case 'blocked':
         return '!';
+      case 'archived':
+        return '~';
       default:
         return ' ';
     }

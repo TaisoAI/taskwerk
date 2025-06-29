@@ -1,5 +1,14 @@
 # Completed Tasks
 
+- [~] **TASK-076** Test task for archiving demo *[2025-06-29T22:42:58.455Z]*
+  **Archived:** Demo task no longer needed
+  **Note:** Successfully demonstrated archive functionality
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-075** Implement taskwerk archive command to mark tasks as archived with reason tracking *[2025-06-29T22:42:40.313Z]*
+  Successfully implemented taskwerk archive command with comprehensive test coverage. Features include: archive with reason tracking, superseded-by relationships, chronological ordering in completed tasks, filtering support (--archived, --all-closed), updated stats display, and full CLI integration. All 33 archive-specific tests pass.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-074** Design comprehensive task management architecture with proper subfields, git integration, subtasks, and dependencies *[2025-06-29T21:35:52.404Z]*
   Created comprehensive architectural plan for TaskWerk v2.0 addressing core issues: rich task schema with subfields, git integration with commit tracking, subtasks and dependencies, enhanced state management, and intelligent commit message generation. Plan saved to dev/taskwerk-architecture-v2.md with detailed implementation phases.
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

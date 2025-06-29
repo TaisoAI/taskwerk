@@ -40,6 +40,30 @@ export class TaskManager {
   }
 
   async getTasks(filters = {}) {
+    // If requesting completed, archived, or all closed tasks, read from completed file
+    if (filters.completed || filters.archived || filters.allClosed) {
+      const content = await this._readCompletedFile();
+      const tasks = this.parser.parseTasks(content);
+
+      if (filters.archived) {
+        return this._filterTasks(
+          tasks.filter(t => t.status === 'archived'),
+          filters
+        );
+      } else if (filters.completed) {
+        return this._filterTasks(
+          tasks.filter(t => t.status === 'completed'),
+          filters
+        );
+      } else if (filters.allClosed) {
+        return this._filterTasks(
+          tasks.filter(t => t.status === 'completed' || t.status === 'archived'),
+          filters
+        );
+      }
+    }
+
+    // Default: return active tasks
     const content = await this._readTasksFile();
     const tasks = this.parser.parseTasks(content);
 
@@ -95,6 +119,26 @@ export class TaskManager {
     return { ...task, status: 'todo' };
   }
 
+  async archiveTask(taskId, options = {}) {
+    const task = await this.getTask(taskId);
+    const session = await this.sessionManager.getCurrentSession();
+
+    if (!options.reason) {
+      throw new Error('Archive reason is required');
+    }
+
+    // Add session info to archive options
+    const archiveOptions = {
+      ...options,
+      filesChanged: session.filesModified || [],
+    };
+
+    await this._moveTaskToArchived(task, archiveOptions);
+    await this.sessionManager.completeTask(taskId); // Same session cleanup as complete
+
+    return task;
+  }
+
   async searchTasks(query) {
     const tasks = await this.getTasks();
     const lowercaseQuery = query.toLowerCase();
@@ -110,13 +154,16 @@ export class TaskManager {
     const tasks = await this.getTasks();
     const completedContent = await this._readCompletedFile();
     const completedTasks = this.parser.parseTasks(completedContent);
+    const completedOnly = completedTasks.filter(t => t.status === 'completed');
+    const archivedOnly = completedTasks.filter(t => t.status === 'archived');
 
     return {
       total: tasks.length,
       todo: tasks.filter(t => t.status === 'todo').length,
       inProgress: tasks.filter(t => t.status === 'in_progress').length,
       blocked: tasks.filter(t => t.status === 'blocked').length,
-      completed: completedTasks.length,
+      completed: completedOnly.length,
+      archived: archivedOnly.length,
       priorities: {
         high: tasks.filter(t => t.priority === 'high').length,
         medium: tasks.filter(t => t.priority === 'medium').length,
@@ -205,6 +252,33 @@ export class TaskManager {
     };
 
     const updatedCompletedContent = this.parser.addCompletedTask(completedContent, completedTask);
+    await writeFile(this.config.completedFile, updatedCompletedContent, 'utf8');
+  }
+
+  async _moveTaskToArchived(task, options) {
+    // Get all tasks for header update
+    const tasksContent = await this._readTasksFile();
+    const activeTasks = this.parser.parseTasks(tasksContent);
+    const completedContent = await this._readCompletedFile();
+    const completedTasks = this.parser.parseTasks(completedContent);
+    const allTasks = [...activeTasks, ...completedTasks];
+
+    // Remove from active tasks
+    const updatedTasksContent = this.parser.removeTask(tasksContent, task.id, allTasks);
+    await writeFile(this.config.tasksFile, updatedTasksContent, 'utf8');
+
+    // Add to completed tasks as archived
+    const archivedTask = {
+      ...task,
+      status: 'archived',
+      archivedAt: new Date().toISOString(),
+      archiveReason: options.reason,
+      supersededBy: options.supersededBy,
+      note: options.note,
+      filesChanged: options.filesChanged || [],
+    };
+
+    const updatedCompletedContent = this.parser.addArchivedTask(completedContent, archivedTask);
     await writeFile(this.config.completedFile, updatedCompletedContent, 'utf8');
   }
 

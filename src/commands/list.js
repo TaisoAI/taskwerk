@@ -17,11 +17,13 @@ export async function listCommand(options) {
       priority: options.priority,
       category: options.category,
       completed: options.completed,
+      archived: options.archived,
+      allClosed: options.allClosed,
     });
 
     console.log(
       formatTaskList(tasks, {
-        showCompleted: options.completed,
+        showCompleted: options.completed || options.archived || options.allClosed,
         priority: options.priority,
         category: options.category,
       })

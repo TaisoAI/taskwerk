@@ -6,6 +6,7 @@ import { listCommand } from './commands/list.js';
 import { startCommand } from './commands/start.js';
 import { completeCommand } from './commands/complete.js';
 import { pauseCommand } from './commands/pause.js';
+import { archiveCommand } from './commands/archive.js';
 import { statusCommand } from './commands/status.js';
 import { contextCommand } from './commands/context.js';
 import { branchCommand } from './commands/branch.js';
@@ -27,7 +28,7 @@ const program = new Command();
 program
   .name('taskwerk')
   .description('A lightweight CLI task manager optimized for human-AI collaboration workflows')
-  .version('0.1.7')
+  .version('0.1.8')
   .addHelpText(
     'after',
     `
@@ -98,19 +99,23 @@ program
   .option('-p, --priority <level>', 'Filter by priority (high|medium|low)')
   .option('-c, --category <category>', 'Filter by category (partial match)')
   .option('--completed', 'Show completed tasks instead of active ones')
+  .option('--archived', 'Show archived tasks instead of active ones')
+  .option('--all-closed', 'Show both completed and archived tasks')
   .option('--current', 'Show current session info and active task')
   .addHelpText(
     'after',
     `
 
 By default shows all active (non-completed) tasks organized by priority.
-Use filters to narrow down the list or see completed work.
+Use filters to narrow down the list or see completed/archived work.
 
 Examples:
   $ taskwerk list                    # Show all active tasks
   $ taskwerk list -p high            # Show only high priority tasks
   $ taskwerk list -c bug             # Show tasks with 'bug' in category
-  $ taskwerk list --completed        # Show completed tasks
+  $ taskwerk list --completed        # Show completed tasks only
+  $ taskwerk list --archived         # Show archived tasks only
+  $ taskwerk list --all-closed       # Show both completed and archived tasks
   $ taskwerk list --current          # Show session info and current task`
   )
   .action(listCommand);
@@ -191,6 +196,41 @@ Examples:
   $ taskwerk pause TASK-001    # Pause current work on TASK-001`
   )
   .action(pauseCommand);
+
+program
+  .command('archive')
+  .description('Archive a task with a reason (moves to completed tasks as archived)')
+  .argument('<taskId>', 'Task ID (e.g., TASK-001)')
+  .option('-r, --reason <reason>', 'Required: Reason for archiving the task')
+  .option('-s, --superseded-by <taskId>', 'Task ID that supersedes this one')
+  .option('-n, --note <note>', 'Additional note about the archival')
+  .addHelpText(
+    'after',
+    `
+
+Archives a task when it's no longer needed, rather than completing it.
+Archived tasks are moved to tasks_completed.md with [~] status and detailed reason.
+This maintains a complete audit trail while removing clutter from active tasks.
+
+Common use cases:
+  - Requirements changed and task is no longer needed
+  - Task was duplicate of another task
+  - Task was superseded by a different approach
+  - Task became obsolete due to external changes
+
+Examples:
+  $ taskwerk archive TASK-001 --reason "Requirements changed after client meeting"
+  $ taskwerk archive TASK-001 --reason "Duplicate of TASK-042" --superseded-by TASK-042
+  $ taskwerk archive TASK-001 --reason "Feature removed from scope" --note "May revisit in Q3"
+  $ taskwerk archive TASK-001 -r "No longer needed" -s TASK-050
+
+Archive vs Complete:
+  - Complete: Task was successfully finished (use 'taskwerk complete')
+  - Archive: Task was cancelled/obsolete (use 'taskwerk archive')
+
+Archived tasks are searchable and maintain full history in the completed tasks file.`
+  )
+  .action(archiveCommand);
 
 // Status and context commands
 program

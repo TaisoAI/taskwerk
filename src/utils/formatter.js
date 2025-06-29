@@ -93,6 +93,7 @@ export function formatSessionStatus(session, stats = null) {
     output += `- **Todo**: ${stats.todo}\n`;
     output += `- **In Progress**: ${stats.inProgress}\n`;
     output += `- **Completed**: ${stats.completed}\n`;
+    output += `- **Archived**: ${stats.archived}\n`;
 
     if (stats.blocked > 0) {
       output += `- **Blocked**: ${stats.blocked}\n`;
@@ -108,6 +109,7 @@ export function formatStatsPlain(stats) {
   output += 'Overview:\n';
   output += `  Total Active Tasks: ${stats.total}\n`;
   output += `  Completed Tasks: ${stats.completed}\n`;
+  output += `  Archived Tasks: ${stats.archived}\n`;
   output += `  Todo: ${stats.todo}\n`;
   output += `  In Progress: ${stats.inProgress}\n`;
 
@@ -121,8 +123,8 @@ export function formatStatsPlain(stats) {
   output += `  Low: ${stats.priorities.low}\n`;
 
   const completionRate =
-    stats.total + stats.completed > 0
-      ? Math.round((stats.completed / (stats.total + stats.completed)) * 100)
+    stats.total + stats.completed + stats.archived > 0
+      ? Math.round((stats.completed / (stats.total + stats.completed + stats.archived)) * 100)
       : 0;
 
   output += `\nCompletion Rate: ${completionRate}%`;
@@ -170,6 +172,7 @@ export function formatStats(stats) {
   output += `## Overview\n\n`;
   output += `- **Total Active Tasks**: ${stats.total}\n`;
   output += `- **Completed Tasks**: ${stats.completed}\n`;
+  output += `- **Archived Tasks**: ${stats.archived}\n`;
   output += `- **Todo**: ${stats.todo}\n`;
   output += `- **In Progress**: ${stats.inProgress}\n`;
 
@@ -183,8 +186,8 @@ export function formatStats(stats) {
   output += `- **Low**: ${stats.priorities.low}\n`;
 
   const completionRate =
-    stats.total + stats.completed > 0
-      ? Math.round((stats.completed / (stats.total + stats.completed)) * 100)
+    stats.total + stats.completed + stats.archived > 0
+      ? Math.round((stats.completed / (stats.total + stats.completed + stats.archived)) * 100)
       : 0;
 
   output += `\n**Completion Rate**: ${completionRate}%`;

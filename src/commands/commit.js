@@ -66,7 +66,12 @@ export async function commitCommand(options = {}) {
         }
         commitMessage = generateGenericCommitMessage(stagedFiles, newVersion, workflowMode);
       } else {
-        commitMessage = generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion, workflowMode);
+        commitMessage = generateTaskBasedCommitMessage(
+          completedTasks,
+          stagedFiles,
+          newVersion,
+          workflowMode
+        );
       }
     }
 
@@ -152,24 +157,25 @@ async function getLastCommitTime(_gitManager) {
 function addCoAuthoredBy(message, workflowMode) {
   // Add Co-Authored-By tags as required by workflow rules
   let result = message;
-  
+
   if (workflowMode === 'ai') {
     // Add Claude co-authorship for AI mode
     if (!result.includes('Co-Authored-By:')) {
       result += '\n\nCo-Authored-By: Claude <noreply@anthropic.com>';
     }
   }
-  
+
   return result;
 }
 
 function generateGenericCommitMessage(stagedFiles, newVersion, workflowMode) {
-  let message = 'chore: Update files\n\nFiles modified:\n' + stagedFiles.map(f => `- ${f}`).join('\n');
-  
+  let message =
+    'chore: Update files\n\nFiles modified:\n' + stagedFiles.map(f => `- ${f}`).join('\n');
+
   if (newVersion) {
     message += `\n\nVersion: ${newVersion}`;
   }
-  
+
   return addCoAuthoredBy(message, workflowMode);
 }
 
@@ -263,20 +269,4 @@ function generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion,
   return addCoAuthoredBy(message.trim(), workflowMode);
 }
 
-// Version bumping is now handled by TaskRules.bumpVersion()
-// This function is kept for backward compatibility but delegates to TaskRules
-async function updateVersion(bumpType) {
-  console.warn('⚠️  updateVersion is deprecated. Use TaskRules.bumpVersion() instead.');
-  
-  try {
-    const { TaskRules } = await import('../core/task-rules.js');
-    const taskRules = new TaskRules({});
-    const newVersion = await taskRules.bumpVersion(bumpType);
-    
-    if (newVersion) {
-      console.log(`📈 Version updated to: ${newVersion}`);
-    }
-  } catch (error) {
-    console.error(`⚠️  Failed to update version: ${error.message}`);
-  }
-}
+// Version bumping is now handled by TaskRules.bumpVersion() in the main commit flow

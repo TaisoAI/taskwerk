@@ -29,11 +29,9 @@
     "dev": "node bin/taskwerk.js",
     "build": "node scripts/build.js",
     "build:minified": "npm run build && node scripts/build-minified.js",
-    "_build:exe": "npm run build && node scripts/build-executable.js",
-    "_build:pkg": "pkg . --out-path dist",
     "build:all": "npm run build && npm run build:minified",
     "make-release-dry-run": "echo '🔍 Release dry-run starting...' && npm run lint && npm run format:check && npm test && npm run build:all && echo '✅ Release dry-run completed successfully!'",
-    "clean": "rm -rf dist/ build/ coverage/ .nyc_output/"
+    "clean": "rm -rf build/ coverage/ .nyc_output/"
   },
   "keywords": [
     "task",
@@ -51,7 +49,6 @@
   "devDependencies": {
     "esbuild": "^0.25.5",
     "eslint": "^8.57.0",
-    "pkg": "^5.8.1",
     "prettier": "^3.2.5"
   },
   "files": [
@@ -60,17 +57,5 @@
     "dist/",
     "README.md"
   ],
-  "pkg": {
-    "targets": [
-      "node18-linux-x64",
-      "node18-macos-x64",
-      "node18-macos-arm64",
-      "node18-win-x64"
-    ],
-    "outputPath": "dist",
-    "scripts": [
-      "src/**/*.js"
-    ]
-  },
   "preferGlobal": true
 }

@@ -347,33 +347,69 @@ program
     'after',
     `
 
-What this command does:
-  - Creates commit messages from completed tasks since last commit
-  - Uses staged files (requires 'taskwerk stage' or manual git add first)
-  - Generates conventional commit format (feat:, fix:, docs:, etc.)
-  - Optionally bumps version numbers in package.json
+🔧 What this command does:
+  TaskWerk commit creates intelligent Git commits by analyzing your completed tasks
+  and generating conventional commit messages that document what work was done.
 
-TaskWerk Git Workflow:
-  1. Complete tasks: taskwerk complete TASK-XXX
-  2. Stage changes: taskwerk stage --auto
-  3. Create commit: taskwerk commit --auto
+📋 Prerequisites:
+  • Must be in a Git repository (git init if needed)
+  • Need staged files for commit (use 'taskwerk stage --auto' or 'git add')
+  • Have completed tasks since last commit (optional with --allow-empty)
 
-Commit message format:
-  feat: Complete 3 tasks
+🔄 How it works:
+  1. Checks for staged files in Git working directory
+  2. Finds tasks completed since your last Git commit
+  3. Generates conventional commit message (feat:, fix:, docs:, etc.)
+  4. Shows preview by default, commits with --auto flag
+  5. Can optionally bump version numbers in package.json
+
+📊 TaskWerk Git Workflow (Recommended):
+  Step 1: Work on tasks
+    $ taskwerk add "Fix login bug"
+    $ taskwerk start TASK-001
+    [... do your work ...]
+    $ taskwerk complete TASK-001
+
+  Step 2: Stage changes
+    $ taskwerk stage --auto        # Stage files related to completed tasks
+    # OR manually: git add src/auth.js
+
+  Step 3: Review and commit
+    $ taskwerk commit              # Shows preview, prompts for confirmation
+    $ taskwerk commit --auto       # Commits immediately
+
+📝 Generated commit message format:
+  feat: Complete 2 tasks (or fix:, docs:, etc. based on task content)
   
-  Tasks completed:
-  - TASK-001: Add user authentication
-  - TASK-002: Fix login validation
+  Tasks completed since last commit:
+  - TASK-001: Fix login validation bug
+  - TASK-002: Add user authentication
   
   Files modified:
   - src/auth.js
-  - src/login.js
+  - src/components/Login.tsx
+  - tests/auth.test.js
 
-Examples:
-  $ taskwerk commit                    # Review message then commit
-  $ taskwerk commit --auto             # Commit without review
-  $ taskwerk commit --version-bump patch  # Commit and bump patch version
-  $ taskwerk commit -m "Custom message"   # Use custom message`
+🚀 Common usage patterns:
+  $ taskwerk commit                        # Review message then commit (safest)
+  $ taskwerk commit --auto                 # Skip preview, commit immediately
+  $ taskwerk commit --review               # Force preview mode (default behavior)
+  $ taskwerk commit -m "Custom message"    # Override with custom message
+  $ taskwerk commit --version-bump patch   # Commit + bump patch version
+  $ taskwerk commit --allow-empty          # Commit even with no completed tasks
+
+⚠️  Troubleshooting:
+  "No files staged": Run 'taskwerk stage --auto' or 'git add <files>' first
+  "No completed tasks": Complete tasks with 'taskwerk complete TASK-XXX'
+  "Not a git repository": Run 'git init' in your project directory
+  "No changes to commit": All changes already committed, check 'git status'
+
+💡 Pro tips:
+  • Use 'taskwerk stage' to automatically stage files related to completed tasks
+  • The --auto flag is great for scripting and CI/CD pipelines
+  • Version bumping follows semantic versioning (patch/minor/major)
+  • Custom messages with -m bypass task-based message generation
+  • Commit messages follow conventional commit format for better tooling integration`
   )
   .action(commitCommand);
 

@@ -1,15 +1,23 @@
 # TaskWerk Complete Workflow Guide
 
-This guide demonstrates the complete TaskWerk workflow from project initialization through task completion and Git integration. Follow these patterns to maximize productivity in both human and AI-assisted development.
+This guide demonstrates the unified TaskWerk workflow that works consistently for everyone - whether you're working solo, collaborating with others, or using AI assistance. TaskWerk follows one clear, predictable pattern with optional Git integration.
+
+## Core Philosophy
+
+- **One workflow for everyone**: Same commands, same behavior, regardless of who's using TaskWerk
+- **Works standalone**: TaskWerk manages tasks without requiring AI or Git
+- **Hand-editable files**: All task files are markdown and can be edited directly
+- **Optional integrations**: Git and AI features enhance but don't change core workflow
+- **Predictable commands**: Each command has one clear purpose with minimal side effects
 
 ## Table of Contents
 
 1. [Initial Setup](#initial-setup)
-2. [Basic Task Management Workflow](#basic-task-management-workflow)
+2. [Core Task Management Workflow](#core-task-management-workflow)
 3. [Advanced Task Operations](#advanced-task-operations)
-4. [Git Integration Workflow](#git-integration-workflow)
-5. [Human-AI Collaboration Patterns](#human-ai-collaboration-patterns)
-6. [Workflow Rules and Automation](#workflow-rules-and-automation)
+4. [Optional Git Integration](#optional-git-integration)
+5. [Optional AI Features](#optional-ai-features)
+6. [Direct File Editing](#direct-file-editing)
 7. [Best Practices](#best-practices)
 8. [Troubleshooting](#troubleshooting)
 
@@ -32,22 +40,24 @@ taskwerk init
 # - .taskrc.json (configuration)
 ```
 
-### 2. Optional: Configure AI Features
+### 2. Optional: Configure AI Features (if desired)
 
-If you plan to use AI assistance:
+TaskWerk includes optional AI assistance for asking questions and automating some task operations:
 
 ```bash
-# Check current AI setup
+# Check AI setup status
 taskwerk llmconfig
 
-# Add API keys for cloud models
+# Add API keys for cloud models (optional)
 taskwerk llmconfig --add-key openai     # For GPT models
 taskwerk llmconfig --add-key anthropic  # For Claude models
 
-# Or set up local models (Ollama/LM Studio)
+# Or set up local models (optional)
 taskwerk llmconfig --pull llama3.2      # Download local model
 taskwerk llmconfig --choose             # Interactively select model
 ```
+
+**Note**: All core TaskWerk functionality works without AI configuration.
 
 ### 3. Configure Project Settings
 
@@ -71,7 +81,9 @@ Create or modify `.taskrc.json`:
 }
 ```
 
-## Basic Task Management Workflow
+## Core Task Management Workflow
+
+TaskWerk's core workflow is simple and consistent. These commands work the same way for everyone:
 
 ### Phase 1: Task Planning and Creation
 
@@ -160,30 +172,28 @@ taskwerk list --completed              # Show completed tasks
 taskwerk list --current                # Show session info
 ```
 
-## Git Integration Workflow
+## Optional Git Integration
 
-TaskWerk provides intelligent Git integration that bridges task management with code changes.
+TaskWerk provides optional Git integration that can help generate intelligent commit messages from completed tasks. Git integration is entirely optional - TaskWerk works perfectly for task management without Git.
 
-### Recommended Git Workflow
+### Unified Git Workflow
 
 ```bash
-# 1. Start with a clean Git state
-git status                             # Ensure clean working directory
-
-# 2. Create and work on tasks
+# 1. Work on tasks (TaskWerk core functionality)
 taskwerk add "Fix memory leak in user dashboard"
 taskwerk start TASK-001
 taskwerk branch TASK-001               # Optional: create feature branch
 
-# 3. Do your development work
+# 2. Do your development work
 # ... make code changes ...
 
-# 4. Complete tasks with proper tracking
+# 3. Complete tasks (TaskWerk core functionality)
 taskwerk complete TASK-001 --note "Added cleanup in useEffect hooks, reduced memory usage by 40%"
 
-# 5. Use TaskWerk for intelligent commits
-taskwerk commit                        # Preview commit message
-taskwerk commit --auto                 # Auto-stage and commit immediately
+# 4. Git integration (optional, but useful)
+git add src/components/                # Always manually stage files
+taskwerk commit                        # Generate intelligent commit message
+# OR use regular git: git commit -m "your message"
 ```
 
 ### Git Commit Integration
@@ -191,19 +201,20 @@ taskwerk commit --auto                 # Auto-stage and commit immediately
 TaskWerk generates intelligent commit messages based on completed tasks:
 
 ```bash
-# Basic commit workflow
-git add src/components/Dashboard.js tests/dashboard.test.js
+# Standard workflow
+git add src/components/Dashboard.js tests/dashboard.test.js  # Always stage files manually
 taskwerk commit                        # Shows preview, requires confirmation
+taskwerk commit --auto                 # Skip preview, commit immediately
 
-# Automated commit workflow (AI mode)
-taskwerk commit --auto                 # Auto-stages files and commits
+# Alternative approaches
+taskwerk commit -m "hotfix: critical auth vulnerability"    # Custom message
+git commit -m "your message"           # Regular git (bypasses TaskWerk)
 
-# Custom commit message
-taskwerk commit -m "hotfix: critical auth vulnerability"
-
-# Version bumping with commits
-taskwerk commit --version-bump patch   # Commits and bumps version
+# Optional version bumping
+taskwerk commit --version-bump patch   # Bump version in package.json
 ```
+
+**Key principle**: You always control file staging with `git add`. TaskWerk only helps with commit message generation.
 
 ### Generated Commit Message Format
 
@@ -226,100 +237,93 @@ Files modified:
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-## Human-AI Collaboration Patterns
+## Optional AI Features
 
-### AI Agent Workflow
+TaskWerk includes optional AI assistance that works within the same unified workflow:
 
-When working with AI assistants (Claude Code, Cursor, etc.):
+### AI Commands
 
 ```bash
-# AI starts by reviewing current tasks
-taskwerk list --priority high
+# Ask questions (no actions taken)
+taskwerk ask "What high priority tasks do I have?"
+taskwerk ask "How should I implement user authentication?"
 
-# AI claims a task
-taskwerk start TASK-003
-
-# AI gets full context
-taskwerk context TASK-003
-
-# AI implements solution
-# ... code development ...
-
-# AI completes with detailed notes
-taskwerk complete TASK-003 --note "Implemented using React hooks pattern with TypeScript interfaces"
+# AI agent (can perform task management actions)
+taskwerk agent "add a task to fix the login bug"
+taskwerk agent "start working on the authentication task"
 ```
 
-### Human Oversight Workflow
+### Collaborative Workflow
+
+TaskWerk works the same whether you're working solo, with a team, or with AI assistance:
 
 ```bash
-# Human reviews AI progress
-taskwerk recent                        # See what AI completed
-taskwerk stats                         # Check overall progress
+# Anyone can add tasks
+taskwerk add "Optimize database queries - currently 3-5 sec, need <500ms" --priority high
 
-# Human adds new tasks or adjusts priorities
-taskwerk add "Review AI implementation for security issues" --priority high
+# Anyone can work on tasks
+taskwerk start TASK-004
+taskwerk context TASK-004    # Get full details
 
-# Human can pause/redirect AI work
-taskwerk pause TASK-003               # If AI needs to switch focus
+# Anyone can complete tasks with notes
+taskwerk complete TASK-004 --note "Added indexes on user_id, implemented query caching"
+
+# Review what's been done
+taskwerk recent               # See recent completions
+taskwerk stats                # Check overall progress
 ```
 
-### Handoff Patterns
+**Key point**: AI features are additive. They don't change TaskWerk's core workflow or create different behavior modes.
+
+## Direct File Editing
+
+One of TaskWerk's key strengths is that all files are human-readable markdown that can be edited directly:
+
+### Task Files Structure
 
 ```bash
-# Human → AI handoff
-taskwerk add "Optimize database queries in user service - currently 3-5 sec, need <500ms" --priority high --category performance
-# AI uses: taskwerk start TASK-004 && taskwerk context TASK-004
-
-# AI → Human handoff
-taskwerk complete TASK-004 --note "Added indexes on user_id, implemented query caching, needs review for edge cases"
-# Human uses: taskwerk context TASK-004 to understand what was done
+tasks/
+├── tasks.md              # Active tasks (you can edit this directly)
+├── tasks_completed.md    # Completed tasks archive
+├── taskwerk-rules.md     # Project workflow guidelines
+└── tasks-how-to.md       # Quick reference guide
 ```
 
-## Workflow Rules and Automation
+### Manual Task Editing
 
-TaskWerk automatically detects AI vs human workflows and applies appropriate rules.
+You can edit tasks directly in `tasks/tasks.md`:
 
-### Check Workflow Mode
+```markdown
+# Project Tasks
+
+## HIGH Priority
+- [ ] **TASK-001** Fix authentication bug
+- [>] **TASK-002** Add dark mode support  
+- [x] **TASK-003** Update documentation
+
+## MEDIUM Priority
+- [ ] **TASK-004** Refactor user service
+```
+
+**Task Status Markers:**
+- `[ ]` = Todo
+- `[>]` = In Progress  
+- `[x]` = Completed
+- `[!]` = Blocked
+
+### TaskWerk Rules
+
+The `tasks/taskwerk-rules.md` file contains project-specific guidelines that help everyone (humans and AI) follow consistent patterns. These are guidelines, not enforced behaviors:
 
 ```bash
-# See current workflow mode
-taskwerk rules --mode
+# View current rules
+taskwerk rules
 
-# Show detailed rules status
-taskwerk rules --status
-
-# Initialize rules system
+# Initialize rules for your project
 taskwerk rules --init
 ```
 
-### AI Mode Features (Automatic)
-
-When AI agents are detected:
-- **Auto-staging**: Files automatically staged for commits
-- **Version bumping**: Automatic patch/minor/major version increments
-- **Co-authorship**: Automatic Co-Authored-By tags in commits
-- **Quality gates**: Tests and documentation requirements enforced
-- **Workflow validation**: Tasks validated against development phases
-
-### Human Mode Features
-
-For manual operation:
-- **Manual control**: User controls all staging and commits
-- **Minimal automation**: No automatic version bumping or staging
-- **Flexible workflow**: Fewer enforced quality gates
-
-### Override Automation
-
-```bash
-# Force automation in human mode
-taskwerk complete TASK-001 --auto-stage --auto-commit
-
-# Force manual control in AI mode
-taskwerk commit --review               # Force preview mode
-
-# Skip workflow validation
-taskwerk complete TASK-001 --force
-```
+Rules help with consistency but don't change TaskWerk's core behavior.
 
 ## Best Practices
 
@@ -436,25 +440,33 @@ ls -la tasks/
 ## Summary Workflow Cheat Sheet
 
 ```bash
-# Initialize project
+# One-time setup
 taskwerk init
 
-# Daily workflow
+# Core daily workflow (works for everyone)
 taskwerk add "Task description" --priority high --category bugs
 taskwerk list --priority high
 taskwerk start TASK-001
 taskwerk context TASK-001
-# ... do work ...
+# ... do your work ...
 taskwerk complete TASK-001 --note "Implementation details"
-taskwerk commit --auto
 
-# Weekly review
+# Optional Git integration
+git add changed-files
+taskwerk commit                        # Generate intelligent commit message
+
+# Progress tracking
 taskwerk recent
 taskwerk stats
 taskwerk list --completed
 ```
 
-This workflow enables efficient task management for both individual developers and human-AI collaboration teams. The key is consistency in task descriptions, proper use of priorities and categories, and leveraging the Git integration for better development history tracking.
+**Key Principles:**
+- **One workflow**: Same commands, same behavior for everyone
+- **TaskWerk manages tasks**: Add, start, complete, search, track
+- **You manage files**: Use `git add` to stage, TaskWerk helps with commit messages
+- **Everything is optional**: AI, Git, and automation features enhance but don't change core workflow
+- **Hand-editable**: All task files are markdown and can be edited directly
 
 ---
 

@@ -1,5 +1,13 @@
 # Completed Tasks
 
+- [x] **TASK-066** Remove AI mode detection and workflow branching from all commands - AI should just automate the unified workflow *[2025-06-29T18:56:38.641Z]*
+  Simplified commit and complete commands to remove AI mode detection and workflow branching. Commands now have predictable behavior regardless of who uses them. Removed auto-staging, auto-version bumping, and Co-Authored-By logic. Commit command focuses on generating intelligent messages from completed tasks.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-065** Update docs/taskwerk-flow.md to reflect unified workflow without mode distinctions *[2025-06-29T18:42:22.759Z]*
+  Completely rewrote docs/taskwerk-flow.md to remove confusing human vs AI mode distinctions. Now presents unified workflow that works consistently for everyone. Key changes: 1) One workflow for all users 2) Core functionality works without Git/AI 3) Optional integrations enhance but don't change behavior 4) Clear separation: TaskWerk manages tasks, Git manages commits 5) Emphasized hand-editable markdown files 6) Removed complex automation modes
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-062** Create docs/taskwerk-flow.md showing complete workflow from task creation to completion *[2025-06-29T18:25:39.345Z]*
   Created comprehensive docs/taskwerk-flow.md covering complete workflow from initialization through Git integration. Includes human-AI collaboration patterns, workflow rules, best practices, and troubleshooting. Based on actual TaskWerk usage experience and existing documentation.
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

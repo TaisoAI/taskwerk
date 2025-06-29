@@ -1,6 +1,5 @@
 import { TaskManager } from '../core/task-manager.js';
 import { GitManager } from '../git/git-manager.js';
-import { TaskRules } from '../core/task-rules.js';
 import { loadConfig } from '../utils/config.js';
 
 export async function commitCommand(options = {}) {
@@ -8,26 +7,10 @@ export async function commitCommand(options = {}) {
     const config = await loadConfig();
     const taskManager = new TaskManager(config);
     const gitManager = new GitManager();
-    const taskRules = new TaskRules(config);
 
     if (!(await gitManager.isGitRepository())) {
       console.error('❌ Not a git repository');
       process.exit(1);
-    }
-
-    // Detect workflow mode to apply appropriate rules
-    const workflowMode = await taskRules.detectWorkflowMode();
-    const rules = await taskRules.loadRules();
-    const commitRules = rules[workflowMode].commitRules;
-
-    console.log(`🔧 Workflow mode: ${workflowMode.toUpperCase()}`);
-
-    // Auto-stage files if enabled by rules or forced
-    if (commitRules.autoStage || options.autoStage) {
-      const stagedCount = await taskRules.autoStageFiles();
-      if (stagedCount > 0) {
-        console.log(`📁 Auto-staged ${stagedCount} file(s)`);
-      }
     }
 
     // Check for staged files
@@ -35,25 +18,24 @@ export async function commitCommand(options = {}) {
 
     if (stagedFiles.length === 0) {
       console.log('⚠️  No files staged for commit');
-      console.log('💡 Use git add to stage files manually, or enable auto-staging');
+      console.log('💡 Use git add to stage files first');
       return;
     }
 
-    // Auto-bump version if enabled by rules or forced
+    // Version bumping (explicit only)
     let newVersion = null;
-    if (commitRules.autoVersionBump || options.versionBump) {
-      const versionType = options.versionBump || commitRules.versionBumpType || 'patch';
-      newVersion = await taskRules.bumpVersion(versionType);
+    if (options.versionBump) {
+      newVersion = await bumpVersion(options.versionBump);
       if (newVersion) {
-        console.log(`📈 Version bumped (${versionType}): ${newVersion}`);
+        console.log(`📈 Version bumped (${options.versionBump}): ${newVersion}`);
       }
     }
 
     let commitMessage;
 
     if (options.message) {
-      // Use custom message but still add Co-Authored-By
-      commitMessage = addCoAuthoredBy(options.message, workflowMode);
+      // Use custom message
+      commitMessage = options.message;
     } else {
       // Generate message from completed tasks
       const completedTasks = await getCompletedTasksSinceLastCommit(taskManager, gitManager);
@@ -64,14 +46,9 @@ export async function commitCommand(options = {}) {
           console.log('💡 Use --allow-empty to commit anyway, or complete some tasks first');
           return;
         }
-        commitMessage = generateGenericCommitMessage(stagedFiles, newVersion, workflowMode);
+        commitMessage = generateGenericCommitMessage(stagedFiles, newVersion);
       } else {
-        commitMessage = generateTaskBasedCommitMessage(
-          completedTasks,
-          stagedFiles,
-          newVersion,
-          workflowMode
-        );
+        commitMessage = generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion);
       }
     }
 
@@ -109,7 +86,6 @@ export async function commitCommand(options = {}) {
       if (newVersion) {
         console.log(`📈 Version: ${newVersion}`);
       }
-      console.log(`🔧 Mode: ${workflowMode}`);
     } catch (error) {
       throw new Error(`Failed to create commit: ${error.message}`);
     }
@@ -154,21 +130,46 @@ async function getLastCommitTime(_gitManager) {
   }
 }
 
-function addCoAuthoredBy(message, workflowMode) {
-  // Add Co-Authored-By tags as required by workflow rules
-  let result = message;
-
-  if (workflowMode === 'ai') {
-    // Add Claude co-authorship for AI mode
-    if (!result.includes('Co-Authored-By:')) {
-      result += '\n\nCo-Authored-By: Claude <noreply@anthropic.com>';
+async function bumpVersion(versionType) {
+  try {
+    const { readFile, writeFile } = await import('fs/promises');
+    const packagePath = './package.json';
+    
+    const packageContent = await readFile(packagePath, 'utf8');
+    const packageJson = JSON.parse(packageContent);
+    
+    if (!packageJson.version) {
+      throw new Error('No version field found in package.json');
     }
+    
+    const [major, minor, patch] = packageJson.version.split('.').map(Number);
+    
+    let newVersion;
+    switch (versionType) {
+      case 'major':
+        newVersion = `${major + 1}.0.0`;
+        break;
+      case 'minor':
+        newVersion = `${major}.${minor + 1}.0`;
+        break;
+      case 'patch':
+        newVersion = `${major}.${minor}.${patch + 1}`;
+        break;
+      default:
+        throw new Error(`Invalid version bump type: ${versionType}`);
+    }
+    
+    packageJson.version = newVersion;
+    await writeFile(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
+    
+    return newVersion;
+  } catch (error) {
+    console.error(`⚠️  Failed to bump version: ${error.message}`);
+    return null;
   }
-
-  return result;
 }
 
-function generateGenericCommitMessage(stagedFiles, newVersion, workflowMode) {
+function generateGenericCommitMessage(stagedFiles, newVersion) {
   let message =
     'chore: Update files\n\nFiles modified:\n' + stagedFiles.map(f => `- ${f}`).join('\n');
 
@@ -176,10 +177,10 @@ function generateGenericCommitMessage(stagedFiles, newVersion, workflowMode) {
     message += `\n\nVersion: ${newVersion}`;
   }
 
-  return addCoAuthoredBy(message, workflowMode);
+  return message;
 }
 
-function generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion, workflowMode) {
+function generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion) {
   // Determine commit type based on tasks
   let commitType = 'feat';
   const hasBugFixes = completedTasks.some(
@@ -265,8 +266,5 @@ function generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion,
     }
   }
 
-  // Add Co-Authored-By tags as required by workflow rules
-  return addCoAuthoredBy(message.trim(), workflowMode);
+  return message.trim();
 }
-
-// Version bumping is now handled by TaskRules.bumpVersion() in the main commit flow

@@ -2,7 +2,7 @@
 
 *Last updated: 06/27/2025*
 *Current session: CLI*
-*Next ID: TASK-063*
+*Next ID: TASK-067*
 
 ## HIGH Priority
 
@@ -10,6 +10,8 @@
 - [ ] **TASK-033** the npm run build needs to build all of taskwerk in to a single minified js
 - [ ] **TASK-045** taskwerk commit should have a companion commands to stage files and it should make commit messages based on all the tasks that have been completed.  Propose a workflow for how git commits interact with taskwerk and make a proper flow of taskwerk commands
 - [ ] **TASK-053** Make TaskWerk npm installable with bin directory and compact alias 'twrk'
+- [ ] **TASK-063** Remove confusing human vs AI mode distinction - implement unified workflow for everyone
+- [ ] **TASK-064** Audit all taskwerk commands to remove unexpected side effects and align with unified workflow
 ### Bug Fixes
 
 - [x] **TASK-023** Improve LLM error messages with setup guidance when no API key configured

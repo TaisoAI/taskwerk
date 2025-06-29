@@ -43,6 +43,14 @@ async function build() {
     // Run format check
     await runCommand('npm', ['run', 'format:check']);
 
+    // Build minified bundle
+    console.log('\n📦 Building minified bundle...');
+    await runCommand('node', [join(scriptsDir, 'build-minified.js')]);
+
+    // Build executables
+    console.log('\n🔧 Building executables...');
+    await runCommand('node', [join(scriptsDir, 'build-executable.js')]);
+
     // Success banner
     await runCommand('node', [join(scriptsDir, 'completion-banner.js'), 'build', '0']);
   } catch (error) {

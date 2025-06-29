@@ -20,13 +20,14 @@ import { initCommand } from './commands/init.js';
 import { askCommand } from './commands/ask.js';
 import { agentCommand } from './commands/agent.js';
 import { llmConfigCommand } from './commands/llmconfig.js';
+import { aboutCommand } from './commands/about.js';
 
 const program = new Command();
 
 program
   .name('taskwerk')
   .description('A lightweight CLI task manager optimized for human-AI collaboration workflows')
-  .version('0.1.0')
+  .version('0.1.3')
   .addHelpText(
     'after',
     `
@@ -469,6 +470,26 @@ program
   .option('--model <model>', 'LLM model to use')
   .option('--verbose', 'Show token usage information')
   .action(agentCommand);
+
+program
+  .command('about')
+  .description('Show TaskWerk information, version, and project links')
+  .addHelpText(
+    'after',
+    `
+
+Displays comprehensive information about TaskWerk:
+  - ASCII banner and version information
+  - Package details and description
+  - GitHub repository and npm package links
+  - Author and contributor information
+  - License and supported features
+  - Quick start guide and help resources
+
+Example:
+  $ taskwerk about    # Show all information about TaskWerk`
+  )
+  .action(aboutCommand);
 
 // Parse command line arguments
 program.parse();

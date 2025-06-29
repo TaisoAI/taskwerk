@@ -2,7 +2,7 @@
 
 *Last updated: 06/27/2025*
 *Current session: CLI*
-*Next ID: TASK-057*
+*Next ID: TASK-063*
 
 ## HIGH Priority
 
@@ -33,6 +33,7 @@
 - [ ] **TASK-054** taskwerk should support sub tasks? (make plan to see if this make sense before coding)
 - [ ] **TASK-055** taskwerk interactive cli mode -- Instead of typing in each command at the terminal, the user can enter cli mode such as taskwerk cli.  All the basic taskwerk commands become slash commands /list /add etc.  It should have syntax highlighting so the user can clear see what taskwerk is doing and what they type.  if they don't type in anything taskwerk will be in agent mode by default - so it takes free form responses.  Note that cli mode should be able to toggle between agent mode and ask mode via a slash command (think about what this should be.   perhaps /toggle-mode agent or /toggle-mode ask.
 - [ ] **TASK-056** enable optional logging -- taskwerk should have an option to log all commands and responses to separate log file.  There should be options to log all or some commands such as logging --off (no logging), logggin --all (every command input and output is appended to a log with timestamp), and then specific filters could be set like loigging ai commands etc.  logging could be part of the config file and stored there.
+- [ ] **TASK-058** Update dev/taskwerk-overview.md to reflect current v0.1.6 implementation and remove outdated features
 ### Refactoring
 
 - [ ] **TASK-027** Review usability and workflows for TaskWerk CLI tool
@@ -44,6 +45,7 @@
 - [ ] **TASK-012** Create animated GIF demo for README.md showing TaskWerk in action
 - [ ] **TASK-013** Add ASCII banner to taskwerk init command
 - [ ] **TASK-026** Implement built-in local model support (SmolLM2/Phi-4) as specified in integration task
+- [ ] **TASK-059** Create alternative to pkg for platform-specific executables (Linux, macOS, Windows)
 ### Testing
 
 ---

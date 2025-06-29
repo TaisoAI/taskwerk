@@ -42,14 +42,14 @@ export class TaskParser {
 
   parseTaskLine(line, contextPriority, contextCategory) {
     // Match task patterns: - [status] **TASK-001** Description
-    const taskRegex = /^[-*]\s*\[([>\sx!])\]\s*\*\*([A-Z]+-\d+)\*\*\s*(.+?)(?:\s*-\s*(.*))?$/;
+    const taskRegex = /^[-*]\s*\[([>\sx!])\]\s*\*\*([A-Z]+-\d+)\*\*\s*(.+)$/;
     const match = line.match(taskRegex);
 
     if (!match) {
       return null;
     }
 
-    const [, statusChar, id, description, note] = match;
+    const [, statusChar, id, description] = match;
 
     return {
       id,
@@ -57,7 +57,6 @@ export class TaskParser {
       status: this.parseStatus(statusChar),
       priority: contextPriority || this.extractPriority(line),
       category: contextCategory || this.extractCategory(line),
-      note: note?.trim(),
     };
   }
 

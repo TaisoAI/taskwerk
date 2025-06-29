@@ -220,10 +220,12 @@ program
     `
 
 Shows comprehensive task information:
-  - Task description, priority, and status
+  - Complete task description (full text, no truncation)
+  - Priority, status, and category information
   - Creation and modification dates
   - Related files and changes
   - Associated Git branches (if any)
+  - Current session information
 
 Examples:
   $ taskwerk context TASK-001    # Show details for TASK-001`
@@ -259,11 +261,13 @@ program
     `
 
 Searches through all task descriptions, both active and completed.
-Uses case-insensitive partial matching.
+Uses case-insensitive partial matching across full task descriptions.
+Searches complete text content without truncation.
 
 Examples:
-  $ taskwerk search "login"     # Find tasks mentioning "login"
-  $ taskwerk search "bug fix"   # Find bug-related tasks`
+  $ taskwerk search "login"       # Find tasks mentioning "login"
+  $ taskwerk search "bug fix"     # Find bug-related tasks
+  $ taskwerk search "instead of"  # Matches anywhere in description text`
   )
   .action(searchCommand);
 

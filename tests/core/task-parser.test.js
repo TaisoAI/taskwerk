@@ -9,9 +9,9 @@ test('TaskParser parses task line correctly', () => {
   const task = parser.parseTaskLine(line);
 
   assert.strictEqual(task.id, 'TASK-001');
-  assert.strictEqual(task.description, 'Fix authentication bug');
+  assert.strictEqual(task.description, 'Fix authentication bug - Completed with OAuth fix');
   assert.strictEqual(task.status, 'completed');
-  assert.strictEqual(task.note, 'Completed with OAuth fix');
+  assert.strictEqual(task.note, undefined);
 });
 
 test('TaskParser handles different status markers', () => {

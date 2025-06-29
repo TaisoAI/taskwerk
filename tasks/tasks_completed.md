@@ -1,5 +1,21 @@
 # Completed Tasks
 
+- [x] **TASK-062** Create docs/taskwerk-flow.md showing complete workflow from task creation to completion *[2025-06-29T18:25:39.345Z]*
+  Created comprehensive docs/taskwerk-flow.md covering complete workflow from initialization through Git integration. Includes human-AI collaboration patterns, workflow rules, best practices, and troubleshooting. Based on actual TaskWerk usage experience and existing documentation.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-061** Update help documentation for search and context commands to reflect full functionality *[2025-06-29T18:24:16.146Z]*
+  Updated help documentation for search and context commands to highlight that full task descriptions are preserved without truncation. Added example showing search works across complete text content.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-060** Fix task parser to preserve full descriptions - search and context commands show truncated text *[2025-06-29T18:23:00.953Z]*
+  Fixed task parser regex to preserve full descriptions. Removed non-greedy matching that was truncating text when encountering dash separators. Updated test to reflect correct behavior. All 171 tests now pass.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-057** Fix search command truncation bug *[2025-06-29T18:16:52.232Z]*
+  Identified root cause: task parser truncates descriptions when reading from markdown. Need to add debugging capabilities to search command and fix parser to preserve full task descriptions. Issue affects both search and context commands.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-041** the command taskwerk commit needs much better help to explain what it does and how it works *[2025-06-29T06:36:44.901Z]*
   Enhanced taskwerk commit command help with comprehensive documentation including prerequisites, workflow steps, troubleshooting guide, usage patterns, and pro tips. The help now clearly explains what the command does, how it works, prerequisites needed, and provides detailed examples and troubleshooting information.
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

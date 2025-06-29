@@ -1,5 +1,13 @@
 # Completed Tasks
 
+- [x] **TASK-041** the command taskwerk commit needs much better help to explain what it does and how it works *[2025-06-29T06:36:44.901Z]*
+  Enhanced taskwerk commit command help with comprehensive documentation including prerequisites, workflow steps, troubleshooting guide, usage patterns, and pro tips. The help now clearly explains what the command does, how it works, prerequisites needed, and provides detailed examples and troubleshooting information.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-014** Add taskwerk about command with banner, GitHub and npm repo links *[2025-06-29T03:40:16.470Z]*
+  Successfully implemented taskwerk about command with ASCII banner, version info, GitHub/npm links, author info, license, AI features, quick start guide, and comprehensive help information. Includes full test coverage with 17 test cases validating all display sections and error handling.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-051** BUG: Missing test cases for TASK *[2025-06-28T23:35:55.306Z]*
   Created comprehensive test coverage for workflow rules (TASK-049) and completion automation (TASK-050) with 3 test files covering 89 test cases. Fixed test environment issues and made assertions more robust for CI/testing scenarios. All core functionality is now properly tested including mode detection, validation, version bumping, auto-staging, and rules management.
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

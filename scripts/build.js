@@ -43,6 +43,10 @@ async function build() {
     // Run format check
     await runCommand('npm', ['run', 'format:check']);
 
+    // Run tests
+    console.log('\n🧪 Running tests...');
+    await runCommand('npm', ['test']);
+
     // Build minified bundle
     console.log('\n📦 Building minified bundle...');
     await runCommand('node', [join(scriptsDir, 'build-minified.js')]);

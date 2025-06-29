@@ -350,4 +350,3 @@ describe('completeCommand with workflow automation', () => {
     });
   });
 });
-

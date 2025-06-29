@@ -2,14 +2,14 @@
 
 *Last updated: 06/27/2025*
 *Current session: CLI*
-*Next ID: TASK-053*
+*Next ID: TASK-055*
 
 ## HIGH Priority
 
-- [x] **TASK-041** the command taskwerk commit needs much better help to explain what it does and how it works
 - [x] **TASK-042** all subcommands should have useful help so someone can understand how to use them and what they actually do.
 - [ ] **TASK-033** the npm run build needs to build all of taskwerk in to a single minified js
 - [ ] **TASK-045** taskwerk commit should have a companion commands to stage files and it should make commit messages based on all the tasks that have been completed.  Propose a workflow for how git commits interact with taskwerk and make a proper flow of taskwerk commands
+- [ ] **TASK-053** Make TaskWerk npm installable with bin directory and compact alias 'twrk'
 ### Bug Fixes
 
 - [x] **TASK-023** Improve LLM error messages with setup guidance when no API key configured
@@ -30,6 +30,7 @@
 - [ ] **TASK-046** Task description
 - [ ] **TASK-047** taskwerk simple llm command - if you run taskwerk like this taskwerk 'this is a task for taskwerk' or with double quotes it will invoke the llm in ask mode.  if you append --agent afterwards it will invoke taskwerk in agent mode.
 - [ ] **TASK-048** the taskwork date time stamps should always be YYYY-MM-DD-HH-MM-SS so its not confused with different international date formats
+- [ ] **TASK-054** taskwerk should support sub tasks? (make plan to see if this make sense before coding)
 ### Refactoring
 
 - [ ] **TASK-027** Review usability and workflows for TaskWerk CLI tool
@@ -40,7 +41,6 @@
 
 - [ ] **TASK-012** Create animated GIF demo for README.md showing TaskWerk in action
 - [ ] **TASK-013** Add ASCII banner to taskwerk init command
-- [ ] **TASK-014** Add taskwerk about command with banner, GitHub and npm repo links
 - [ ] **TASK-026** Implement built-in local model support (SmolLM2/Phi-4) as specified in integration task
 ### Testing
 

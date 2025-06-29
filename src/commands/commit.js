@@ -42,7 +42,7 @@ export async function commitCommand(options = {}) {
 
       if (completedTasks.length === 0) {
         console.log('⚠️  No completed tasks found since last commit');
-        if (!options.allowEmpty) {
+        if (!options.allowEmpty && !newVersion) {
           console.log('💡 Use --allow-empty to commit anyway, or complete some tasks first');
           return;
         }
@@ -134,16 +134,16 @@ async function bumpVersion(versionType) {
   try {
     const { readFile, writeFile } = await import('fs/promises');
     const packagePath = './package.json';
-    
+
     const packageContent = await readFile(packagePath, 'utf8');
     const packageJson = JSON.parse(packageContent);
-    
+
     if (!packageJson.version) {
       throw new Error('No version field found in package.json');
     }
-    
+
     const [major, minor, patch] = packageJson.version.split('.').map(Number);
-    
+
     let newVersion;
     switch (versionType) {
       case 'major':
@@ -158,10 +158,10 @@ async function bumpVersion(versionType) {
       default:
         throw new Error(`Invalid version bump type: ${versionType}`);
     }
-    
+
     packageJson.version = newVersion;
     await writeFile(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
-    
+
     return newVersion;
   } catch (error) {
     console.error(`⚠️  Failed to bump version: ${error.message}`);
@@ -217,7 +217,8 @@ function generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion)
   // Generate summary
   let summary;
   if (completedTasks.length === 1) {
-    summary = completedTasks[0].description;
+    const task = completedTasks[0];
+    summary = `${task.id}: ${task.description}`;
     if (summary.length > 60) {
       summary = summary.substring(0, 57) + '...';
     }
@@ -229,7 +230,7 @@ function generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion)
   let message = `${commitType}: ${summary}\n\n`;
 
   // Add tasks section
-  message += 'Tasks completed:\n';
+  message += 'Tasks completed since last commit:\n';
   for (const task of completedTasks) {
     message += `- ${task.id}: ${task.description}\n`;
   }

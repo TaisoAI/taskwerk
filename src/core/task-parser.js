@@ -28,10 +28,10 @@ export class TaskParser {
         currentCategory = 'test';
       }
 
-      // Try parsing as active task first, then as completed task
+      // Try parsing as completed task first, then as active task
       const task =
-        this.parseTaskLine(line, currentPriority, currentCategory) ||
-        this.parseCompletedTaskLine(line);
+        this.parseCompletedTaskLine(line) ||
+        this.parseTaskLine(line, currentPriority, currentCategory);
       if (task) {
         tasks.push(task);
       }

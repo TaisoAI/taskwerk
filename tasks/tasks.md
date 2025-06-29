@@ -2,7 +2,7 @@
 
 *Last updated: 06/27/2025*
 *Current session: CLI*
-*Next ID: TASK-051*
+*Next ID: TASK-053*
 
 ## HIGH Priority
 
@@ -17,6 +17,7 @@
 ### Features
 
 - [x] **TASK-029** Improve help system to work well with or without LLM integration
+- [ ] **TASK-052** Enhance workflow rules validation to actually check for test files and fail completion if tests are missing/failing
 ## MEDIUM Priority
 
 - [ ] **TASK-011** Write comprehensive documentation for all features

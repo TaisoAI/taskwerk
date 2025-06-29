@@ -57,21 +57,21 @@ async function validateCurrentTask(taskRules, taskId) {
   console.log(`\n🤖 Workflow mode: ${mode.toUpperCase()}`);
   console.log(`✅ Task validation: ${validation.valid ? 'PASSED' : 'FAILED'}`);
 
-  if (validation.warnings.length > 0) {
+  if (validation.warnings?.length > 0) {
     console.log(`\n⚠️  Warnings:`);
     for (const warning of validation.warnings) {
       console.log(`   - ${warning}`);
     }
   }
 
-  if (validation.errors.length > 0) {
+  if (validation.errors?.length > 0) {
     console.log(`\n❌ Errors:`);
     for (const error of validation.errors) {
       console.log(`   - ${error}`);
     }
   }
 
-  if (validation.requiredActions.length > 0) {
+  if (validation.requiredActions?.length > 0) {
     console.log(`\n🔧 Required actions:`);
     for (const action of validation.requiredActions) {
       console.log(`   - ${action}`);
@@ -93,10 +93,10 @@ async function showWorkflowMode(taskRules) {
   console.log(`\n📋 Mode details:`);
   console.log(`   Enforcement: ${rules[mode].enforceWorkflow ? 'ENABLED' : 'DISABLED'}`);
   console.log(
-    `   Required phases: ${rules[mode].requiredPhases.length > 0 ? rules[mode].requiredPhases.join(', ') : 'None'}`
+    `   Required phases: ${rules[mode]?.requiredPhases?.length > 0 ? rules[mode].requiredPhases.join(', ') : 'None'}`
   );
 
-  const enabledGates = Object.entries(rules[mode].qualityGates)
+  const enabledGates = Object.entries(rules[mode]?.qualityGates || {})
     .filter(([_k, v]) => v)
     .map(([k, _v]) => k);
   console.log(`   Quality gates: ${enabledGates.length > 0 ? enabledGates.join(', ') : 'None'}`);
@@ -147,6 +147,7 @@ async function showRulesStatus(taskRules) {
 
   console.log(`\n📁 Configuration:`);
   console.log(`   Rules file: tasks/taskwerk-rules.md`);
+  console.log(`   Config file: .taskrc.json`);
   console.log(`   Global rules enabled: ${rules.global.enableRules ? 'Yes' : 'No'}`);
   console.log(`   Workflow logging: ${rules.global.logWorkflow ? 'Yes' : 'No'}`);
 }
@@ -161,9 +162,9 @@ async function showRulesOverview(taskRules) {
 
   if (rules[mode].enforceWorkflow) {
     console.log(`\n📝 This mode enforces:`);
-    console.log(`   • ${rules[mode].requiredPhases.length} required workflow phases`);
+    console.log(`   • ${rules[mode]?.requiredPhases?.length || 0} required workflow phases`);
 
-    const enabledGates = Object.values(rules[mode].qualityGates).filter(Boolean).length;
+    const enabledGates = Object.values(rules[mode]?.qualityGates || {}).filter(Boolean).length;
     console.log(`   • ${enabledGates} quality gates`);
 
     if (rules[mode].commitRules.requireAllPhases) {

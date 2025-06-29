@@ -1,5 +1,5 @@
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import { join, dirname } from 'path';
 
 /**
  * TaskRules manages workflow rules and development hygiene enforcement
@@ -28,7 +28,12 @@ export class TaskRules {
     };
 
     // Determine mode based on indicators
-    if (indicators.isClaudeCode || indicators.isCursor || indicators.agentFlag) {
+    if (
+      indicators.isClaudeCode ||
+      indicators.isCursor ||
+      indicators.isCopilot ||
+      indicators.agentFlag
+    ) {
       return 'ai';
     }
 
@@ -128,6 +133,8 @@ export class TaskRules {
    */
   async saveDefaultRulesFile() {
     const rulesMarkdown = this.generateRulesMarkdown(this.rules);
+    // Ensure directory exists
+    await mkdir(dirname(this.rulesFile), { recursive: true });
     await writeFile(this.rulesFile, rulesMarkdown, 'utf8');
   }
 

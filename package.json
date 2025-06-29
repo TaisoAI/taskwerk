@@ -1,11 +1,12 @@
 {
   "name": "taskwerk",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A lightweight CLI task manager optimized for human-AI collaboration workflows",
   "main": "src/cli.js",
   "type": "module",
   "bin": {
-    "taskwerk": "./bin/taskwerk.js"
+    "taskwerk": "./bin/taskwerk.js",
+    "twrk": "./bin/taskwerk.js"
   },
   "engines": {
     "node": ">=18.0.0"

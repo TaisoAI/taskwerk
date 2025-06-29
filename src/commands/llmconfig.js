@@ -1,6 +1,10 @@
 import { LLMManager } from '../llm/llm-manager.js';
 import { loadConfig } from '../utils/config.js';
 import { createInterface } from 'readline';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
+import { mkdirSync } from 'fs';
 
 export async function llmConfigCommand(options = {}) {
   try {
@@ -20,6 +24,14 @@ export async function llmConfigCommand(options = {}) {
       await pullModel(llmManager, options.pull);
     } else if (options.choose) {
       await chooseModel(llmManager);
+    } else if (options.addKey) {
+      await addApiKey(options.addKey);
+    } else if (options.removeKey) {
+      await removeApiKey(options.removeKey);
+    } else if (options.listKeys) {
+      await listApiKeys();
+    } else if (options.testKey) {
+      await testApiKey(options.testKey);
     } else {
       await showStatus(llmManager);
     }
@@ -300,4 +312,267 @@ function askQuestion(rl, question) {
       resolve(answer);
     });
   });
+}
+
+// API Key Management Functions
+
+function getConfigPath() {
+  const configDir = join(homedir(), '.taskwerk');
+  if (!existsSync(configDir)) {
+    mkdirSync(configDir, { recursive: true });
+  }
+  return join(configDir, 'keys.json');
+}
+
+function loadApiKeys() {
+  const configPath = getConfigPath();
+
+  if (!existsSync(configPath)) {
+    return {};
+  }
+
+  try {
+    const content = readFileSync(configPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    console.error('⚠️  Failed to load API keys:', error.message);
+    return {};
+  }
+}
+
+function saveApiKeys(keys) {
+  const configPath = getConfigPath();
+
+  try {
+    writeFileSync(configPath, JSON.stringify(keys, null, 2));
+  } catch (error) {
+    console.error('❌ Failed to save API keys:', error.message);
+    throw error;
+  }
+}
+
+async function addApiKey(provider) {
+  const validProviders = ['openai', 'anthropic'];
+
+  if (!validProviders.includes(provider.toLowerCase())) {
+    console.error(`❌ Invalid provider: ${provider}`);
+    console.error(`Valid providers: ${validProviders.join(', ')}`);
+    process.exit(1);
+  }
+
+  console.log(`🔑 Adding API key for ${provider.toUpperCase()}`);
+
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  try {
+    const apiKey = await askQuestion(
+      rl,
+      `Enter your ${provider.toUpperCase()} API key (input will be hidden): `
+    );
+
+    if (!apiKey.trim()) {
+      console.log('❌ No API key provided.');
+      return;
+    }
+
+    // Basic validation
+    const expectedPrefixes = {
+      openai: 'sk-',
+      anthropic: 'sk-ant-',
+    };
+
+    const expectedPrefix = expectedPrefixes[provider.toLowerCase()];
+    if (expectedPrefix && !apiKey.trim().startsWith(expectedPrefix)) {
+      console.log(
+        `⚠️  Warning: ${provider.toUpperCase()} API keys typically start with "${expectedPrefix}"`
+      );
+      const confirm = await askQuestion(rl, 'Continue anyway? (y/N): ');
+      if (confirm.toLowerCase() !== 'y' && confirm.toLowerCase() !== 'yes') {
+        console.log('❌ API key not saved.');
+        return;
+      }
+    }
+
+    // Save the key
+    const keys = loadApiKeys();
+    keys[provider.toLowerCase()] = apiKey.trim();
+    saveApiKeys(keys);
+
+    console.log(`✅ API key for ${provider.toUpperCase()} saved successfully!`);
+    console.log('\n💡 Test your API key with:');
+    console.log(`taskwerk llmconfig --test-key ${provider.toLowerCase()}`);
+  } finally {
+    rl.close();
+  }
+}
+
+async function removeApiKey(provider) {
+  const validProviders = ['openai', 'anthropic'];
+
+  if (!validProviders.includes(provider.toLowerCase())) {
+    console.error(`❌ Invalid provider: ${provider}`);
+    console.error(`Valid providers: ${validProviders.join(', ')}`);
+    process.exit(1);
+  }
+
+  const keys = loadApiKeys();
+  const providerKey = provider.toLowerCase();
+
+  if (!keys[providerKey]) {
+    console.log(`⚠️  No API key found for ${provider.toUpperCase()}`);
+    return;
+  }
+
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  try {
+    const confirm = await askQuestion(
+      rl,
+      `Are you sure you want to remove the ${provider.toUpperCase()} API key? (y/N): `
+    );
+
+    if (confirm.toLowerCase() === 'y' || confirm.toLowerCase() === 'yes') {
+      delete keys[providerKey];
+      saveApiKeys(keys);
+      console.log(`✅ API key for ${provider.toUpperCase()} removed successfully!`);
+    } else {
+      console.log('❌ API key removal cancelled.');
+    }
+  } finally {
+    rl.close();
+  }
+}
+
+async function listApiKeys() {
+  const keys = loadApiKeys();
+  const envKeys = {
+    openai: process.env.OPENAI_API_KEY,
+    anthropic: process.env.ANTHROPIC_API_KEY,
+  };
+
+  console.log('# API Key Configuration\n');
+
+  const providers = ['openai', 'anthropic'];
+  let hasAnyKeys = false;
+
+  for (const provider of providers) {
+    const storedKey = keys[provider];
+    const envKey = envKeys[provider];
+
+    console.log(`## ${provider.toUpperCase()}`);
+
+    if (storedKey) {
+      const maskedKey =
+        storedKey.substring(0, 8) + '...' + storedKey.substring(storedKey.length - 4);
+      console.log(`✅ Stored API key: ${maskedKey}`);
+      hasAnyKeys = true;
+    } else if (envKey) {
+      const maskedKey = envKey.substring(0, 8) + '...' + envKey.substring(envKey.length - 4);
+      console.log(`🔧 Environment variable: ${maskedKey}`);
+      hasAnyKeys = true;
+    } else {
+      console.log('❌ No API key configured');
+    }
+
+    console.log('');
+  }
+
+  if (!hasAnyKeys) {
+    console.log('⚠️  No API keys configured.');
+    console.log('\n💡 Add an API key with:');
+    console.log('taskwerk llmconfig --add-key openai');
+    console.log('taskwerk llmconfig --add-key anthropic');
+  } else {
+    console.log('💡 Priority: Stored keys override environment variables');
+    console.log('💡 Test your keys with: taskwerk llmconfig --test-key <provider>');
+  }
+}
+
+async function testApiKey(provider) {
+  const validProviders = ['openai', 'anthropic'];
+
+  if (!validProviders.includes(provider.toLowerCase())) {
+    console.error(`❌ Invalid provider: ${provider}`);
+    console.error(`Valid providers: ${validProviders.join(', ')}`);
+    process.exit(1);
+  }
+
+  console.log(`🧪 Testing ${provider.toUpperCase()} API key...`);
+
+  const keys = loadApiKeys();
+  const storedKey = keys[provider.toLowerCase()];
+  const envKey = process.env[provider.toUpperCase() + '_API_KEY'];
+  const apiKey = storedKey || envKey;
+
+  if (!apiKey) {
+    console.log(`❌ No API key found for ${provider.toUpperCase()}`);
+    console.log(`\n💡 Add one with: taskwerk llmconfig --add-key ${provider.toLowerCase()}`);
+    return;
+  }
+
+  try {
+    if (provider.toLowerCase() === 'openai') {
+      await testOpenAIKey(apiKey);
+    } else if (provider.toLowerCase() === 'anthropic') {
+      await testAnthropicKey(apiKey);
+    }
+  } catch (error) {
+    console.log(`❌ API key test failed: ${error.message}`);
+    console.log('\n💡 Check that your API key is valid and has sufficient credits');
+  }
+}
+
+async function testOpenAIKey(apiKey) {
+  try {
+    const response = await fetch('https://api.openai.com/v1/models', {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`✅ OpenAI API key is valid! Found ${data.data.length} available models.`);
+    } else {
+      const error = await response.text();
+      throw new Error(`HTTP ${response.status}: ${error}`);
+    }
+  } catch (error) {
+    throw new Error(`Connection failed: ${error.message}`);
+  }
+}
+
+async function testAnthropicKey(apiKey) {
+  try {
+    // Anthropic doesn't have a simple models endpoint, so we'll make a minimal completion request
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'Hi' }],
+      }),
+    });
+
+    if (response.ok) {
+      console.log('✅ Anthropic API key is valid!');
+    } else {
+      const error = await response.text();
+      throw new Error(`HTTP ${response.status}: ${error}`);
+    }
+  } catch (error) {
+    throw new Error(`Connection failed: ${error.message}`);
+  }
 }

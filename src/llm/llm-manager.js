@@ -1,5 +1,8 @@
 import { TaskWerkToolRegistry } from './tool-registry.js';
 import { saveConfig } from '../utils/config.js';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 
 export class LLMManager {
   constructor(config = {}, taskManager = null) {
@@ -316,9 +319,37 @@ export class LLMManager {
     return 'unknown';
   }
 
-  hasValidApiKey(provider) {
+  loadStoredApiKeys() {
+    const configPath = join(homedir(), '.taskwerk', 'keys.json');
+
+    if (!existsSync(configPath)) {
+      return {};
+    }
+
+    try {
+      const content = readFileSync(configPath, 'utf-8');
+      return JSON.parse(content);
+    } catch (error) {
+      return {};
+    }
+  }
+
+  getApiKey(provider) {
+    // Priority: stored keys override environment variables
+    const storedKeys = this.loadStoredApiKeys();
+    const storedKey = storedKeys[provider.toLowerCase()];
+
+    if (storedKey) {
+      return storedKey;
+    }
+
+    // Fallback to environment variables
     const envKey = provider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY';
-    return !!process.env[envKey];
+    return process.env[envKey];
+  }
+
+  hasValidApiKey(provider) {
+    return !!this.getApiKey(provider);
   }
 
   async loadRemoteModel(modelName) {
@@ -327,10 +358,19 @@ export class LLMManager {
     if (provider === 'openai') {
       const { OpenAIModel } = await import('./providers/openai-model.js');
       this.loadedModel = new OpenAIModel(modelName, {
-        apiKey: process.env.OPENAI_API_KEY,
+        apiKey: this.getApiKey('openai'),
       });
       return this.loadedModel;
     }
+
+    // TODO: Add Anthropic provider implementation
+    // if (provider === 'anthropic') {
+    //   const { AnthropicModel } = await import('./providers/anthropic-model.js');
+    //   this.loadedModel = new AnthropicModel(modelName, {
+    //     apiKey: this.getApiKey('anthropic'),
+    //   });
+    //   return this.loadedModel;
+    // }
 
     throw new Error(`Unsupported remote model provider: ${provider}`);
   }

@@ -1,5 +1,9 @@
 # Completed Tasks
 
+- [x] **TASK-074** Design comprehensive task management architecture with proper subfields, git integration, subtasks, and dependencies *[2025-06-29T21:35:52.404Z]*
+  Created comprehensive architectural plan for TaskWerk v2.0 addressing core issues: rich task schema with subfields, git integration with commit tracking, subtasks and dependencies, enhanced state management, and intelligent commit message generation. Plan saved to dev/taskwerk-architecture-v2.md with detailed implementation phases.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [x] **TASK-073** Fix failing tests and build system to enable stable development workflow *[2025-06-29T21:20:00.598Z]*
   Fixed critical build failures by resolving failing tests. Key fixes: 1) Fixed task parser bug where active task regex matched completed tasks before completed task regex, causing undefined completedAt timestamps. 2) Updated commit message format to match test expectations ('Tasks completed since last commit'). 3) Fixed version bump logic to allow commits when bumping versions without completed tasks. 4) Updated minified bundle test expectations from v0.1.6 to v0.1.7. 5) Temporarily skipped tests for removed workflow automation features. Result: All critical Git safety tests now pass (173 tests passing, 0 failing, 16 skipped). Build system now works end-to-end with successful minified bundle generation.
   Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js

@@ -350,11 +350,12 @@ program
 🔧 What this command does:
   TaskWerk commit creates intelligent Git commits by analyzing your completed tasks
   and generating conventional commit messages that document what work was done.
+  It follows workflow rules and automatically handles Co-Authored-By tags, version bumping, and file staging based on your workflow mode (AI vs human).
 
 📋 Prerequisites:
   • Must be in a Git repository (git init if needed)
-  • Need staged files for commit (use 'taskwerk stage --auto' or 'git add')
   • Have completed tasks since last commit (optional with --allow-empty)
+  • Files will be auto-staged in AI mode, or use 'git add' to stage manually
 
 🔄 How it works:
   1. Checks for staged files in Git working directory
@@ -370,13 +371,10 @@ program
     [... do your work ...]
     $ taskwerk complete TASK-001
 
-  Step 2: Stage changes
-    $ taskwerk stage --auto        # Stage files related to completed tasks
-    # OR manually: git add src/auth.js
-
-  Step 3: Review and commit
-    $ taskwerk commit              # Shows preview, prompts for confirmation
-    $ taskwerk commit --auto       # Commits immediately
+  Step 2: Commit changes
+    $ taskwerk commit              # Auto-stages in AI mode, shows preview
+    $ taskwerk commit --auto       # Auto-stages and commits immediately
+    # OR manually: git add src/auth.js && taskwerk commit
 
 📝 Generated commit message format:
   feat: Complete 2 tasks (or fix:, docs:, etc. based on task content)
@@ -399,17 +397,18 @@ program
   $ taskwerk commit --allow-empty          # Commit even with no completed tasks
 
 ⚠️  Troubleshooting:
-  "No files staged": Run 'taskwerk stage --auto' or 'git add <files>' first
+  "No files staged": Run 'git add <files>' or enable auto-staging in AI mode
   "No completed tasks": Complete tasks with 'taskwerk complete TASK-XXX'
   "Not a git repository": Run 'git init' in your project directory
   "No changes to commit": All changes already committed, check 'git status'
 
 💡 Pro tips:
-  • Use 'taskwerk stage' to automatically stage files related to completed tasks
+  • In AI mode: auto-staging, version bumping, and Co-Authored-By tags are automatic
+  • In human mode: minimal automation, manual control over staging and commits
   • The --auto flag is great for scripting and CI/CD pipelines
   • Version bumping follows semantic versioning (patch/minor/major)
   • Custom messages with -m bypass task-based message generation
-  • Commit messages follow conventional commit format for better tooling integration`
+  • Commit messages follow conventional commit format with proper co-authorship`
   )
   .action(commitCommand);
 

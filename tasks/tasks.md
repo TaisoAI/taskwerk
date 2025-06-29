@@ -2,7 +2,7 @@
 
 *Last updated: 06/27/2025*
 *Current session: CLI*
-*Next ID: TASK-055*
+*Next ID: TASK-057*
 
 ## HIGH Priority
 
@@ -31,6 +31,8 @@
 - [ ] **TASK-047** taskwerk simple llm command - if you run taskwerk like this taskwerk 'this is a task for taskwerk' or with double quotes it will invoke the llm in ask mode.  if you append --agent afterwards it will invoke taskwerk in agent mode.
 - [ ] **TASK-048** the taskwork date time stamps should always be YYYY-MM-DD-HH-MM-SS so its not confused with different international date formats
 - [ ] **TASK-054** taskwerk should support sub tasks? (make plan to see if this make sense before coding)
+- [ ] **TASK-055** taskwerk interactive cli mode -- Instead of typing in each command at the terminal, the user can enter cli mode such as taskwerk cli.  All the basic taskwerk commands become slash commands /list /add etc.  It should have syntax highlighting so the user can clear see what taskwerk is doing and what they type.  if they don't type in anything taskwerk will be in agent mode by default - so it takes free form responses.  Note that cli mode should be able to toggle between agent mode and ask mode via a slash command (think about what this should be.   perhaps /toggle-mode agent or /toggle-mode ask.
+- [ ] **TASK-056** enable optional logging -- taskwerk should have an option to log all commands and responses to separate log file.  There should be options to log all or some commands such as logging --off (no logging), logggin --all (every command input and output is appended to a log with timestamp), and then specific filters could be set like loigging ai commands etc.  logging could be part of the config file and stored there.
 ### Refactoring
 
 - [ ] **TASK-027** Review usability and workflows for TaskWerk CLI tool

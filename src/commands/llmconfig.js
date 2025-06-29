@@ -6,6 +6,20 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { mkdirSync } from 'fs';
 
+/**
+ * Main entry point for llmconfig command. Routes to appropriate sub-command based on options.
+ * @param {Object} options - Command line options object
+ * @param {boolean} [options.listModels] - List all available models
+ * @param {string} [options.modelInfo] - Show info for specific model
+ * @param {string} [options.setDefault] - Set default model
+ * @param {string} [options.model] - Alias for setDefault
+ * @param {string} [options.pull] - Pull model from Ollama
+ * @param {boolean} [options.choose] - Interactive model selection
+ * @param {string} [options.addKey] - Add API key for provider
+ * @param {string} [options.removeKey] - Remove API key for provider
+ * @param {boolean} [options.listKeys] - List configured API keys
+ * @param {string} [options.testKey] - Test API key for provider
+ */
 export async function llmConfigCommand(options = {}) {
   try {
     const config = await loadConfig();
@@ -41,6 +55,10 @@ export async function llmConfigCommand(options = {}) {
   }
 }
 
+/**
+ * Lists all available LLM models from all providers (OpenAI, Anthropic, Ollama, LM Studio).
+ * @param {LLMManager} llmManager - LLM manager instance
+ */
 async function listModels(llmManager) {
   console.log('# Available LLM Models\n');
 
@@ -69,7 +87,7 @@ async function listModels(llmManager) {
 
     for (const model of providerModels) {
       const status = model.status === 'available' ? '✅' : '❌';
-      
+
       // Parse parameter size from model name if available
       let paramSize = '';
       const sizeMatch = model.name.match(/:(\d+[bm]?)$/i);
@@ -82,14 +100,14 @@ async function listModels(llmManager) {
           paramSize = model.size;
         }
       }
-      
+
       // Format: [PROVIDER] [MODELNAME] [PARAM_SIZE]
       const providerTag = `[${provider.toUpperCase()}]`;
       const modelName = model.name.replace(/:.*$/, ''); // Remove size suffix
       const paramTag = paramSize ? `[${paramSize}]` : '';
-      
+
       console.log(`${status} ${providerTag} ${modelName} ${paramTag}`.trim());
-      
+
       // Add secondary info if available
       if (model.type === 'local' && model.modified) {
         console.log(`     Modified: ${new Date(model.modified).toLocaleDateString()}`);
@@ -102,6 +120,11 @@ async function listModels(llmManager) {
   console.log(`**Default model**: ${defaultModel}`);
 }
 
+/**
+ * Shows detailed information about a specific model.
+ * @param {LLMManager} llmManager - LLM manager instance
+ * @param {string} modelName - Name of the model to show info for
+ */
 async function showModelInfo(llmManager, modelName) {
   const info = await llmManager.getModelInfo(modelName);
 
@@ -121,11 +144,20 @@ async function showModelInfo(llmManager, modelName) {
   }
 }
 
+/**
+ * Sets the default model for TaskWerk.
+ * @param {LLMManager} llmManager - LLM manager instance
+ * @param {string} modelName - Name of the model to set as default
+ */
 async function setDefaultModel(llmManager, modelName) {
   await llmManager.setDefaultModel(modelName);
   console.log(`✅ Default model set to: ${modelName}`);
 }
 
+/**
+ * Shows current LLM configuration status including models, API keys, and setup guidance.
+ * @param {LLMManager} llmManager - LLM manager instance
+ */
 async function showStatus(llmManager) {
   console.log('# LLM Configuration Status\n');
 
@@ -200,6 +232,11 @@ async function showStatus(llmManager) {
   console.log('- `taskwerk agent "request"` - Perform actions via AI');
 }
 
+/**
+ * Pulls (downloads) a model from Ollama.
+ * @param {LLMManager} llmManager - LLM manager instance
+ * @param {string} modelName - Name of the model to pull
+ */
 async function pullModel(llmManager, modelName) {
   console.log(`📥 Pulling model: ${modelName}...`);
 
@@ -233,6 +270,10 @@ async function pullModel(llmManager, modelName) {
   }
 }
 
+/**
+ * Interactive model selection interface. Shows available models and lets user choose default.
+ * @param {LLMManager} llmManager - LLM manager instance
+ */
 async function chooseModel(llmManager) {
   console.log('🤖 Interactive LLM Model Selection\n');
 
@@ -241,9 +282,10 @@ async function chooseModel(llmManager) {
   if (models.length === 0) {
     console.log('❌ No models available.');
     console.log('\n📋 Setup Guide:');
-    console.log('1. For OpenAI models: export OPENAI_API_KEY="your-key-here"');
-    console.log('2. For local models: Install Ollama (https://ollama.ai)');
-    console.log('3. For local models: Install LM Studio (https://lmstudio.ai)');
+    console.log('1. For OpenAI models: taskwerk llmconfig --add-key openai');
+    console.log('2. For Claude models: taskwerk llmconfig --add-key anthropic');
+    console.log('3. For local models: Install Ollama (https://ollama.ai)');
+    console.log('4. For local models: Install LM Studio (https://lmstudio.ai)');
     console.log('\nOnce setup, run this command again to choose a model.');
     return;
   }
@@ -321,6 +363,12 @@ async function chooseModel(llmManager) {
   }
 }
 
+/**
+ * Helper function to ask a question via readline interface.
+ * @param {readline.Interface} rl - Readline interface
+ * @param {string} question - Question to ask
+ * @returns {Promise<string>} User's answer
+ */
 function askQuestion(rl, question) {
   return new Promise(resolve => {
     rl.question(question, answer => {
@@ -339,6 +387,10 @@ function getConfigPath() {
   return join(configDir, 'keys.json');
 }
 
+/**
+ * Loads API keys from the configuration file.
+ * @returns {Object} Object containing API keys by provider
+ */
 function loadApiKeys() {
   const configPath = getConfigPath();
 
@@ -355,6 +407,10 @@ function loadApiKeys() {
   }
 }
 
+/**
+ * Saves API keys to the configuration file.
+ * @param {Object} keys - Object containing API keys by provider
+ */
 function saveApiKeys(keys) {
   const configPath = getConfigPath();
 
@@ -366,6 +422,10 @@ function saveApiKeys(keys) {
   }
 }
 
+/**
+ * Adds an API key for the specified provider via interactive prompt.
+ * @param {string} provider - Provider name (openai or anthropic)
+ */
 async function addApiKey(provider) {
   const validProviders = ['openai', 'anthropic'];
 
@@ -424,6 +484,10 @@ async function addApiKey(provider) {
   }
 }
 
+/**
+ * Removes an API key for the specified provider.
+ * @param {string} provider - Provider name (openai or anthropic)
+ */
 async function removeApiKey(provider) {
   const validProviders = ['openai', 'anthropic'];
 
@@ -464,6 +528,9 @@ async function removeApiKey(provider) {
   }
 }
 
+/**
+ * Lists all configured API keys (masked for security).
+ */
 async function listApiKeys() {
   const keys = loadApiKeys();
   const envKeys = {
@@ -509,6 +576,10 @@ async function listApiKeys() {
   }
 }
 
+/**
+ * Tests an API key for the specified provider.
+ * @param {string} provider - Provider name (openai or anthropic)
+ */
 async function testApiKey(provider) {
   const validProviders = ['openai', 'anthropic'];
 
@@ -543,6 +614,11 @@ async function testApiKey(provider) {
   }
 }
 
+/**
+ * Tests an OpenAI API key by making a models list request.
+ * @param {string} apiKey - OpenAI API key to test
+ * @returns {Promise<boolean>} Whether the key is valid
+ */
 async function testOpenAIKey(apiKey) {
   try {
     const response = await fetch('https://api.openai.com/v1/models', {
@@ -564,6 +640,11 @@ async function testOpenAIKey(apiKey) {
   }
 }
 
+/**
+ * Tests an Anthropic API key by making a simple request.
+ * @param {string} apiKey - Anthropic API key to test
+ * @returns {Promise<boolean>} Whether the key is valid
+ */
 async function testAnthropicKey(apiKey) {
   try {
     // Anthropic doesn't have a simple models endpoint, so we'll make a minimal completion request

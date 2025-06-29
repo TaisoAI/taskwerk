@@ -1,5 +1,6 @@
 import { TaskManager } from '../core/task-manager.js';
 import { GitManager } from '../git/git-manager.js';
+import { TaskRules } from '../core/task-rules.js';
 import { loadConfig } from '../utils/config.js';
 
 export async function commitCommand(options = {}) {
@@ -7,27 +8,52 @@ export async function commitCommand(options = {}) {
     const config = await loadConfig();
     const taskManager = new TaskManager(config);
     const gitManager = new GitManager();
+    const taskRules = new TaskRules(config);
 
     if (!(await gitManager.isGitRepository())) {
       console.error('❌ Not a git repository');
       process.exit(1);
     }
 
-    // Check for staged files first
+    // Detect workflow mode to apply appropriate rules
+    const workflowMode = await taskRules.detectWorkflowMode();
+    const rules = await taskRules.loadRules();
+    const commitRules = rules[workflowMode].commitRules;
+
+    console.log(`🔧 Workflow mode: ${workflowMode.toUpperCase()}`);
+
+    // Auto-stage files if enabled by rules or forced
+    if (commitRules.autoStage || options.autoStage) {
+      const stagedCount = await taskRules.autoStageFiles();
+      if (stagedCount > 0) {
+        console.log(`📁 Auto-staged ${stagedCount} file(s)`);
+      }
+    }
+
+    // Check for staged files
     const stagedFiles = await gitManager.getStagedFiles();
 
     if (stagedFiles.length === 0) {
       console.log('⚠️  No files staged for commit');
-      console.log('💡 Use taskwerk stage --auto to stage files based on completed tasks');
-      console.log('💡 Or use git add to stage files manually');
+      console.log('💡 Use git add to stage files manually, or enable auto-staging');
       return;
+    }
+
+    // Auto-bump version if enabled by rules or forced
+    let newVersion = null;
+    if (commitRules.autoVersionBump || options.versionBump) {
+      const versionType = options.versionBump || commitRules.versionBumpType || 'patch';
+      newVersion = await taskRules.bumpVersion(versionType);
+      if (newVersion) {
+        console.log(`📈 Version bumped (${versionType}): ${newVersion}`);
+      }
     }
 
     let commitMessage;
 
     if (options.message) {
-      // Use custom message
-      commitMessage = options.message;
+      // Use custom message but still add Co-Authored-By
+      commitMessage = addCoAuthoredBy(options.message, workflowMode);
     } else {
       // Generate message from completed tasks
       const completedTasks = await getCompletedTasksSinceLastCommit(taskManager, gitManager);
@@ -38,10 +64,9 @@ export async function commitCommand(options = {}) {
           console.log('💡 Use --allow-empty to commit anyway, or complete some tasks first');
           return;
         }
-        commitMessage =
-          'chore: Update files\n\nFiles modified:\n' + stagedFiles.map(f => `- ${f}`).join('\n');
+        commitMessage = generateGenericCommitMessage(stagedFiles, newVersion, workflowMode);
       } else {
-        commitMessage = generateTaskBasedCommitMessage(completedTasks, stagedFiles);
+        commitMessage = generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion, workflowMode);
       }
     }
 
@@ -61,25 +86,25 @@ export async function commitCommand(options = {}) {
       }
     }
 
-    // Create the commit
+    // Create the commit using HEREDOC for proper formatting
     try {
       const { exec } = await import('child_process');
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
 
-      await execAsync(`git commit -m "${commitMessage.replace(/"/g, '\\"')}"`);
+      // Use HEREDOC for proper commit message formatting
+      const commitCmd = `git commit -m "$(cat <<'EOF'\n${commitMessage}\nEOF\n)"`;
+      await execAsync(commitCmd);
 
       const commitHash = await gitManager.getLatestCommitHash();
 
       console.log(`\n✅ Committed changes successfully`);
       console.log(`📝 Commit: ${commitHash}`);
       console.log(`📁 Files: ${stagedFiles.length} file(s)`);
-
-      // Update version if requested
-      if (options.versionBump) {
-        await updateVersion(options.versionBump);
-        console.log(`📈 Version bumped (${options.versionBump})`);
+      if (newVersion) {
+        console.log(`📈 Version: ${newVersion}`);
       }
+      console.log(`🔧 Mode: ${workflowMode}`);
     } catch (error) {
       throw new Error(`Failed to create commit: ${error.message}`);
     }
@@ -124,7 +149,31 @@ async function getLastCommitTime(_gitManager) {
   }
 }
 
-function generateTaskBasedCommitMessage(completedTasks, stagedFiles) {
+function addCoAuthoredBy(message, workflowMode) {
+  // Add Co-Authored-By tags as required by workflow rules
+  let result = message;
+  
+  if (workflowMode === 'ai') {
+    // Add Claude co-authorship for AI mode
+    if (!result.includes('Co-Authored-By:')) {
+      result += '\n\nCo-Authored-By: Claude <noreply@anthropic.com>';
+    }
+  }
+  
+  return result;
+}
+
+function generateGenericCommitMessage(stagedFiles, newVersion, workflowMode) {
+  let message = 'chore: Update files\n\nFiles modified:\n' + stagedFiles.map(f => `- ${f}`).join('\n');
+  
+  if (newVersion) {
+    message += `\n\nVersion: ${newVersion}`;
+  }
+  
+  return addCoAuthoredBy(message, workflowMode);
+}
+
+function generateTaskBasedCommitMessage(completedTasks, stagedFiles, newVersion, workflowMode) {
   // Determine commit type based on tasks
   let commitType = 'feat';
   const hasBugFixes = completedTasks.some(
@@ -192,6 +241,11 @@ function generateTaskBasedCommitMessage(completedTasks, stagedFiles) {
     }
   }
 
+  // Add version information if bumped
+  if (newVersion) {
+    message += `\n\nVersion: ${newVersion}`;
+  }
+
   // Add side effects if any
   const tasksWithSideEffects = completedTasks.filter(
     t => t.sideEffects && t.sideEffects.length > 0
@@ -205,42 +259,23 @@ function generateTaskBasedCommitMessage(completedTasks, stagedFiles) {
     }
   }
 
-  return message.trim();
+  // Add Co-Authored-By tags as required by workflow rules
+  return addCoAuthoredBy(message.trim(), workflowMode);
 }
 
+// Version bumping is now handled by TaskRules.bumpVersion()
+// This function is kept for backward compatibility but delegates to TaskRules
 async function updateVersion(bumpType) {
+  console.warn('⚠️  updateVersion is deprecated. Use TaskRules.bumpVersion() instead.');
+  
   try {
-    const { readFile, writeFile } = await import('fs/promises');
-    const packagePath = './package.json';
-
-    const packageContent = await readFile(packagePath, 'utf8');
-    const packageData = JSON.parse(packageContent);
-
-    if (!packageData.version) {
-      throw new Error('No version field found in package.json');
+    const { TaskRules } = await import('../core/task-rules.js');
+    const taskRules = new TaskRules({});
+    const newVersion = await taskRules.bumpVersion(bumpType);
+    
+    if (newVersion) {
+      console.log(`📈 Version updated to: ${newVersion}`);
     }
-
-    const [major, minor, patch] = packageData.version.split('.').map(Number);
-
-    let newVersion;
-    switch (bumpType) {
-      case 'major':
-        newVersion = `${major + 1}.0.0`;
-        break;
-      case 'minor':
-        newVersion = `${major}.${minor + 1}.0`;
-        break;
-      case 'patch':
-        newVersion = `${major}.${minor}.${patch + 1}`;
-        break;
-      default:
-        throw new Error(`Invalid version bump type: ${bumpType}`);
-    }
-
-    packageData.version = newVersion;
-    await writeFile(packagePath, JSON.stringify(packageData, null, 2) + '\n');
-
-    console.log(`📈 Version updated: ${packageData.version} → ${newVersion}`);
   } catch (error) {
     console.error(`⚠️  Failed to update version: ${error.message}`);
   }

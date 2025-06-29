@@ -1,7 +1,12 @@
 {
   "name": "taskwerk",
   "version": "0.1.6",
+  "author": "manu chatterjee <deftio@deftio.com>",
   "description": "A lightweight CLI task manager optimized for human-AI collaboration workflows",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deftio/taskwerk.git"
+  },
   "main": "src/cli.js",
   "type": "module",
   "bin": {
@@ -24,8 +29,10 @@
     "dev": "node bin/taskwerk.js",
     "build": "node scripts/build.js",
     "build:minified": "npm run build && node scripts/build-minified.js",
-    "build:exe": "npm run build && node scripts/build-executable.js",
-    "build:pkg": "pkg . --out-path dist",
+    "_build:exe": "npm run build && node scripts/build-executable.js",
+    "_build:pkg": "pkg . --out-path dist",
+    "build:all": "npm run build && npm run build:minified",
+    "make-release-dry-run": "echo '🔍 Release dry-run starting...' && npm run lint && npm run format:check && npm test && npm run build:all && echo '✅ Release dry-run completed successfully!'",
     "clean": "rm -rf dist/ build/ coverage/ .nyc_output/"
   },
   "keywords": [
@@ -37,7 +44,6 @@
     "git",
     "markdown"
   ],
-  "author": "",
   "license": "MIT",
   "dependencies": {
     "commander": "^11.1.0"
@@ -51,6 +57,7 @@
   "files": [
     "bin/",
     "src/",
+    "dist/",
     "README.md"
   ],
   "pkg": {
@@ -64,5 +71,6 @@
     "scripts": [
       "src/**/*.js"
     ]
-  }
+  },
+  "preferGlobal": true
 }

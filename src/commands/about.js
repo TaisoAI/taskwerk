@@ -46,7 +46,7 @@ export async function aboutCommand() {
 `;
 
     console.log(banner);
-    console.log(`🚀 taskwerk v${version}`);
+    console.log(`🚀 taskwerk v${version} by Taiso.AI (www.taiso.ai)`);
     console.log('A lightweight CLI task manager optimized for human-AI collaboration workflows');
     console.log('');
     console.log('📦 Package Information:');
@@ -59,9 +59,9 @@ export async function aboutCommand() {
     console.log('   npm Package: https://www.npmjs.com/package/taskwerk');
     console.log('   Issues & Support: https://github.com/deftio/taskwerk/issues');
     console.log('');
-    console.log('👥 Author & Contributors:');
-    console.log('   Manu Chatterjee <deftio@deftio.com>');
-    console.log('');
+    // console.log('👥 Author & Contributors:');
+    // console.log('   Manu Chatterjee <deftio@deftio.com>');
+    // console.log('');
     console.log('📄 License: MIT');
     console.log('');
     console.log('🤖 AI Integration:');

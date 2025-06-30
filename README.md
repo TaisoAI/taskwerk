@@ -1,12 +1,12 @@
-[![npm version](https://badge.fury.io/js/taskwerk.svg)](https://www.npmjs.com/package/taskwerk)
+[![npm version](https://img.shields.io/npm/v/taskwerk.svg)](https://www.npmjs.com/package/taskwerk)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-# TaskWerk
+# Taskwerk
 
-A lightweight CLI task manager optimized for human-AI collaboration workflows. TaskWerk v2.0 combines the simplicity of markdown with powerful YAML frontmatter for structured task management.
+A lightweight CLI task manager optimized for human-AI collaboration workflows. Taskwerk v2.0 combines the simplicity of markdown with powerful YAML frontmatter for structured task management.
 
-## Why TaskWerk?
+## Why Taskwerk?
 
 - **Structured yet Human-Readable**: YAML frontmatter for metadata, markdown for content
 - **Advanced Task Management**: Dependencies, subtasks, timeline tracking, and assignees
@@ -18,7 +18,7 @@ A lightweight CLI task manager optimized for human-AI collaboration workflows. T
 ## Quick Start
 
 ```bash
-# Initialize TaskWerk in your project
+# Initialize Taskwerk in your project
 npx taskwerk init
 
 # Add your first task with enhanced metadata
@@ -31,7 +31,7 @@ npx taskwerk start TASK-001
 npx taskwerk complete TASK-001 --note "Fixed session timeout issue"
 ```
 
-That's it! TaskWerk creates structured YAML frontmatter files with markdown content for powerful task tracking.
+That's it! Taskwerk creates structured YAML frontmatter files with markdown content for powerful task tracking.
 
 ## Installation
 
@@ -42,7 +42,7 @@ npx taskwerk init          # Use directly with npx
 
 ### Global Installation
 ```bash
-npm install -g taskwerk
+npm install -g taskwerk  
 taskwerk --help
 ```
 
@@ -128,7 +128,7 @@ tasks/
 
 ## Task Format
 
-TaskWerk v2.0 uses YAML frontmatter for structured metadata with markdown content for rich descriptions:
+Taskwerk v2.0 uses YAML frontmatter for structured metadata with markdown content for rich descriptions:
 
 ```markdown
 ---
@@ -310,9 +310,10 @@ taskwerk agent "start working on the authentication task"
 ```
 
 **Supported Models:**
-- **OpenAI**: GPT-4, GPT-3.5 (remote)
+- **OpenAI**: GPT-4, GPT-4.1, .. (remote)
+- **Anthropic**: Claude-3.5, Claude-3.7, ... (remote)
 - **Ollama**: Local models (llama3.2, etc.)
-- **LM Studio**: Local model server
+- **LM Studio**: Local model server (similar to ollama)
 
 See `taskwerk llmconfig --help` for complete setup guide.
 
@@ -356,7 +357,7 @@ See `taskwerk llmconfig --help` for complete setup guide.
 - `taskwerk llmconfig [--list-models] [--add-key] [--choose]` - Configure AI models
 
 ### Configuration & Management
-- `taskwerk init [path]` - Initialize TaskWerk with v2.0 format in project
+- `taskwerk init [path]` - Initialize Taskwerk with v2.0 format in project
 - `taskwerk rules [--status] [--validate]` - View/edit workflow rules
 - `taskwerk migrate` - Manually migrate v1 format to v2.0 (auto-migration available)
 - `taskwerk about` - Version and help information
@@ -392,7 +393,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## What's New in v2.0
 
-TaskWerk v2.0 brings significant enhancements while maintaining backward compatibility:
+Taskwerk v2.0 brings significant enhancements while maintaining backward compatibility:
 
 ### 🚀 **YAML Frontmatter Architecture**
 - Structured metadata with human-readable markdown content
@@ -416,14 +417,14 @@ TaskWerk v2.0 brings significant enhancements while maintaining backward compati
 
 ## Philosophy
 
-TaskWerk believes task management should be:
+Taskwerk believes task management should be:
 - **Structured yet Human**: YAML + Markdown for the best of both worlds
 - **Relationship-Aware**: Tasks don't exist in isolation
 - **Timeline-Conscious**: History matters for context and learning
 - **AI-Collaborative**: Built for human-AI development workflows
 - **Zero Lock-In**: Plain text files that work everywhere
 
-Whether you're working solo, with a team, or with AI assistants, TaskWerk v2.0 provides the structured context and intelligent task management you need for modern software development.
+Whether you're working solo, with a team, or with AI assistants, Taskwerk v2.0 provides the structured context and intelligent task management you need for modern software development.
 
 ---
 

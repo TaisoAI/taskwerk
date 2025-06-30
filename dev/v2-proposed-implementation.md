@@ -2,7 +2,7 @@
 
 ## Overview
 
-TaskWerk v2.0 represents an evolution from a simple task list to a comprehensive developer workflow tool, while maintaining the core principles of human-editability, git-friendliness, and CLI-first operation. This plan incorporates architectural insights from both internal analysis and external review feedback.
+TaskWerk v2 architcture represents an evolution from a simple task list to a comprehensive developer workflow tool, while maintaining the core principles of human-editability, git-friendliness, and CLI-first operation. This plan incorporates architectural insights from both internal analysis and external review feedback.
 
 ### Core Philosophy
 

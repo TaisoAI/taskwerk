@@ -62,6 +62,7 @@ describe('aboutCommand', () => {
       assert(output.includes('Issues & Support: https://github.com/deftio/taskwerk/issues'));
     });
 
+    /*
     it('should display author information', async () => {
       await aboutCommand();
 
@@ -71,6 +72,7 @@ describe('aboutCommand', () => {
       assert(output.includes('👥 Author & Contributors:'));
       assert(output.includes('Manu Chatterjee <deftio@deftio.com>'));
     });
+    */
 
     it('should display license information', async () => {
       await aboutCommand();
@@ -199,7 +201,6 @@ describe('aboutCommand', () => {
       const bannerIndex = output.indexOf('████████╗');
       const packageIndex = output.indexOf('📦 Package Information:');
       const linksIndex = output.indexOf('🔗 Project Links:');
-      const authorIndex = output.indexOf('👥 Author & Contributors:');
       const licenseIndex = output.indexOf('📄 License:');
       const aiIndex = output.indexOf('🤖 AI Integration:');
       const quickStartIndex = output.indexOf('🚀 Quick Start:');
@@ -209,7 +210,6 @@ describe('aboutCommand', () => {
       assert(bannerIndex >= 0);
       assert(packageIndex >= 0);
       assert(linksIndex >= 0);
-      assert(authorIndex >= 0);
       assert(licenseIndex >= 0);
       assert(aiIndex >= 0);
       assert(quickStartIndex >= 0);
@@ -218,8 +218,7 @@ describe('aboutCommand', () => {
       // Sections should appear in logical order
       assert(bannerIndex < packageIndex);
       assert(packageIndex < linksIndex);
-      assert(linksIndex < authorIndex);
-      assert(authorIndex < licenseIndex);
+      assert(linksIndex < licenseIndex);
       assert(licenseIndex < aiIndex);
       assert(aiIndex < quickStartIndex);
       assert(quickStartIndex < helpIndex);
@@ -236,6 +235,7 @@ describe('aboutCommand', () => {
       assert(output.includes('https://github.com/deftio/taskwerk/issues'));
     });
 
+    /*
     it('should include all required contact information', async () => {
       await aboutCommand();
 
@@ -244,5 +244,6 @@ describe('aboutCommand', () => {
       // Check for contact info
       assert(output.includes('deftio@deftio.com'));
     });
+    */
   });
 });

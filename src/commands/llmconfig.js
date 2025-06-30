@@ -623,7 +623,7 @@ async function testOpenAIKey(apiKey) {
   try {
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });

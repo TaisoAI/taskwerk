@@ -18,6 +18,6 @@
     "eqeqeq": "error",
     "curly": "error",
     "semi": ["error", "always"],
-    "quotes": ["error", "single", { "allowTemplateLiterals": true }]
+    "quotes": ["error", "single", { "allowTemplateLiterals": true, "avoidEscape": true }]
   }
 }

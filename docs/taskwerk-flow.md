@@ -1,65 +1,85 @@
-# taskwerk Workflow Guide
+# TaskWerk v2.0 Workflow Guide
 
-This guide shows you how to use taskwerk effectively for different scenarios and team sizes.
+This guide shows you how to use TaskWerk v2.0 effectively with YAML frontmatter for different scenarios and team sizes.
+
+> **📖 Complete Documentation**: For comprehensive documentation, see the [User Guide](user-guide.md) and [Developer Guide](developer-guide.md).
 
 ## Quick Reference
 
-### Basic Commands
+### Enhanced v2.0 Commands
 ```bash
-taskwerk init                    # Initialize in project
-taskwerk add "Task description"  # Add new task
-taskwerk list                    # View all tasks
-taskwerk start TASK-001          # Begin working
-taskwerk complete TASK-001       # Mark finished
-taskwerk status                  # Check current state
+taskwerk init                                    # Initialize in project
+taskwerk add "Task description" --assignee @me  # Add task with metadata
+taskwerk list --assignee @alice                 # Filter by assignee
+taskwerk start TASK-001                          # Begin working (validates dependencies)
+taskwerk complete TASK-001 --note "Details"     # Mark finished with timeline
+taskwerk status                                 # Check current state & dependencies
 ```
 
-### Git Integration
+### v2.0 Git Integration
 ```bash
 taskwerk branch TASK-001         # Create feature branch
 git add files                    # Stage your changes
-taskwerk commit                  # Generate smart commit message
-taskwerk commit --auto          # Actually commit
+taskwerk commit                  # Generate smart commit with task context
+taskwerk commit --auto          # Actually commit with Co-Authored-By tags
+```
+
+### v2.0 Enhanced Features
+```bash
+# Dependencies & subtasks
+taskwerk add-dependency TASK-002 TASK-001   # TASK-002 depends on TASK-001
+taskwerk add-subtask TASK-001 "Unit tests"  # Add subtask
+taskwerk ready-tasks                         # Show tasks ready to work on
+
+# Blocking & timeline
+taskwerk block TASK-001 --reason "Waiting for API docs"
+taskwerk unblock TASK-001 --note "Docs received"
+taskwerk timeline TASK-001                  # View complete task history
 ```
 
 ## Core Workflow Patterns
 
-### Solo Development
+### Solo Development with v2.0
 
-**Daily routine:**
+**Enhanced daily routine:**
 ```bash
-# Morning: check what to work on
-taskwerk list --priority high
+# Morning: check what to work on with enhanced filtering
+taskwerk list --priority high --assignee @me
+taskwerk ready-tasks                         # See what has no blocking dependencies
 taskwerk start TASK-003
 
-# During work: track progress
-taskwerk status
+# During work: track progress with timeline
+taskwerk status                              # Shows dependencies & session info
+taskwerk timeline TASK-003                  # Review task history if needed
 
-# When done: complete and commit
-taskwerk complete TASK-003 --note "Fixed memory leak in user service"
+# When done: complete with rich metadata
+taskwerk complete TASK-003 --note "Fixed memory leak in user service, reduced heap usage by 40%"
 git add src/
-taskwerk commit --auto
+taskwerk commit --auto                       # Intelligent commit with task context
 ```
 
-### Team Collaboration
+### Team Collaboration with v2.0
 
-**Shared task management:**
+**Enhanced shared task management:**
 ```bash
 # Get latest team tasks
 git pull
 
-# See what needs attention
-taskwerk list --priority high
+# See what needs attention with assignee filtering
+taskwerk list --priority high --assignee @me    # My high priority tasks
+taskwerk list --priority high                   # All high priority tasks
+taskwerk ready-tasks                             # Tasks ready to work on (no dependencies)
 
-# Claim a task
+# Claim and assign a task
 taskwerk start TASK-007
 
-# Work and complete
-taskwerk complete TASK-007 --note "Implemented with Redis caching"
+# Work with subtasks and dependencies
+taskwerk add-subtask TASK-007 "Write integration tests" --assignee @alice
+taskwerk complete TASK-007 --note "Implemented with Redis caching, includes rate limiting"
 
-# Share with team
+# Share with team including timeline history
 git add .
-taskwerk commit --auto
+taskwerk commit --auto                           # Smart commit with task metadata
 git push
 ```
 
@@ -108,25 +128,48 @@ your-project/
 └── .task-session.json   # Current session (git-ignored)
 ```
 
-### Editing Tasks Directly
+### v2.0 YAML Frontmatter Format
 
-You can edit `tasks/tasks.md` by hand:
+TaskWerk v2.0 uses YAML frontmatter for structured metadata. You can edit `tasks/tasks.md` by hand:
 
 ```markdown
-# Project Tasks
+<!-- TaskWerk v2.0 Format -->
 
-*Next ID: TASK-008*
+---
+id: TASK-001
+description: Fix login bug on mobile Safari
+status: in_progress
+priority: high
+category: bugs
+assignee: @john
+estimated: 2h
+dependencies: []
+subtasks:
+  - id: TASK-001.1
+    description: Reproduce issue
+    status: completed
+    assignee: @john
+timeline:
+  - timestamp: 2025-06-30T10:00:00.000Z
+    action: created
+    user: @john
+  - timestamp: 2025-06-30T10:15:00.000Z
+    action: started
+    user: @john
+    note: Beginning investigation
+---
 
-## HIGH Priority
-- [>] **TASK-001** Fix login bug - John working on this
-- [ ] **TASK-005** Add 2FA support - needs security review
+# Fix login bug on mobile Safari
 
-## MEDIUM Priority  
-- [ ] **TASK-006** Update documentation
-- [!] **TASK-007** Refactor auth service - blocked by API changes
+## Problem Description
+Session timeout occurs after 15 minutes on mobile Safari...
+
+## Acceptance Criteria
+- [ ] Session persists for 30 minutes
+- [ ] Works in background tabs
 ```
 
-**Pro tip:** Use your editor's markdown preview to see tasks visually.
+**Pro tip:** v2.0 format provides rich metadata while keeping content human-readable.
 
 ## Task Management Strategies
 
@@ -244,21 +287,33 @@ taskwerk recent                  # Recently completed tasks
 taskwerk list --completed       # All completed tasks
 ```
 
-### Configuration
+### v2.0 Enhanced Configuration
 ```bash
 # View current configuration
 cat .taskrc.json
 
-# Example configuration
+# Enhanced v2.0 configuration example
 {
   "defaultPriority": "medium",
+  "defaultAssignee": "@me",
   "autoCreateBranch": true,
+  "validateDependencies": true,
+  "timelineTracking": true,
   "categories": {
     "bugs": "Bug Fixes",
     "features": "Features",
     "docs": "Documentation",
-    "perf": "Performance",
-    "security": "Security"
+    "performance": "Performance",
+    "security": "Security",
+    "refactor": "Code Refactoring",
+    "tests": "Testing"
+  },
+  "estimateFormats": ["30m", "1h", "2h", "4h", "1d", "2d", "1w"],
+  "workflowRules": {
+    "requireEstimateForHighPriority": true,
+    "autoCompleteSubtasks": true,
+    "enforceAssigneeFormat": true,
+    "requireReasonForBlocking": true
   }
 }
 ```
@@ -314,16 +369,39 @@ taskwerk about                   # Version and info
 
 7. **Git safety**: Always check `git status` before using taskwerk git commands
 
+## v2.0 Migration & Compatibility
+
+TaskWerk v2.0 automatically migrates older task formats:
+
+```bash
+# Automatic migration when adding tasks to existing projects
+taskwerk add "New v2.0 task"    # Automatically converts existing v1 format
+
+# Check migration status
+taskwerk list                   # Shows if migration occurred
+
+# Manual migration if needed
+taskwerk migrate               # Force migration to v2.0 format
+```
+
+**Migration Features:**
+- Automatic detection of older formats
+- Seamless conversion to YAML frontmatter
+- Preservation of all existing task data
+- Backup creation for safety
+
 ## Summary
 
-taskwerk works with your existing workflow:
-- **Core**: Add → Start → Complete → Repeat
-- **Git**: Create branches, stage files, generate commit messages
-- **Team**: Share tasks via Git, edit markdown directly
-- **AI**: Optional natural language interface
+TaskWerk v2.0 enhances your workflow with structured task management:
+- **Core**: Add → Start → Complete with rich metadata and timeline tracking
+- **Relationships**: Dependencies and subtasks for complex project management
+- **Team**: Assignees, categories, and shared YAML frontmatter files
+- **Git**: Intelligent commit messages with task context and Co-Authored-By tags
+- **AI**: Enhanced natural language interface with v2.0 awareness
+- **Compatibility**: Automatic migration from older formats
 
-The key is simplicity: taskwerk enhances your workflow without taking it over.
+The key is structured simplicity: TaskWerk v2.0 provides powerful features while remaining approachable and human-readable.
 
 ---
 
-*For detailed command reference, see the main [README.md](../README.md)*
+*For comprehensive documentation, see the [User Guide](user-guide.md), [Developer Guide](developer-guide.md), and [README.md](../README.md)*

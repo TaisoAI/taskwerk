@@ -12,7 +12,7 @@ const projectRoot = join(__dirname, '..');
 function printBanner() {
   const now = new Date();
   console.log('────────────────────────────────────────────────────────────');
-  console.log('📦 taskwerk v0.1.0');
+  console.log('📦 taskwerk v0.2.0');
   console.log(`⏰ ${now.toISOString()}`);
   console.log('🗜️ Building minified bundle...');
   console.log('────────────────────────────────────────────────────────────');
@@ -21,7 +21,7 @@ function printBanner() {
 function printSuccess() {
   const now = new Date();
   console.log('────────────────────────────────────────────────────────────');
-  console.log('✅ taskwerk v0.1.0 - minified bundle built successfully');
+  console.log('✅ taskwerk v0.2.0 - minified bundle built successfully');
   console.log(`⏰ ${now.toISOString()}`);
   console.log('────────────────────────────────────────────────────────────');
 }
@@ -29,7 +29,7 @@ function printSuccess() {
 function printError(error) {
   const now = new Date();
   console.log('────────────────────────────────────────────────────────────');
-  console.log('❌ taskwerk v0.1.0 - minified bundle build failed');
+  console.log('❌ taskwerk v0.2.0 - minified bundle build failed');
   console.log(`⏰ ${now.toISOString()}`);
   console.log(`Error: ${error.message}`);
   console.log('────────────────────────────────────────────────────────────');

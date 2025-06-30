@@ -28,7 +28,7 @@ const program = new Command();
 program
   .name('taskwerk')
   .description('A lightweight CLI task manager optimized for human-AI collaboration workflows')
-  .version('0.1.8')
+  .version('0.2.0')
   .addHelpText(
     'after',
     `

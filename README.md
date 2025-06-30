@@ -2,11 +2,19 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-# Taskwerk
+████████╗ █████╗ ███████╗██╗  ██╗██╗    ██╗███████╗██████╗ ██╗  ██╗
+╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██║    ██║██╔════╝██╔══██╗██║ ██╔╝
+   ██║   ███████║███████╗█████╔╝ ██║ █╗ ██║█████╗  ██████╔╝█████╔╝ 
+   ██║   ██╔══██║╚════██║██╔═██╗ ██║███╗██║██╔══╝  ██╔══██╗██╔═██╗ 
+   ██║   ██║  ██║███████║██║  ██╗╚███╔███╔╝███████╗██║  ██║██║  ██╗
+   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
 
-A lightweight CLI task manager optimized for human-AI collaboration workflows. Taskwerk v2.0 combines the simplicity of markdown with powerful YAML frontmatter for structured task management.
 
-## Why Taskwerk?
+A lightweight CLI task manager optimized for human-AI collaboration workflows. 
+
+## Taskwerk Overview
+
+Taskwerk is a lightweight task tracker that can be used in side of software repos to break up and track trasks and is focused on agentic coding.  It includes task creation, git integration, and agentic-llm support to help get code written quickly and accurately without creating large numbers of subtasks that would as would be in a traditional issue tracking system.
 
 - **Structured yet Human-Readable**: YAML frontmatter for metadata, markdown for content
 - **Advanced Task Management**: Dependencies, subtasks, timeline tracking, and assignees

@@ -155,6 +155,55 @@ describe('V2TaskManager', () => {
         /Task TASK-999 not found/
       );
     });
+
+    it('should not include completed tasks in default getTasks()', async () => {
+      // Add a third task and complete it
+      await taskManager.addTask({
+        description: 'Completed task',
+        priority: 'medium',
+      });
+
+      await taskManager.startTask('TASK-003');
+      await taskManager.completeTask('TASK-003');
+
+      // Default getTasks should only return active tasks
+      const activeTasks = await taskManager.getTasks();
+      assert.strictEqual(activeTasks.length, 2);
+      assert.strictEqual(
+        activeTasks.every(t => t.status !== 'completed'),
+        true
+      );
+
+      // Verify completed task exists in completed filter
+      const completedTasks = await taskManager.getTasks({ completed: true });
+      assert.strictEqual(completedTasks.length, 1);
+      assert.strictEqual(completedTasks[0].status, 'completed');
+    });
+
+    it('should not include archived tasks in default getTasks()', async () => {
+      // Add a third task and archive it
+      await taskManager.addTask({
+        description: 'Archived task',
+        priority: 'low',
+      });
+
+      await taskManager.archiveTask('TASK-003', {
+        reason: 'Test archive',
+      });
+
+      // Default getTasks should only return active tasks
+      const activeTasks = await taskManager.getTasks();
+      assert.strictEqual(activeTasks.length, 2);
+      assert.strictEqual(
+        activeTasks.every(t => t.status !== 'archived'),
+        true
+      );
+
+      // Verify archived task exists in archived filter
+      const archivedTasks = await taskManager.getTasks({ archived: true });
+      assert.strictEqual(archivedTasks.length, 1);
+      assert.strictEqual(archivedTasks[0].status, 'archived');
+    });
   });
 
   describe('task status management', () => {

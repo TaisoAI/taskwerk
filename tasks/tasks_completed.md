@@ -1,5 +1,13 @@
 # Completed Tasks
 
+- [~] **TASK-012** Test todo task to verify filtering works *[2025-07-01T05:38:43.254Z]*
+  **Archived:** Test task no longer needed
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
+- [x] **TASK-011** Fix active task filtering - completed tasks showing in default list view *[2025-07-01T04:23:21.623Z]*
+  Fixed active task filtering in V2TaskManager.getTasks() to exclude completed and archived tasks from default list view. Added comprehensive tests.
+  Files: tests/utils/config.test.js, tests/utils/formatter.test.js, tests/core/task-manager.test.js, tests/commands/add.test.js
+
 - [~] **TASK-076** Test task for archiving demo *[2025-06-29T22:42:58.455Z]*
   **Archived:** Demo task no longer needed
   **Note:** Successfully demonstrated archive functionality

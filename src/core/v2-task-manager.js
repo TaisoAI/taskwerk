@@ -113,7 +113,10 @@ export class V2TaskManager {
     const content = await this._readTasksFile();
     const tasks = this.v2Parser.parseTasks(content);
 
-    return this._filterTasks(tasks, filters);
+    // Filter out completed and archived tasks for default "active" view
+    const activeTasks = tasks.filter(t => t.status !== 'completed' && t.status !== 'archived');
+
+    return this._filterTasks(activeTasks, filters);
   }
 
   /**

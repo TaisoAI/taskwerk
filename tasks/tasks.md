@@ -345,3 +345,4 @@ Simplify TaskWerk's workflow by removing the confusing distinction between "huma
 - Reduced complexity in codebase
 - Better documentation and onboarding
 - Consistent behavior regardless of how TaskWerk is used
+- [ ] **TASK-013** fix repo in package.json to match taiso ai

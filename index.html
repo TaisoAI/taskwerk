@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+
+/* SquibView CLI Default Styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2.5rem;
+  background-color: #fff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 { font-size: 2rem; border-bottom: 2px solid #eee; padding-bottom: 0.3em; }
+h2 { font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1rem; }
+h5 { font-size: 0.875rem; }
+h6 { font-size: 0.85rem; color: #666; }
+
+p { margin-bottom: 1rem; }
+
+a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+ul, ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+li {
+  margin-bottom: 0.25rem;
+}
+
+blockquote {
+  margin: 0 0 1rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 4px solid #ddd;
+  background-color: #f9f9f9;
+  color: #666;
+}
+
+code {
+  background-color: #f1f1f1;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85em;
+}
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #e1e1e1;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: 600;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background-color: #ddd;
+  margin: 2rem 0;
+}
+
+/* SVG styling */
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Math styling */
+.MathJax {
+  font-size: 1em !important;
+}
+
+/* Mermaid diagram styling */
+.mermaid {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+/* Code highlighting */
+.hljs {
+  background: #f8f8f8 !important;
+  color: #333 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  body {
+    padding: 0.5rem 1.5rem;
+  }
+  
+  table {
+    font-size: 0.875rem;
+  }
+  
+  th, td {
+    padding: 0.25rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    padding: 0;
+    color: #000;
+  }
+  
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+  
+  pre, blockquote {
+    page-break-inside: avoid;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+}
+
+  </style>
+    <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- MathJax for math rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script type="text/javascript" id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+  </script>
+  <!-- Mermaid for diagram rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div><p><a href="https://www.npmjs.com/package/taskwerk"><img src="https://img.shields.io/npm/v/taskwerk.svg" alt="npm version"></a>
+<a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node.js Version"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+</p><div data-source-type="text"><pre><code class="hljs language-text" data-source-type="code" data-lang="text">████████╗ █████╗ ███████╗██╗  ██╗██╗    ██╗███████╗██████╗ ██╗  ██╗
+╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██║    ██║██╔════╝██╔══██╗██║ ██╔╝
+   ██║   ███████║███████╗█████╔╝ ██║ █╗ ██║█████╗  ██████╔╝█████╔╝ 
+   ██║   ██╔══██║╚════██║██╔═██╗ ██║███╗██║██╔══╝  ██╔══██╗██╔═██╗ 
+   ██║   ██║  ██║███████║██║  ██╗╚███╔███╔╝███████╗██║  ██║██║  ██╗
+   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
+</code></pre></div><p>A lightweight CLI task manager optimized for human-AI collaboration workflows.</p><h2>Taskwerk Overview</h2><p>Taskwerk is a lightweight task tracker that can be used in side of software repos to break up and track trasks and is focused on agentic coding.  It includes task creation, git integration, and agentic-llm support to help get code written quickly and accurately without creating large numbers of subtasks that would as would be in a traditional issue tracking system.</p><ul><li><strong>Structured yet Human-Readable</strong>: YAML frontmatter for metadata, markdown for content</li><li><strong>Advanced Task Management</strong>: Dependencies, subtasks, timeline tracking, and assignees</li><li><strong>Git-Integrated</strong>: Intelligent commit messages and branch management</li><li><strong>Zero Vendor Lock-In</strong>: Plain text files that work without the CLI</li><li><strong>AI-Optimized</strong>: Built for human-AI collaboration workflows</li><li><strong>Backward Compatible</strong>: Automatically migrates older task formats</li></ul><h2>Quick Start</h2><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Initialize Taskwerk in your project</span>
+npx taskwerk init
+
+<span class="hljs-comment"># Add your first task with enhanced metadata</span>
+npx taskwerk add <span class="hljs-string">"Fix login validation bug"</span> --priority high --category bugs --assignee @john
+
+<span class="hljs-comment"># Start working on it</span>
+npx taskwerk start TASK-001
+
+<span class="hljs-comment"># Complete when done</span>
+npx taskwerk complete TASK-001 --note <span class="hljs-string">"Fixed session timeout issue"</span></code></pre></div><p>That’s it! Taskwerk creates structured YAML frontmatter files with markdown content for powerful task tracking.</p><h2>Installation</h2><h3>No Installation Required</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash">npx taskwerk init          <span class="hljs-comment"># Use directly with npx</span></code></pre></div><h3>Global Installation</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash">npm install -g taskwerk  
+taskwerk --<span class="hljs-built_in">help</span></code></pre></div><h3>Project Integration</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Add to package.json scripts</span>
+{
+  <span class="hljs-string">"scripts"</span>: {
+    <span class="hljs-string">"task"</span>: <span class="hljs-string">"npx taskwerk"</span>
+  }
+}
+
+npm run task list
+</code></pre></div><h2>Core Workflow</h2><h3>1. Enhanced Task Management</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Add tasks with rich metadata</span>
+taskwerk add <span class="hljs-string">"Fix authentication bug"</span> --priority high --category bugs --assignee @alice
+taskwerk add <span class="hljs-string">"Implement user dashboard"</span> --category features --estimated 4h
+
+<span class="hljs-comment"># View and filter tasks</span>
+taskwerk list                    <span class="hljs-comment"># All active tasks</span>
+taskwerk list --priority high   <span class="hljs-comment"># Filter by priority</span>
+taskwerk list --assignee @alice <span class="hljs-comment"># Filter by assignee</span>
+taskwerk status                  <span class="hljs-comment"># Current session info</span><span class="hljs-comment"># Work with tasks</span>
+taskwerk start TASK-001          <span class="hljs-comment"># Begin work (validates dependencies)</span>
+taskwerk complete TASK-001       <span class="hljs-comment"># Mark done with timeline tracking</span>
+taskwerk pause TASK-001          <span class="hljs-comment"># Pause work temporarily</span>
+taskwerk block TASK-001 --reason <span class="hljs-string">"Waiting for API docs"</span>
+taskwerk search <span class="hljs-string">"auth"</span><span class="hljs-comment"># Search across all task fields</span></code></pre></div><h3>2. Dependencies &amp; Subtasks</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Manage task dependencies</span>
+taskwerk add-dependency TASK-002 TASK-001  <span class="hljs-comment"># TASK-002 depends on TASK-001</span>
+taskwerk ready-tasks                       <span class="hljs-comment"># Show tasks ready to work on</span><span class="hljs-comment"># Work with subtasks</span>
+taskwerk add-subtask TASK-001 <span class="hljs-string">"Write unit tests"</span>
+taskwerk add-subtask TASK-001 <span class="hljs-string">"Update documentation"</span>
+taskwerk list-subtasks TASK-001           <span class="hljs-comment"># Show all subtasks</span></code></pre></div><h3>3. Git Integration (Optional)</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Create feature branch for task</span>
+taskwerk branch TASK-001         <span class="hljs-comment"># Creates: feature/task-001-fix-auth-bug</span><span class="hljs-comment"># Make your code changes...</span>
+git add src/auth.js
+
+<span class="hljs-comment"># Generate intelligent commit message from completed tasks</span>
+taskwerk commit                  <span class="hljs-comment"># Shows preview with task context</span>
+taskwerk commit --auto          <span class="hljs-comment"># Actually commits with Co-Authored-By tags</span></code></pre></div><h3>4. Advanced Progress Tracking</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash">taskwerk stats                   <span class="hljs-comment"># Enhanced project overview with v2 metrics</span>
+taskwerk recent                  <span class="hljs-comment"># Recently completed with timeline details</span>
+taskwerk context TASK-001       <span class="hljs-comment"># Complete task details and dependency tree</span>
+taskwerk timeline TASK-001      <span class="hljs-comment"># Show full task timeline</span></code></pre></div><h2>File Structure</h2><p>taskwerk creates these files in your project:</p><div data-source-type="code"><pre><code class="hljs language-" data-source-type="code" data-lang="">tasks/
+├── tasks.md              # Active tasks (hand-editable)
+├── tasks_completed.md    # Completed tasks archive
+├── tasks-how-to.md       # Quick reference
+└── taskwerk-rules.md     # Project workflow rules
+.taskrc.json              # Configuration (optional)
+</code></pre></div><h2>Task Format</h2><p>Taskwerk v2.0 uses YAML frontmatter for structured metadata with markdown content for rich descriptions:</p><div data-source-type="markdown"><pre><code class="hljs language-markdown" data-source-type="code" data-lang="markdown">---
+id: TASK-001
+description: Fix authentication timeout on mobile Safari
+status: in_progress
+priority: high
+category: bugs
+assignee: @alice
+estimated: 3h
+created: 2025-06-30T10:00:00.000Z
+updated: 2025-06-30T14:30:00.000Z
+dependencies: []
+subtasks:
+  - id: TASK-001.1
+    description: Reproduce issue in Safari
+    status: completed
+    assignee: @alice
+  - id: TASK-001.2
+    description: Implement session refresh logic
+    status: in_progress
+    assignee: @alice
+timeline:
+  - timestamp: 2025-06-30T10:00:00.000Z
+    action: created
+    user: @alice
+  - timestamp: 2025-06-30T10:15:00.000Z
+    action: started
+    user: @alice
+    note: Beginning investigation
+  - timestamp: 2025-06-30T14:30:00.000Z
+    action: subtask_completed
+    user: @alice
+    note: Successfully reproduced the issue
+---
+
+# Fix authentication timeout on mobile Safari
+
+## Problem Description
+Users on mobile Safari are experiencing session timeouts after 15 minutes of inactivity, even when actively using the application.
+
+## Root Cause Analysis
+The issue appears to be related to Safari's aggressive tab suspension policies that interfere with our session refresh mechanism.
+
+## Proposed Solution
+1. Implement heartbeat mechanism that works with Safari's background limitations
+2. Add session storage fallback for suspended tabs
+3. Graceful session recovery when tabs become active again
+
+## Acceptance Criteria
+- [ ] Session persists for full 30-minute timeout period
+- [ ] Graceful handling of tab suspension/resumption
+- [ ] No impact on other browsers' performance
+- [ ] Unit tests cover edge cases
+
+## Related Files
+- `src/auth/session-manager.js`
+- `src/utils/heartbeat.js`
+- `tests/auth/safari-session.test.js`
+</code></pre></div><p><strong>Task States:</strong></p><ul><li><code>todo</code> - Ready to start</li><li><code>in_progress</code> - Currently being worked on</li><li><code>blocked</code> - Waiting for dependencies or external factors</li><li><code>completed</code> - Successfully finished</li><li><code>archived</code> - Cancelled or no longer relevant</li></ul><p><strong>Enhanced Features:</strong></p><ul><li><strong>Dependencies</strong>: Tasks can depend on other tasks being completed first</li><li><strong>Subtasks</strong>: Break large tasks into smaller, manageable pieces</li><li><strong>Timeline</strong>: Complete history of all task state changes and actions</li><li><strong>Assignees</strong>: Track who’s responsible for each task (<code>@username</code> format)</li><li><strong>Categories</strong>: Organize tasks by type (bugs, features, docs, etc.)</li><li><strong>Estimated Time</strong>: Track planned effort (<code>2h</code>, <code>1d</code>, <code>1w</code> format)</li></ul><h2>Configuration</h2><p>Create <code>.taskrc.json</code> in your project root:</p><div data-source-type="json"><pre><code class="hljs language-json" data-source-type="code" data-lang="json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"defaultPriority"</span><span class="hljs-punctuation">:</span><span class="hljs-string">"medium"</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"defaultAssignee"</span><span class="hljs-punctuation">:</span><span class="hljs-string">"@me"</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"autoCreateBranch"</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><span class="hljs-attr">"validateDependencies"</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><span class="hljs-attr">"timelineTracking"</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><span class="hljs-attr">"categories"</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">{</span><span class="hljs-attr">"bugs"</span><span class="hljs-punctuation">:</span><span class="hljs-string">"Bug Fixes"</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"features"</span><span class="hljs-punctuation">:</span><span class="hljs-string">"Features"</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"docs"</span><span class="hljs-punctuation">:</span><span class="hljs-string">"Documentation"</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"refactor"</span><span class="hljs-punctuation">:</span><span class="hljs-string">"Code Refactoring"</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"tests"</span><span class="hljs-punctuation">:</span><span class="hljs-string">"Testing"</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"estimateFormats"</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><span class="hljs-string">"1h"</span><span class="hljs-punctuation">,</span><span class="hljs-string">"2h"</span><span class="hljs-punctuation">,</span><span class="hljs-string">"4h"</span><span class="hljs-punctuation">,</span><span class="hljs-string">"1d"</span><span class="hljs-punctuation">,</span><span class="hljs-string">"2d"</span><span class="hljs-punctuation">,</span><span class="hljs-string">"1w"</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><span class="hljs-attr">"workflowRules"</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">{</span><span class="hljs-attr">"requireEstimateForHighPriority"</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><span class="hljs-attr">"autoCompleteSubtasks"</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span><span class="hljs-attr">"enforceAssigneeFormat"</span><span class="hljs-punctuation">:</span><span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">}</span></code></pre></div><p><strong>Configuration Options:</strong></p><ul><li><code>defaultPriority</code>: Default priority for new tasks (high/medium/low)</li><li><code>defaultAssignee</code>: Default assignee for new tasks (@username format)</li><li><code>validateDependencies</code>: Check dependency completion before allowing task start</li><li><code>timelineTracking</code>: Enable detailed timeline tracking for all actions</li><li><code>categories</code>: Predefined categories for task organization</li><li><code>estimateFormats</code>: Valid time estimate formats</li><li><code>workflowRules</code>: Enforce team workflow standards</li></ul><h2>Common Workflows</h2><h3>Enhanced Project Management</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Daily workflow with v2.0 features</span>
+taskwerk add <span class="hljs-string">"Implement user settings page"</span> --priority high --assignee @john --estimated 4h
+taskwerk add-subtask TASK-005 <span class="hljs-string">"Design settings UI mockup"</span>
+taskwerk add-subtask TASK-005 <span class="hljs-string">"Implement backend API"</span>
+taskwerk add-subtask TASK-005 <span class="hljs-string">"Add frontend integration"</span>
+taskwerk list --assignee @john
+taskwerk start TASK-005
+<span class="hljs-comment"># ... do the work ...</span>
+taskwerk complete TASK-005 --note <span class="hljs-string">"Added profile, preferences, and notifications"</span>
+taskwerk stats
+</code></pre></div><h3>Dependency Management</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Complex feature with dependencies</span>
+taskwerk add <span class="hljs-string">"Set up authentication system"</span> --priority high --assignee @alice
+taskwerk add <span class="hljs-string">"Implement user dashboard"</span> --assignee @bob
+taskwerk add-dependency TASK-002 TASK-001  <span class="hljs-comment"># Dashboard depends on auth</span>
+
+taskwerk ready-tasks                        <span class="hljs-comment"># Shows only TASK-001 is ready</span>
+taskwerk start TASK-001                     <span class="hljs-comment"># Alice starts auth work</span>
+taskwerk complete TASK-001                  <span class="hljs-comment"># Auth system complete</span>
+taskwerk ready-tasks                        <span class="hljs-comment"># Now shows TASK-002 is ready</span>
+taskwerk start TASK-002                     <span class="hljs-comment"># Bob can start dashboard</span></code></pre></div><h3>Team Collaboration with Timeline Tracking</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Enhanced team workflow</span>
+git pull                                    <span class="hljs-comment"># Get latest tasks</span>
+taskwerk list --priority high --assignee @me
+taskwerk start TASK-007 --note <span class="hljs-string">"Beginning investigation"</span>
+taskwerk block TASK-007 --reason <span class="hljs-string">"Waiting for API documentation from backend team"</span><span class="hljs-comment"># ... later when unblocked ...</span>
+taskwerk unblock TASK-007 --note <span class="hljs-string">"API docs received"</span>
+taskwerk complete TASK-007 --note <span class="hljs-string">"Implemented with Redis caching and error handling"</span>
+taskwerk timeline TASK-007                 <span class="hljs-comment"># View complete task history</span>
+git push                                    <span class="hljs-comment"># Share completed work</span></code></pre></div><h2>AI Integration (Optional)</h2><p>taskwerk supports optional AI assistance for natural language task management:</p><h3>Setup</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Interactive setup</span>
+taskwerk llmconfig --choose     <span class="hljs-comment"># Select from available models</span><span class="hljs-comment"># Or set environment variable</span><span class="hljs-built_in">export</span> OPENAI_API_KEY=<span class="hljs-string">"your-key"</span></code></pre></div><h3>Usage</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash"><span class="hljs-comment"># Natural language commands</span>
+taskwerk ask <span class="hljs-string">"what should I work on next?"</span>
+taskwerk ask <span class="hljs-string">"add a task for fixing the memory leak"</span>
+taskwerk ask <span class="hljs-string">"show me all high priority bugs"</span><span class="hljs-comment"># AI can also work with tasks like:</span>
+taskwerk agent <span class="hljs-string">"start working on the authentication task"</span></code></pre></div><p><strong>Supported Models:</strong></p><ul><li><strong>OpenAI</strong>: GPT-4, GPT-4.1, … (remote)</li><li><strong>Anthropic</strong>: Claude-3.5, Claude-3.7, … (remote)</li><li><strong>Ollama</strong>: Local models (llama3.2, etc.)</li><li><strong>LM Studio</strong>: Local model server (similar to ollama)</li></ul><p>See <code>taskwerk llmconfig --help</code> for complete setup guide.</p><h2>Commands Reference</h2><h3>Enhanced Task Management</h3><ul><li><code>taskwerk add "description" [--priority] [--category] [--assignee] [--estimated]</code> - Add new task with v2.0 metadata</li><li><code>taskwerk list [--priority] [--category] [--assignee] [--completed] [--archived]</code> - List and filter tasks</li><li><code>taskwerk start TASK-ID [--note]</code> - Begin working on task (validates dependencies)</li><li><code>taskwerk complete TASK-ID [--note]</code> - Mark task completed with timeline tracking</li><li><code>taskwerk pause TASK-ID [--note]</code> - Return task to todo state with timeline entry</li><li><code>taskwerk block TASK-ID --reason "reason" [--note]</code> - Block task with reason tracking</li><li><code>taskwerk unblock TASK-ID [--note]</code> - Unblock task and resume work</li><li><code>taskwerk archive TASK-ID --reason "reason" [--superseded-by] [--note]</code> - Archive task permanently</li><li><code>taskwerk search "keyword"</code> - Search across all task fields</li></ul><h3>Dependencies &amp; Subtasks</h3><ul><li><code>taskwerk add-dependency TASK-ID DEPENDENCY-ID</code> - Add task dependency</li><li><code>taskwerk remove-dependency TASK-ID DEPENDENCY-ID</code> - Remove task dependency</li><li><code>taskwerk ready-tasks</code> - Show tasks ready to work on (no blocking dependencies)</li><li><code>taskwerk dependency-tree TASK-ID</code> - Show complete dependency hierarchy</li><li><code>taskwerk add-subtask TASK-ID "description" [--assignee]</code> - Add subtask to parent task</li><li><code>taskwerk update-subtask TASK-ID SUBTASK-ID [--status] [--assignee]</code> - Update subtask</li><li><code>taskwerk list-subtasks TASK-ID</code> - Show all subtasks for a task</li></ul><h3>Information &amp; Context</h3><ul><li><code>taskwerk status</code> - Current session with enhanced v2.0 information</li><li><code>taskwerk context TASK-ID</code> - Complete task details including dependencies and timeline</li><li><code>taskwerk timeline TASK-ID</code> - Show full task timeline and history</li><li><code>taskwerk stats</code> - Enhanced project statistics with v2.0 metrics</li><li><code>taskwerk recent [--limit]</code> - Recently completed tasks with details</li></ul><h3>Git Integration</h3><ul><li><code>taskwerk branch TASK-ID</code> - Create/switch to feature branch</li><li><code>taskwerk stage [--auto] [--preview]</code> - Stage files with task context</li><li><code>taskwerk commit [--auto] [--message]</code> - Intelligent commits with Co-Authored-By tags</li></ul><h3>AI Features (Optional)</h3><ul><li><code>taskwerk ask "question"</code> - Ask questions about tasks and dependencies</li><li><code>taskwerk agent "instruction"</code> - Have AI perform task operations with v2.0 features</li><li><code>taskwerk llmconfig [--list-models] [--add-key] [--choose]</code> - Configure AI models</li></ul><h3>Configuration &amp; Management</h3><ul><li><code>taskwerk init [path]</code> - Initialize Taskwerk with v2.0 format in project</li><li><code>taskwerk rules [--status] [--validate]</code> - View/edit workflow rules</li><li><code>taskwerk migrate</code> - Manually migrate v1 format to v2.0 (auto-migration available)</li><li><code>taskwerk about</code> - Version and help information</li></ul><h2>Development &amp; Contributing</h2><h3>Setup</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash">git <span class="hljs-built_in">clone</span> https://github.com/yourusername/taskwerk.git
+<span class="hljs-built_in">cd</span> taskwerk
+npm install
+</code></pre></div><h3>Build &amp; Test</h3><div data-source-type="bash"><pre><code class="hljs language-bash" data-source-type="code" data-lang="bash">npm <span class="hljs-built_in">test</span><span class="hljs-comment"># Run all tests</span>
+npm run build           <span class="hljs-comment"># Lint, format, test, and build</span>
+npm run lint            <span class="hljs-comment"># Check code style</span>
+npm start               <span class="hljs-comment"># Run local development version</span></code></pre></div><p>See <a href="BUILD.md">BUILD.md</a> for detailed build instructions.</p><h2>Requirements</h2><ul><li><strong>Node.js</strong>: 18.0.0 or higher</li><li><strong>Git</strong>: For git integration features (optional)</li><li><strong>AI Models</strong>: For natural language features (optional)</li></ul><h2>License</h2><p>MIT License - see <a href="LICENSE">LICENSE</a> file for details.</p><h2>What’s New in v2.0</h2><p>Taskwerk v2.0 brings significant enhancements while maintaining backward compatibility:</p><h3>🚀 <strong>YAML Frontmatter Architecture</strong></h3><ul><li>Structured metadata with human-readable markdown content</li><li>Rich task schema with validation</li><li>Automatic migration from older formats</li></ul><h3>🔗 <strong>Advanced Task Relationships</strong></h3><ul><li><strong>Dependencies</strong>: Enforce task order and prerequisites</li><li><strong>Subtasks</strong>: Break complex work into manageable pieces</li><li><strong>Timeline Tracking</strong>: Complete audit trail of all changes</li></ul><h3>👥 <strong>Enhanced Team Collaboration</strong></h3><ul><li><strong>Assignee System</strong>: Track responsibility with @username format</li><li><strong>Categories &amp; Estimates</strong>: Better organization and planning</li><li><strong>Blocking/Unblocking</strong>: Handle external dependencies gracefully</li></ul><h3>🤖 <strong>AI-Optimized Workflows</strong></h3><ul><li>Enhanced integration with AI coding assistants</li><li>Intelligent commit messages with task context</li><li>Natural language task operations</li></ul><h2>Philosophy</h2><p>Taskwerk believes task management should be:</p><ul><li><strong>Structured yet Human</strong>: YAML + Markdown for the best of both worlds</li><li><strong>Relationship-Aware</strong>: Tasks don’t exist in isolation</li><li><strong>Timeline-Conscious</strong>: History matters for context and learning</li><li><strong>AI-Collaborative</strong>: Built for human-AI development workflows</li><li><strong>Zero Lock-In</strong>: Plain text files that work everywhere</li></ul><p>Whether you’re working solo, with a team, or with AI assistants, Taskwerk v2.0 provides the structured context and intelligent task management you need for modern software development.</p><hr><p><em>Structured task management for human-AI collaboration</em></p></div>
+  <script>
+    // Initialize MathJax after page load
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise().catch(function(err) {
+          console.warn('MathJax typesetting failed:', err);
+        });
+      }
+    });
+  </script>
+  <script>
+    // Initialize Mermaid after page load
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.mermaid) {
+        try {
+          window.mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'loose',
+            fontFamily: 'inherit'
+          });
+          
+          // Manually render all mermaid diagrams
+          const mermaidElements = document.querySelectorAll('.mermaid');
+          mermaidElements.forEach(function(element, index) {
+            const id = 'mermaid-' + index;
+            element.id = id;
+            try {
+              window.mermaid.render(id + '-svg', element.textContent, function(svgCode) {
+                element.innerHTML = svgCode;
+              });
+            } catch (err) {
+              console.warn('Mermaid rendering failed for element', index, ':', err);
+              // Fallback: show the text content
+              element.innerHTML = '<pre>' + element.textContent + '</pre>';
+            }
+          });
+        } catch (err) {
+          console.warn('Mermaid initialization failed:', err);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

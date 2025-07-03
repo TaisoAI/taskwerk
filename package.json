@@ -1,6 +1,6 @@
 {
   "name": "taskwerk",
-  "version": "0.2.2",
+  "version": "0.3.0-dev",
   "author": "manu chatterjee <deftio@deftio.com>",
   "description": "A lightweight CLI task manager optimized for human-AI collaboration workflows",
   "repository": {

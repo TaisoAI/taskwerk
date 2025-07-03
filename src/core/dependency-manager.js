@@ -46,14 +46,8 @@ export class DependencyManager {
             case 'blocks':
                 this.validateBlockingDependency(fromTaskId, toTaskId, errors);
                 break;
-            case 'depends_on':
-                this.validateDependsOnRelationship(fromTaskId, toTaskId, errors);
-                break;
-            case 'subtask_of':
-                this.validateSubtaskRelationship(fromTaskId, toTaskId, errors);
-                break;
-            case 'related_to':
-                this.validateRelatedToRelationship(fromTaskId, toTaskId, errors);
+            case 'requires':
+                this.validateRequiresRelationship(fromTaskId, toTaskId, errors);
                 break;
         }
 
@@ -93,9 +87,9 @@ export class DependencyManager {
     }
 
     /**
-     * Validate depends_on relationship rules
+     * Validate requires relationship rules
      */
-    validateDependsOnRelationship(dependentId, dependencyId, errors) {
+    validateRequiresRelationship(dependentId, dependencyId, errors) {
         const dependent = this.getTask(dependentId);
         const dependency = this.getTask(dependencyId);
 
@@ -108,51 +102,15 @@ export class DependencyManager {
         if (dependent.status === 'completed' && dependency.status !== 'completed') {
             errors.push('Completed tasks cannot depend on incomplete tasks');
         }
-    }
 
-    /**
-     * Validate subtask relationship rules
-     */
-    validateSubtaskRelationship(childId, parentId, errors) {
-        const child = this.getTask(childId);
-        const parent = this.getTask(parentId);
-
-        // Business rule: Parent cannot be completed if child is incomplete
-        if (parent.status === 'completed' && child.status !== 'completed') {
-            errors.push('Cannot make incomplete task a subtask of completed task');
-        }
-
-        // Business rule: Check for existing parent
-        const existingParent = this.db.prepare(`
-            SELECT depends_on_id FROM task_dependencies 
-            WHERE task_id = ? AND dependency_type = 'subtask_of'
-        `).get(childId);
-
-        if (existingParent) {
-            errors.push('Task already has a parent task');
-        }
-
-        // Business rule: Maximum hierarchy depth
-        const currentDepth = this.getHierarchyDepth(parentId);
-        if (currentDepth >= 5) {
-            errors.push('Maximum hierarchy depth (5 levels) would be exceeded');
+        // Business rule: For subtask relationships, incomplete task cannot be subtask of completed task
+        if (dependent.status !== 'completed' && dependency.status === 'completed') {
+            errors.push('Incomplete task cannot be subtask of completed task');
         }
     }
 
-    /**
-     * Validate related_to relationship rules
-     */
-    validateRelatedToRelationship(task1Id, task2Id, errors) {
-        // Business rule: Check if reverse relationship already exists
-        const reverseRel = this.db.prepare(`
-            SELECT 1 FROM task_dependencies 
-            WHERE task_id = ? AND depends_on_id = ? AND dependency_type = 'related_to'
-        `).get(task2Id, task1Id);
-
-        if (reverseRel) {
-            errors.push('Reverse related_to relationship already exists');
-        }
-    }
+    // Note: Subtask relationships are now handled using 'requires' type
+    // No separate validation method needed since requires validation covers it
 
     /**
      * Comprehensive cycle detection
@@ -160,13 +118,11 @@ export class DependencyManager {
     wouldCreateCycle(fromTaskId, toTaskId, dependencyType) {
         // Use different algorithms based on dependency type
         switch (dependencyType) {
-            case 'subtask_of':
-                return this.detectHierarchyCycle(fromTaskId, toTaskId);
-            case 'blocks':
-            case 'depends_on':
+            case 'requires':
+                // For requires (including subtasks), check for cycles
                 return this.detectDependencyCycle(fromTaskId, toTaskId);
-            case 'related_to':
-                return false; // Related relationships don't create harmful cycles
+            case 'blocks':
+                return this.detectDependencyCycle(fromTaskId, toTaskId);
             default:
                 return this.detectDependencyCycle(fromTaskId, toTaskId);
         }
@@ -187,7 +143,7 @@ export class DependencyManager {
         visited.add(proposedParentId);
 
         // Check if proposed parent is already a descendant of child
-        const descendants = this.getDescendants(childId, 'subtask_of');
+        const descendants = this.getDescendants(childId, 'requires');
         if (descendants.includes(proposedParentId)) {
             return true;
         }
@@ -195,7 +151,7 @@ export class DependencyManager {
         // Check ancestors of proposed parent
         const parentOfProposed = this.db.prepare(`
             SELECT depends_on_id FROM task_dependencies 
-            WHERE task_id = ? AND dependency_type = 'subtask_of'
+            WHERE task_id = ? AND dependency_type = 'requires'
         `).get(proposedParentId);
 
         if (parentOfProposed) {
@@ -223,7 +179,7 @@ export class DependencyManager {
         // Get all tasks that toTaskId depends on
         const dependencies = this.db.prepare(`
             SELECT depends_on_id FROM task_dependencies 
-            WHERE task_id = ? AND dependency_type IN ('blocks', 'depends_on')
+            WHERE task_id = ? AND dependency_type IN ('blocks', 'requires')
         `).all(toTaskId);
 
         for (const dep of dependencies) {
@@ -287,15 +243,13 @@ export class DependencyManager {
                     }
                     break;
 
-                case 'depends_on':
+                case 'requires':
                     if (oldStatus === 'completed' && newStatus !== 'completed') {
                         affectedTask.impact_type = 'dependency_regressed';
                         affectedTask.suggested_action = 'Review task status';
                         impact.validation_errors.push(`${dependent.name} depends on task that was uncompleted`);
                     }
-                    break;
-
-                case 'subtask_of':
+                    // For subtask relationships (also using 'requires'), handle parent progress
                     if (newStatus === 'completed') {
                         affectedTask.impact_type = 'parent_progress_update';
                         affectedTask.suggested_action = 'Update parent progress';
@@ -332,12 +286,12 @@ export class DependencyManager {
                 impact.validation_errors.push(`Cannot complete: blocked by "${dep.name}" (${dep.status})`);
             }
 
-            // Check if all subtasks are completed
+            // Check if all subtasks are completed (using 'requires' for subtask relationships)
             const incompleteSubtasks = this.db.prepare(`
                 SELECT t.name, t.status 
                 FROM task_dependencies td
                 JOIN tasks t ON td.task_id = t.id
-                WHERE td.depends_on_id = ? AND td.dependency_type = 'subtask_of' AND t.status != 'completed'
+                WHERE td.depends_on_id = ? AND td.dependency_type = 'requires' AND t.status != 'completed'
             `).all(taskId);
 
             for (const subtask of incompleteSubtasks) {
@@ -439,7 +393,7 @@ export class DependencyManager {
      * Get task by ID
      */
     getTask(taskId) {
-        return this.db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId);
+        return this.db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId) || null;
     }
 
     /**
@@ -462,7 +416,7 @@ export class DependencyManager {
 
         const parent = this.db.prepare(`
             SELECT depends_on_id FROM task_dependencies 
-            WHERE task_id = ? AND dependency_type = 'subtask_of'
+            WHERE task_id = ? AND dependency_type = 'requires'
         `).get(taskId);
 
         if (parent) {
@@ -510,12 +464,13 @@ export class DependencyManager {
             FROM task_dependencies td1
             JOIN tasks t1 ON td1.task_id = t1.id
             JOIN tasks t2 ON td1.depends_on_id = t2.id
-            WHERE td1.dependency_type IN ('blocks', 'depends_on')
+            WHERE td1.dependency_type IN ('blocks', 'requires')
         `).all();
 
         for (const dep of allDeps) {
-            // Check if there's an indirect path
-            if (this.hasIndirectPath(dep.from_id, dep.to_id, dep.from_id)) {
+            // Check if there's an indirect path from dep.from_id to dep.to_id
+            // without using the direct edge
+            if (this.hasIndirectPath(dep.from_id, dep.to_id)) {
                 redundant.push(dep);
             }
         }
@@ -526,28 +481,49 @@ export class DependencyManager {
     /**
      * Check if indirect path exists
      */
-    hasIndirectPath(fromId, toId, originalFromId, visited = new Set()) {
-        if (visited.has(fromId) || fromId === originalFromId) {
-            return false;
-        }
-
-        visited.add(fromId);
-
-        const intermediates = this.db.prepare(`
+    hasIndirectPath(fromId, toId) {
+        // Use BFS to find if there's a path from fromId to toId
+        // that doesn't use the direct edge
+        const visited = new Set();
+        const queue = [];
+        
+        // Get all nodes that fromId directly depends on (except toId)
+        const directDeps = this.db.prepare(`
             SELECT depends_on_id FROM task_dependencies 
-            WHERE task_id = ? AND dependency_type IN ('blocks', 'depends_on')
+            WHERE task_id = ? AND dependency_type IN ('blocks', 'requires')
             AND depends_on_id != ?
         `).all(fromId, toId);
-
-        for (const intermediate of intermediates) {
-            if (intermediate.depends_on_id === toId) {
+        
+        for (const dep of directDeps) {
+            queue.push(dep.depends_on_id);
+        }
+        
+        while (queue.length > 0) {
+            const current = queue.shift();
+            
+            if (visited.has(current)) {
+                continue;
+            }
+            
+            visited.add(current);
+            
+            if (current === toId) {
                 return true; // Found indirect path
             }
-            if (this.hasIndirectPath(intermediate.depends_on_id, toId, originalFromId, visited)) {
-                return true;
+            
+            // Get next level dependencies
+            const nextDeps = this.db.prepare(`
+                SELECT depends_on_id FROM task_dependencies 
+                WHERE task_id = ? AND dependency_type IN ('blocks', 'requires')
+            `).all(current);
+            
+            for (const dep of nextDeps) {
+                if (!visited.has(dep.depends_on_id)) {
+                    queue.push(dep.depends_on_id);
+                }
             }
         }
-
+        
         return false;
     }
 
@@ -583,7 +559,7 @@ export class DependencyManager {
             SELECT td.depends_on_id as id, t.name, COUNT(*) as dependent_count
             FROM task_dependencies td
             JOIN tasks t ON td.depends_on_id = t.id
-            WHERE td.dependency_type IN ('blocks', 'depends_on')
+            WHERE td.dependency_type IN ('blocks', 'requires')
             GROUP BY td.depends_on_id
             HAVING COUNT(*) > 2
             ORDER BY COUNT(*) DESC

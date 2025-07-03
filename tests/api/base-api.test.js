@@ -92,8 +92,8 @@ describe('Base API Layer', () => {
             await api.initialize();
             
             const result = await api.transaction((db) => {
-                const insertResult = db.prepare("INSERT INTO tasks (name) VALUES (?)").run('Test Task');
-                const task = db.prepare("SELECT * FROM tasks WHERE id = ?").get(insertResult.lastInsertRowid);
+                const insertResult = db.prepare('INSERT INTO tasks (name) VALUES (?)').run('Test Task');
+                const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(insertResult.lastInsertRowid);
                 return task;
             });
             
@@ -106,7 +106,7 @@ describe('Base API Layer', () => {
             
             try {
                 await api.transaction((db) => {
-                    db.prepare("INSERT INTO tasks (name) VALUES (?)").run('Test Task');
+                    db.prepare('INSERT INTO tasks (name) VALUES (?)').run('Test Task');
                     throw new Error('Simulated error');
                 });
                 assert.fail('Transaction should have failed');
@@ -117,7 +117,7 @@ describe('Base API Layer', () => {
             
             // Verify rollback - no tasks should exist
             const db = await api.getDatabase();
-            const count = db.prepare("SELECT COUNT(*) as count FROM tasks").get();
+            const count = db.prepare('SELECT COUNT(*) as count FROM tasks').get();
             assert.strictEqual(count.count, 0);
         });
 
@@ -125,10 +125,10 @@ describe('Base API Layer', () => {
             await api.initialize();
             
             const result = await api.transaction((db) => {
-                const task1 = db.prepare("INSERT INTO tasks (name) VALUES (?)").run('Task 1');
-                const task2 = db.prepare("INSERT INTO tasks (name) VALUES (?)").run('Task 2');
+                const task1 = db.prepare('INSERT INTO tasks (name) VALUES (?)').run('Task 1');
+                const task2 = db.prepare('INSERT INTO tasks (name) VALUES (?)').run('Task 2');
                 
-                db.prepare("INSERT INTO task_dependencies (task_id, depends_on_id) VALUES (?, ?)")
+                db.prepare('INSERT INTO task_dependencies (task_id, depends_on_id) VALUES (?, ?)')
                   .run(task1.lastInsertRowid, task2.lastInsertRowid);
                 
                 return { task1: task1.lastInsertRowid, task2: task2.lastInsertRowid };
@@ -139,7 +139,7 @@ describe('Base API Layer', () => {
             
             // Verify data persisted
             const db = await api.getDatabase();
-            const count = db.prepare("SELECT COUNT(*) as count FROM tasks").get();
+            const count = db.prepare('SELECT COUNT(*) as count FROM tasks').get();
             assert.strictEqual(count.count, 2);
         });
     });

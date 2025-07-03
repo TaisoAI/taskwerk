@@ -55,19 +55,20 @@ export class BaseAPI {
         
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(() => {
-                try {
-                    const result = operation(db);
-                    return result;
-                } catch (error) {
-                    throw error;
-                }
+                const result = operation(db);
+                return result;
             });
 
             try {
                 const result = transaction();
                 resolve(result);
             } catch (error) {
-                reject(new APIError('Transaction failed', 'TRANSACTION_ERROR', { cause: error }));
+                // Preserve ValidationError and other API errors instead of wrapping them
+                if (error instanceof ValidationError || error instanceof APIError) {
+                    reject(error);
+                } else {
+                    reject(new APIError('Transaction failed', 'TRANSACTION_ERROR', { cause: error }));
+                }
             }
         });
     }
@@ -168,6 +169,49 @@ export class BaseAPI {
     }
 
     /**
+     * Get task information by ID
+     * Accepts numeric ID or string ID (TASK-XXX format)
+     */
+    getTaskInfo(db, taskId) {
+        let query;
+        let params;
+        
+        // Handle both numeric and string IDs
+        if (typeof taskId === 'number' || /^\d+$/.test(taskId)) {
+            query = 'SELECT * FROM tasks WHERE id = ?';
+            params = [parseInt(taskId, 10)];
+        } else if (typeof taskId === 'string' && taskId.match(/^TASK-\d+$/)) {
+            query = 'SELECT * FROM tasks WHERE string_id = ?';
+            params = [taskId];
+        } else {
+            return null;
+        }
+        
+        return db.prepare(query).get(...params);
+    }
+
+    /**
+     * Add a note to task timeline (internal use)
+     */
+    addTimelineNote(db, taskId, note, noteType = 'system', author = 'system') {
+        const stmt = db.prepare(`
+            INSERT INTO task_notes (task_id, note, note_type, author, created_at)
+            VALUES (?, ?, ?, ?, ?)
+        `);
+        
+        // Get numeric task ID if string ID provided
+        let numericTaskId = taskId;
+        if (typeof taskId === 'string' && taskId.match(/^TASK-\d+$/)) {
+            const task = this.getTaskInfo(db, taskId);
+            if (task) {
+                numericTaskId = task.id;
+            }
+        }
+        
+        return stmt.run(numericTaskId, note, noteType, author, this.now());
+    }
+
+    /**
      * Close database connection
      */
     close() {
@@ -186,7 +230,7 @@ export class BaseAPI {
             const db = await this.getDatabase();
             
             // Test basic database operation
-            const result = db.prepare("SELECT COUNT(*) as count FROM tasks").get();
+            const result = db.prepare('SELECT COUNT(*) as count FROM tasks').get();
             
             return {
                 status: 'healthy',

@@ -251,15 +251,25 @@ export const SearchQuerySchema = {
  * Validate task ID format (TASK-XXX)
  */
 export function validateTaskId(taskId) {
-    if (typeof taskId !== 'string') {
-        throw new Error('Task ID must be a string');
+    // Accept numeric IDs
+    if (typeof taskId === 'number' && taskId > 0) {
+        return true;
     }
     
-    if (!TASK_ID_PATTERN.test(taskId)) {
-        throw new Error('Task ID must be in format TASK-XXX (e.g., TASK-001)');
+    // Accept string numeric IDs
+    if (typeof taskId === 'string' && /^\d+$/.test(taskId)) {
+        const numId = parseInt(taskId, 10);
+        if (numId > 0) {
+            return true;
+        }
     }
     
-    return true;
+    // Accept TASK-XXX format
+    if (typeof taskId === 'string' && TASK_ID_PATTERN.test(taskId)) {
+        return true;
+    }
+    
+    return false;
 }
 
 /**

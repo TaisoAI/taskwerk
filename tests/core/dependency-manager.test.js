@@ -14,7 +14,7 @@ describe('Dependency Manager', () => {
     let manager;
     let db;
     let dbPath;
-    let testTasks = {};
+    const testTasks = {};
 
     beforeEach(async () => {
         // Use temporary database for each test
@@ -80,12 +80,12 @@ describe('Dependency Manager', () => {
         test('should validate blocking dependency rules', () => {
             // Cannot block completed task
             assert.throws(() => {
-                manager.validateDependencyAddition(testTasks.C, testTasks.A, 'blocks');
+                manager.validateDependencyAddition(testTasks.A, testTasks.C, 'blocks');
             }, ValidationError);
 
             // Archived task cannot block others
             assert.throws(() => {
-                manager.validateDependencyAddition(testTasks.B, testTasks.E, 'blocks');
+                manager.validateDependencyAddition(testTasks.E, testTasks.B, 'blocks');
             }, ValidationError);
         });
 
@@ -108,9 +108,9 @@ describe('Dependency Manager', () => {
             }, ValidationError);
         });
 
-        test('should allow related_to relationships', () => {
+        test('should allow requires relationships', () => {
             assert.doesNotThrow(() => {
-                manager.validateDependencyAddition(testTasks.A, testTasks.B, 'related_to');
+                manager.validateDependencyAddition(testTasks.A, testTasks.B, 'requires');
             });
         });
     });
@@ -135,13 +135,14 @@ describe('Dependency Manager', () => {
         });
 
         test('should detect hierarchy cycles', () => {
-            // A is parent of B, trying to make A child of B would create cycle
+            // C is parent of D (using requires for subtask relationship)
             db.prepare(`
                 INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
                 VALUES (?, ?, ?)
-            `).run(testTasks.B, testTasks.A, 'subtask_of');
+            `).run(testTasks.D, testTasks.C, 'requires');
 
-            const wouldCycle = manager.detectHierarchyCycle(testTasks.A, testTasks.B);
+            // Now trying to make C a child of D would create a cycle
+            const wouldCycle = manager.detectHierarchyCycle(testTasks.C, testTasks.D);
             assert.strictEqual(wouldCycle, true);
         });
 
@@ -180,12 +181,15 @@ describe('Dependency Manager', () => {
                 VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?)
             `).run(
                 testTasks.B, testTasks.A, 'blocks',      // B is blocked by A
-                testTasks.C, testTasks.A, 'depends_on', // C depends on A
-                testTasks.D, testTasks.A, 'subtask_of'  // D is subtask of A
+                testTasks.C, testTasks.A, 'requires', // C depends on A
+                testTasks.D, testTasks.A, 'requires'  // D is subtask of A
             );
         });
 
         test('should calculate impact when task completes', () => {
+            // Set B to blocked status for this test
+            db.prepare('UPDATE tasks SET status = ? WHERE id = ?').run('blocked', testTasks.B);
+            
             const impact = manager.calculateDependencyImpact(testTasks.A, 'completed');
 
             assert.strictEqual(impact.task_id, testTasks.A);
@@ -254,7 +258,7 @@ describe('Dependency Manager', () => {
                 VALUES (?, ?, ?), (?, ?, ?)
             `).run(
                 testTasks.B, testTasks.A, 'blocks',      // B is blocked by A
-                testTasks.C, testTasks.B, 'subtask_of'  // C is subtask of B
+                testTasks.C, testTasks.B, 'requires'  // C is subtask of B
             );
         });
 
@@ -270,12 +274,20 @@ describe('Dependency Manager', () => {
         });
 
         test('should validate completion with incomplete subtasks', () => {
+            // First, change the dependency to use Task D (which is todo) instead of Task C (completed)
+            db.prepare('DELETE FROM task_dependencies WHERE task_id = ? AND depends_on_id = ?')
+                .run(testTasks.C, testTasks.B);
+            db.prepare(`
+                INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
+                VALUES (?, ?, ?)
+            `).run(testTasks.D, testTasks.B, 'requires');  // D is subtask of B
+            
             const impact = { validation_errors: [] };
             manager.validateStatusTransitionWithDependencies(testTasks.B, 'completed', impact);
 
-            // B cannot complete while subtask C is not completed
+            // B cannot complete while subtask D is not completed
             const hasSubtaskError = impact.validation_errors.some(error =>
-                error.includes('subtask') && error.includes('Task C')
+                error.includes('subtask') && error.includes('Task D')
             );
             assert.ok(hasSubtaskError);
         });
@@ -313,7 +325,7 @@ describe('Dependency Manager', () => {
                 VALUES (?, ?, ?), (?, ?, ?)
             `).run(
                 testTasks.B, testTasks.A, 'blocks',
-                testTasks.C, testTasks.B, 'subtask_of'
+                testTasks.C, testTasks.B, 'requires'
             );
         });
 
@@ -327,6 +339,12 @@ describe('Dependency Manager', () => {
         });
 
         test('should suggest resolution for incomplete subtasks', () => {
+            // Add an incomplete subtask (D is todo)
+            db.prepare(`
+                INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
+                VALUES (?, ?, ?)
+            `).run(testTasks.D, testTasks.B, 'requires');
+            
             const suggestions = manager.suggestDependencyResolution(testTasks.B, 'completed');
 
             const subtaskSuggestion = suggestions.find(s => s.type === 'complete_subtasks');
@@ -363,9 +381,9 @@ describe('Dependency Manager', () => {
         test('should identify redundant dependencies', () => {
             const redundant = manager.findRedundantDependencies();
 
-            // Should find A -> C as redundant since A -> B -> C exists
+            // Should find C -> A as redundant since C -> B -> A exists
             const redundantDep = redundant.find(dep => 
-                dep.from_id === testTasks.A && dep.to_id === testTasks.C
+                dep.from_id === testTasks.C && dep.to_id === testTasks.A
             );
             assert.ok(redundantDep);
             assert.ok(redundantDep.from_name);
@@ -442,8 +460,8 @@ describe('Dependency Manager', () => {
                 INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
                 VALUES (?, ?, ?), (?, ?, ?)
             `).run(
-                testTasks.B, testTasks.A, 'subtask_of',
-                testTasks.C, testTasks.B, 'subtask_of'
+                testTasks.B, testTasks.A, 'requires',
+                testTasks.C, testTasks.B, 'requires'
             );
 
             assert.strictEqual(manager.getHierarchyDepth(testTasks.A), 0); // Root
@@ -457,11 +475,11 @@ describe('Dependency Manager', () => {
                 INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
                 VALUES (?, ?, ?), (?, ?, ?)
             `).run(
-                testTasks.B, testTasks.A, 'subtask_of',
-                testTasks.C, testTasks.A, 'subtask_of'
+                testTasks.B, testTasks.A, 'requires',
+                testTasks.C, testTasks.A, 'requires'
             );
 
-            const descendants = manager.getDescendants(testTasks.A, 'subtask_of');
+            const descendants = manager.getDescendants(testTasks.A, 'requires');
             assert.ok(descendants.includes(testTasks.B));
             assert.ok(descendants.includes(testTasks.C));
         });
@@ -481,13 +499,15 @@ describe('Dependency Manager', () => {
         });
 
         test('should handle malformed dependency data', () => {
-            // Insert potentially problematic data
-            db.prepare(`
-                INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
-                VALUES (?, ?, ?)
-            `).run(null, testTasks.A, 'blocks');
+            // Try to insert potentially problematic data
+            assert.throws(() => {
+                db.prepare(`
+                    INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
+                    VALUES (?, ?, ?)
+                `).run(null, testTasks.A, 'blocks');
+            }, /NOT NULL constraint failed/);
 
-            // Should not crash when processing
+            // Even without malformed data, methods should handle edge cases gracefully
             assert.doesNotThrow(() => {
                 manager.findRedundantDependencies();
             });
@@ -506,7 +526,7 @@ describe('Dependency Manager', () => {
                 db.prepare(`
                     INSERT INTO task_dependencies (task_id, depends_on_id, dependency_type)
                     VALUES (?, ?, ?)
-                `).run(childResult.lastInsertRowid, currentParent, 'subtask_of');
+                `).run(childResult.lastInsertRowid, currentParent, 'requires');
                 
                 currentParent = childResult.lastInsertRowid;
             }

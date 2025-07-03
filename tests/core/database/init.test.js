@@ -142,7 +142,7 @@ describe('Database Initialization', () => {
             const db = initializer.getConnection();
             
             // Test basic operation
-            const result = db.prepare("SELECT COUNT(*) as count FROM tasks").get();
+            const result = db.prepare('SELECT COUNT(*) as count FROM tasks').get();
             assert.strictEqual(result.count, 0);
         });
 
@@ -156,8 +156,8 @@ describe('Database Initialization', () => {
             assert.ok(db2);
             
             // Test concurrent operations
-            db1.prepare("INSERT INTO tasks (name) VALUES (?)").run('Task 1');
-            const count = db2.prepare("SELECT COUNT(*) as count FROM tasks").get();
+            db1.prepare('INSERT INTO tasks (name) VALUES (?)').run('Task 1');
+            const count = db2.prepare('SELECT COUNT(*) as count FROM tasks').get();
             assert.strictEqual(count.count, 1);
         });
     });

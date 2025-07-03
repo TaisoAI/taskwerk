@@ -248,7 +248,7 @@ export class DatabaseInitializer {
 
         // Get database file size if possible
         try {
-            const result = this.db.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
+            const result = this.db.prepare('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()').get();
             stats.size = result.size;
         } catch (error) {
             // Size calculation failed, not critical

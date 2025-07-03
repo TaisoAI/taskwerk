@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS task_notes (
     author TEXT,
     agent_id TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );`;
 
@@ -176,6 +177,12 @@ export const TRIGGERS = [
      AFTER UPDATE ON tasks 
      BEGIN 
          UPDATE tasks SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+     END;`,
+     
+    `CREATE TRIGGER IF NOT EXISTS update_task_notes_timestamp 
+     AFTER UPDATE ON task_notes 
+     BEGIN 
+         UPDATE task_notes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
      END;`,
     
     `CREATE TRIGGER IF NOT EXISTS update_project_config_timestamp 

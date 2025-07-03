@@ -345,7 +345,7 @@ export function validateTaskNameUniqueness(db, name, excludeId = null) {
  */
 export function validatePriorityEscalation(db, taskId, newPriority) {
     const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId);
-    if (!task) return true;
+    if (!task) {return true;}
 
     // Auto-escalation rules based on age
     const created = new Date(task.created_at);

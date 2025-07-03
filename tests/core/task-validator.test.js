@@ -114,11 +114,11 @@ describe('Task Validator', () => {
     describe('Status Transition Validation', () => {
         test('should allow valid status transitions', () => {
             assert.doesNotThrow(() => {
-                validator.validateStatusTransition('todo', 'in_progress');
+                validator.validateStatusTransition('todo', 'in_progress', { assignee: 'test@example.com' });
             });
 
             assert.doesNotThrow(() => {
-                validator.validateStatusTransition('in_progress', 'completed');
+                validator.validateStatusTransition('in_progress', 'completed', { assignee: 'test@example.com' });
             });
 
             assert.doesNotThrow(() => {

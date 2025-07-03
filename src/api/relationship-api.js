@@ -91,7 +91,7 @@ export class RelationshipAPI extends BaseAPI {
         return await this.transaction((db) => {
             // Build query based on whether type is specified
             let query = 'SELECT * FROM task_dependencies WHERE task_id = ? AND depends_on_id = ?';
-            let params = [taskId, dependsOnId];
+            const params = [taskId, dependsOnId];
             
             if (dependencyType) {
                 query += ' AND dependency_type = ?';
@@ -137,6 +137,12 @@ export class RelationshipAPI extends BaseAPI {
      */
     async getDependencies(taskId, includeReverse = false) {
         const db = await this.getDatabase();
+        
+        // Validate that task exists
+        const task = this.getTaskInfo(db, taskId);
+        if (!task) {
+            throw new APIError(`Task with ID ${taskId} not found`, 'TASK_NOT_FOUND');
+        }
         
         const dependencies = {
             task_id: taskId,
@@ -426,7 +432,7 @@ export class RelationshipAPI extends BaseAPI {
         // Check if parentId is already a descendant of childId
         const children = db.prepare(`
             SELECT task_id FROM task_dependencies 
-            WHERE depends_on_id = ? AND dependency_type = 'subtask_of'
+            WHERE depends_on_id = ? AND dependency_type = 'requires'
         `).all(childId);
 
         for (const child of children) {

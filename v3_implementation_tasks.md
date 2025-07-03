@@ -21,7 +21,7 @@
 ## Phase 1: Foundation (v0.3.0) - Database and Core API
 
 *Last updated: 2025-07-03*
-*Next task ID: TASK-004*
+*Next task ID: TASK-005*
 
 ### 🔴 HIGH Priority - Critical Path
 
@@ -49,7 +49,7 @@
   - **Files**: `src/api/task-api.js`, `src/core/task-validator.js`
   - **Tests**: CRUD operations, validation, relationship integrity
 
-- [ ] **TASK-004** Create Task Relationship API
+- [x] **TASK-004** Create Task Relationship API ✅ **COMPLETED**
   - Dependency management: `addDependency()`, `removeDependency()`, `getDependencies()`
   - Circular dependency detection and prevention
   - Subtask management: `addSubtask()`, `promoteSubtask()`, `demoteTask()`

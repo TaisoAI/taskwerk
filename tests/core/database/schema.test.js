@@ -109,7 +109,7 @@ describe('Database Schema', () => {
             initializer.createTables();
 
             // Check tasks table structure
-            const tasksInfo = initializer.db.prepare("PRAGMA table_info(tasks)").all();
+            const tasksInfo = initializer.db.prepare('PRAGMA table_info(tasks)').all();
             const columnNames = tasksInfo.map(col => col.name);
             
             assert.ok(columnNames.includes('id'));
@@ -128,12 +128,12 @@ describe('Database Schema', () => {
 
             // Valid status should work
             assert.doesNotThrow(() => {
-                initializer.db.prepare("INSERT INTO tasks (name, status) VALUES (?, ?)").run('Test Task', 'todo');
+                initializer.db.prepare('INSERT INTO tasks (name, status) VALUES (?, ?)').run('Test Task', 'todo');
             });
 
             // Invalid status should fail
             assert.throws(() => {
-                initializer.db.prepare("INSERT INTO tasks (name, status) VALUES (?, ?)").run('Test Task', 'invalid_status');
+                initializer.db.prepare('INSERT INTO tasks (name, status) VALUES (?, ?)').run('Test Task', 'invalid_status');
             });
         });
 
@@ -143,12 +143,12 @@ describe('Database Schema', () => {
 
             // Valid priority should work
             assert.doesNotThrow(() => {
-                initializer.db.prepare("INSERT INTO tasks (name, priority) VALUES (?, ?)").run('Test Task', 'high');
+                initializer.db.prepare('INSERT INTO tasks (name, priority) VALUES (?, ?)').run('Test Task', 'high');
             });
 
             // Invalid priority should fail
             assert.throws(() => {
-                initializer.db.prepare("INSERT INTO tasks (name, priority) VALUES (?, ?)").run('Test Task', 'invalid_priority');
+                initializer.db.prepare('INSERT INTO tasks (name, priority) VALUES (?, ?)').run('Test Task', 'invalid_priority');
             });
         });
     });
@@ -198,8 +198,8 @@ describe('Database Schema', () => {
             initializer.createTables();
 
             // Insert minimal task
-            const result = initializer.db.prepare("INSERT INTO tasks (name) VALUES (?)").run('Test Task');
-            const task = initializer.db.prepare("SELECT * FROM tasks WHERE id = ?").get(result.lastInsertRowid);
+            const result = initializer.db.prepare('INSERT INTO tasks (name) VALUES (?)').run('Test Task');
+            const task = initializer.db.prepare('SELECT * FROM tasks WHERE id = ?').get(result.lastInsertRowid);
 
             assert.strictEqual(task.status, 'todo');
             assert.strictEqual(task.priority, 'medium');

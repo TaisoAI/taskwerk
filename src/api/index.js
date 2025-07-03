@@ -4,7 +4,7 @@
  * Central API management and method registry for all TaskWerk operations
  */
 
-import { BaseAPI, APIError, ValidationError } from './base-api.js';
+import { BaseAPI, APIError } from './base-api.js';
 
 /**
  * Main API class that provides access to all TaskWerk functionality

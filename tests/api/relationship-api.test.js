@@ -14,7 +14,7 @@ describe('Relationship API', () => {
     let relationshipAPI;
     let taskAPI;
     let dbPath;
-    let testTasks = {};
+    const testTasks = {};
 
     beforeEach(async () => {
         // Use temporary database for each test

@@ -1,6 +1,6 @@
 {
   "name": "taskwerk",
-  "version": "0.2.2",
+  "version": "0.3.1",
   "author": "manu chatterjee <deftio@deftio.com>",
   "description": "A lightweight CLI task manager optimized for human-AI collaboration workflows",
   "repository": {
@@ -44,6 +44,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "commander": "^11.1.0"
   },
   "devDependencies": {

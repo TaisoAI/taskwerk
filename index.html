@@ -4,16 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,&lt;svg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 32 32&#39;&gt;&lt;circle cx=&#39;16&#39; cy=&#39;16&#39; r=&#39;14&#39; fill=&#39;%23f57c00&#39; stroke=&#39;%23000&#39; stroke-width=&#39;1&#39;/&gt;&lt;path d=&#39;M2 16h28M16 2a14 14 0 0114 14 14 14 0 01-14 14 14 14 0 01-14-14A14 14 0 0116 2zm0 0v28M9 16a7 7 0 0014 0 7 7 0 00-14 0z&#39; fill=&#39;none&#39; stroke=&#39;%23000&#39; stroke-width=&#39;1&#39;/&gt;&lt;/svg&gt;">
   <style>
 
-/* SquibView CLI Default Styles */
+
+/* Additional CSS */
+/* SquibView CLI Generated Styles */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   line-height: 1.6;
   color: #333;
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 1rem 2.5rem;
+  padding: 2rem 3rem;
   background-color: #fff;
 }
 
@@ -24,8 +27,14 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
 }
 
-h1 { font-size: 2rem; border-bottom: 2px solid #eee; padding-bottom: 0.3em; }
-h2 { font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+h1 { 
+  font-size: 2rem;
+  
+}
+h2 { 
+  font-size: 1.5rem;
+  
+}
 h3 { font-size: 1.25rem; }
 h4 { font-size: 1rem; }
 h5 { font-size: 0.875rem; }
@@ -39,6 +48,7 @@ a {
 }
 
 a:hover {
+  color: #0066cc;
   text-decoration: underline;
 }
 
@@ -52,7 +62,7 @@ li {
 }
 
 blockquote {
-  margin: 0 0 1rem 0;
+  margin: 1rem 0;
   padding: 0.5rem 1rem;
   border-left: 4px solid #ddd;
   background-color: #f9f9f9;
@@ -60,7 +70,7 @@ blockquote {
 }
 
 code {
-  background-color: #f1f1f1;
+  background-color: #f5f5f5;
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -69,11 +79,10 @@ code {
 
 pre {
   background-color: #f8f8f8;
-  border: 1px solid #e1e1e1;
-  border-radius: 4px;
   padding: 1rem;
   margin-bottom: 1rem;
   overflow-x: auto;
+  border-radius: 4px;
 }
 
 pre code {
@@ -96,11 +105,7 @@ th, td {
 
 th {
   background-color: #f2f2f2;
-  font-weight: 600;
-}
-
-tr:nth-child(even) {
-  background-color: #f9f9f9;
+  font-weight: bold;
 }
 
 img {
@@ -111,38 +116,27 @@ img {
 
 hr {
   border: none;
-  height: 1px;
-  background-color: #ddd;
+  border-top: 1px solid #ddd;
   margin: 2rem 0;
 }
 
-/* SVG styling */
-svg {
-  max-width: 100%;
-  height: auto;
+/* Badge images - inline display */
+p img {
+  display: inline;
+  margin: 0 2px;
+  vertical-align: middle;
 }
 
 /* Math styling */
 .MathJax {
-  font-size: 1em !important;
-}
-
-/* Mermaid diagram styling */
-.mermaid {
-  text-align: center;
-  margin: 1rem 0;
-}
-
-/* Code highlighting */
-.hljs {
-  background: #f8f8f8 !important;
-  color: #333 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
   body {
-    padding: 0.5rem 1.5rem;
+    padding: 1rem 1.5rem;
   }
   
   table {
@@ -174,11 +168,16 @@ svg {
     page-break-after: avoid;
   }
 }
-
   </style>
     <!-- Highlight.js for syntax highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- Leaflet for GeoJSON/TopoJSON maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <!-- Three.js for STL 3D models -->
+  <script src="https://unpkg.com/three@0.171.0/build/three.min.js"></script>
   <!-- MathJax for math rendering -->
   <script>
     window.MathJax = {
@@ -204,10 +203,7 @@ svg {
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 </head>
 <body>
-<div><p><a href="https://www.npmjs.com/package/taskwerk"><img src="https://img.shields.io/npm/v/taskwerk.svg" alt="npm version"></a>
-<a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node.js Version"></a>
-<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
-</p><div data-source-type="text"><pre><code class="hljs language-text" data-source-type="code" data-lang="text">████████╗ █████╗ ███████╗██╗  ██╗██╗    ██╗███████╗██████╗ ██╗  ██╗
+<div><p><a href="https://www.npmjs.com/package/taskwerk"><img src="https://img.shields.io/npm/v/taskwerk.svg" alt="npm version"></a><a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node.js Version"></a><a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a></p><div data-source-type="text"><pre><code class="hljs language-text" data-source-type="code" data-lang="text">████████╗ █████╗ ███████╗██╗  ██╗██╗    ██╗███████╗██████╗ ██╗  ██╗
 ╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██║    ██║██╔════╝██╔══██╗██║ ██╔╝
    ██║   ███████║███████╗█████╔╝ ██║ █╗ ██║█████╗  ██████╔╝█████╔╝ 
    ██║   ██╔══██║╚════██║██╔═██╗ ██║███╗██║██╔══╝  ██╔══██╗██╔═██╗ 

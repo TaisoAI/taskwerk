@@ -21,7 +21,7 @@
 ## Phase 1: Foundation (v0.3.0) - Database and Core API
 
 *Last updated: 2025-07-03*
-*Next task ID: TASK-003*
+*Next task ID: TASK-004*
 
 ### 🔴 HIGH Priority - Critical Path
 
@@ -41,7 +41,7 @@
   - **Files**: `src/api/base-api.js`, `src/api/index.js`, `src/api/validation.js`
   - **Tests**: API initialization, transaction handling, error management
 
-- [ ] **TASK-003** Implement Core Task CRUD API
+- [x] **TASK-003** Implement Core Task CRUD API ✅ **COMPLETED**
   - API methods: `createTask()`, `getTask()`, `updateTask()`, `deleteTask()`, `listTasks()`
   - Input validation against task schema
   - Relationship handling (dependencies, notes, files)

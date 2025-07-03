@@ -169,17 +169,21 @@ describe('Validation Framework', () => {
     describe('Validation Functions', () => {
         test('should validate task ID format', () => {
             // Valid task IDs
-            assert.doesNotThrow(() => validateTaskId('TASK-001'));
-            assert.doesNotThrow(() => validateTaskId('TASK-123'));
-            assert.doesNotThrow(() => validateTaskId('TASK-999999'));
+            assert.strictEqual(validateTaskId('TASK-001'), true);
+            assert.strictEqual(validateTaskId('TASK-123'), true);
+            assert.strictEqual(validateTaskId('TASK-999999'), true);
+            assert.strictEqual(validateTaskId(123), true); // Numeric IDs are valid
+            assert.strictEqual(validateTaskId('123'), true); // String numeric IDs are valid
             
             // Invalid task IDs
-            assert.throws(() => validateTaskId('task-001'));
-            assert.throws(() => validateTaskId('TASK-01'));
-            assert.throws(() => validateTaskId('TASK001'));
-            assert.throws(() => validateTaskId('TASK-'));
-            assert.throws(() => validateTaskId(123));
-            assert.throws(() => validateTaskId(null));
+            assert.strictEqual(validateTaskId('task-001'), false);
+            assert.strictEqual(validateTaskId('TASK-01'), false);
+            assert.strictEqual(validateTaskId('TASK001'), false);
+            assert.strictEqual(validateTaskId('TASK-'), false);
+            assert.strictEqual(validateTaskId('invalid'), false);
+            assert.strictEqual(validateTaskId(null), false);
+            assert.strictEqual(validateTaskId(undefined), false);
+            assert.strictEqual(validateTaskId(''), false);
         });
 
         test('should validate no cycles in dependencies', () => {

@@ -441,7 +441,9 @@ export class TaskAPI extends BaseAPI {
      * Get task by string ID (TASK-XXX format)
      */
     getTaskByStringId(db, taskStringId) {
-        validateTaskId(taskStringId);
+        if (!validateTaskId(taskStringId)) {
+            throw new ValidationError('Invalid task ID format', [`Task ID must match pattern TASK-XXX where XXX is a number`]);
+        }
         
         // Extract numeric ID from TASK-XXX format
         const numericId = parseInt(taskStringId.replace('TASK-', ''), 10);

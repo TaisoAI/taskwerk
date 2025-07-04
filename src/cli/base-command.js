@@ -5,13 +5,14 @@
  * validation, error handling, and output formatting.
  */
 
-import { TaskWerkAPI, ValidationError, APIError } from '../api/index.js';
+import { TaskWerkAPI } from '../api/index.js';
 import { TaskAPI } from '../api/task-api.js';
 import { RelationshipAPI } from '../api/relationship-api.js';
 import { NotesAPI } from '../api/notes-api.js';
 // import { formatTask, formatTaskList } from '../utils/formatting.js';
 import { loadConfig } from '../utils/config.js';
 import chalk from 'chalk';
+import { TaskWerkError, errorHandler } from './error-handler.js';
 
 /**
  * Base command class that all commands extend
@@ -103,7 +104,10 @@ export class BaseCommand {
         );
 
         if (!optionDef) {
-          throw new Error(`Unknown option: ${arg}`);
+          throw new TaskWerkError('INVALID_ARGUMENTS', {
+            message: `Unknown option: ${arg}`,
+            suggestion: `Use "taskwerk ${this.name} --help" to see available options`,
+          });
         }
 
         const key = optionDef.long || optionDef.short;
@@ -111,7 +115,10 @@ export class BaseCommand {
         if (optionDef.hasValue) {
           // Option expects a value
           if (i + 1 >= args.length) {
-            throw new Error(`Option ${arg} requires a value`);
+            throw new TaskWerkError('INVALID_ARGUMENTS', {
+              message: `Option ${arg} requires a value`,
+              suggestion: `Provide a value after ${arg}`,
+            });
           }
           parsed.options[key] = args[++i];
         } else {
@@ -137,7 +144,10 @@ export class BaseCommand {
     for (const opt of this.options) {
       const key = opt.long || opt.short;
       if (opt.required && !(key in parsed.options)) {
-        throw new Error(`Required option --${opt.long || '-' + opt.short} is missing`);
+        throw new TaskWerkError('MISSING_REQUIRED_ARG', {
+          message: `Required option --${opt.long || '-' + opt.short} is missing`,
+          option: opt.long || opt.short,
+        });
       }
     }
 
@@ -147,13 +157,19 @@ export class BaseCommand {
       if (argDef.variadic) {
         // Variadic argument consumes all remaining args
         if (argDef.required && argIndex >= parsed.args.length) {
-          throw new Error(`Argument <${argDef.name}> is required`);
+          throw new TaskWerkError('MISSING_REQUIRED_ARG', {
+            message: `Argument <${argDef.name}> is required`,
+            argument: argDef.name,
+          });
         }
         break;
       }
 
       if (argDef.required && argIndex >= parsed.args.length) {
-        throw new Error(`Argument <${argDef.name}> is required`);
+        throw new TaskWerkError('MISSING_REQUIRED_ARG', {
+          message: `Argument <${argDef.name}> is required`,
+          argument: argDef.name,
+        });
       }
 
       argIndex++;
@@ -191,7 +207,10 @@ export class BaseCommand {
    * Execute the command (to be implemented by subclasses)
    */
   async execute(_args, _options) {
-    throw new Error(`Command ${this.name} must implement execute()`);
+    throw new TaskWerkError('COMMAND_NOT_FOUND', {
+      message: `Command ${this.name} must implement execute()`,
+      command: this.name,
+    });
   }
 
   /**
@@ -199,6 +218,9 @@ export class BaseCommand {
    */
   async run(args) {
     try {
+      // Initialize error handler
+      await errorHandler.initialize();
+
       // Parse arguments
       const parsed = this.parseArgs(args);
 
@@ -216,8 +238,11 @@ export class BaseCommand {
 
       return 0;
     } catch (error) {
-      this.handleError(error);
-      return 1;
+      const context = {
+        command: this.name,
+        args: args,
+      };
+      return errorHandler.handle(error, context);
     } finally {
       // Clean up
       if (this.apis) {
@@ -233,25 +258,14 @@ export class BaseCommand {
 
   /**
    * Handle errors with appropriate formatting
+   * @deprecated Use errorHandler.handle() instead
    */
   handleError(error) {
-    if (error instanceof ValidationError) {
-      console.error(chalk.red('Validation Error:'), error.message);
-      if (error.errors && error.errors.length > 0) {
-        console.error(chalk.red('Details:'));
-        error.errors.forEach(err => console.error(`  - ${err}`));
-      }
-    } else if (error instanceof APIError) {
-      console.error(chalk.red('API Error:'), error.message);
-      if (error.code) {
-        console.error(chalk.gray(`Error code: ${error.code}`));
-      }
-    } else {
-      console.error(chalk.red('Error:'), error.message);
-      if (this.config?.debug) {
-        console.error(chalk.gray(error.stack));
-      }
-    }
+    const context = {
+      command: this.name,
+      deprecated: true,
+    };
+    errorHandler.handle(error, context);
   }
 
   /**

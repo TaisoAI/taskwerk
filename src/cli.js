@@ -10,6 +10,7 @@
 import { registry } from './cli/command-registry.js';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { installGlobalErrorHandlers, errorHandler } from './cli/error-handler.js';
 
 // Legacy CLI imports (for backward compatibility)
 import { Command } from 'commander';
@@ -697,11 +698,12 @@ async function runV3CLI(args) {
     const exitCode = await registry.execute(args);
     process.exit(exitCode);
   } catch (error) {
-    console.error('Fatal error:', error.message);
-    if (process.env.DEBUG || args.includes('--debug')) {
-      console.error(error.stack);
-    }
-    process.exit(1);
+    const context = {
+      command: 'v3-cli',
+      args: args,
+    };
+    const exitCode = errorHandler.handle(error, context);
+    process.exit(exitCode);
   }
 }
 
@@ -716,6 +718,12 @@ function runLegacyCLI() {
  * Main CLI entry point
  */
 async function main() {
+  // Install global error handlers
+  installGlobalErrorHandlers();
+
+  // Initialize error handler
+  await errorHandler.initialize();
+
   const args = process.argv.slice(2);
 
   if (shouldUseV3CLI(args)) {
@@ -725,22 +733,7 @@ async function main() {
   }
 }
 
-// Handle uncaught errors
-process.on('uncaughtException', error => {
-  console.error('Uncaught exception:', error.message);
-  if (process.env.DEBUG) {
-    console.error(error.stack);
-  }
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled promise rejection:', reason);
-  if (process.env.DEBUG) {
-    console.error('Promise:', promise);
-  }
-  process.exit(1);
-});
+// Global error handlers are now installed by installGlobalErrorHandlers()
 
 // Run the CLI
 main().catch(error => {

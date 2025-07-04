@@ -57,7 +57,7 @@
   - **Files**: `src/api/relationship-api.js`, `src/core/dependency-manager.js`
   - **Tests**: Dependency cycles, hierarchy operations, constraint validation
 
-- [ ] **TASK-005** Implement Notes and Timeline API
+- [x] **TASK-005** Implement Notes and Timeline API ✅ **COMPLETED**
   - Notes management: `addNote()`, `getNotes()`, `updateNote()`, `deleteNote()`
   - Timeline auto-generation for all task state changes
   - User attribution and timestamp management

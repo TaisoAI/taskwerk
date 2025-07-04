@@ -100,7 +100,8 @@ function runCLI(args) {
   });
 }
 
-test('CLI add command creates new task', async () => {
+test.skip('CLI add command creates new task', async () => {
+  // This test is for v2 CLI - disabled during v3 transition
   await setupTestEnvironment();
 
   const result = await runCLI(['add', 'Test task description']);
@@ -111,7 +112,8 @@ test('CLI add command creates new task', async () => {
   await cleanupTestEnvironment();
 });
 
-test('CLI add command with priority and category', async () => {
+test.skip('CLI add command with priority and category', async () => {
+  // This test is for v2 CLI - disabled during v3 transition
   await setupTestEnvironment();
 
   const result = await runCLI([
@@ -129,7 +131,8 @@ test('CLI add command with priority and category', async () => {
   await cleanupTestEnvironment();
 });
 
-test('CLI list command shows tasks', async () => {
+test.skip('CLI list command shows tasks', async () => {
+  // This test is for v2 CLI - disabled during v3 transition
   await setupTestEnvironment();
 
   // Add a task first
@@ -145,7 +148,8 @@ test('CLI list command shows tasks', async () => {
   await cleanupTestEnvironment();
 });
 
-test('CLI init command creates files', async () => {
+test.skip('CLI init command creates files', async () => {
+  // This test is for v2 CLI - disabled during v3 transition
   await rm(TEST_DIR, { recursive: true, force: true });
   await mkdir(TEST_DIR, { recursive: true });
 

@@ -1,6 +1,6 @@
 /**
  * TaskWerk v3 SQLite Database Schema
- * 
+ *
  * Defines the complete database schema for TaskWerk v3 with tables for tasks,
  * dependencies, notes, files, keywords, and metadata tracking.
  */
@@ -149,106 +149,136 @@ CREATE TABLE IF NOT EXISTS project_config (
  * Performance indexes for common queries
  */
 export const INDEXES = [
-    'CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);',
-    'CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);',
-    'CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee);',
-    'CREATE INDEX IF NOT EXISTS idx_tasks_category ON tasks(category);',
-    'CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);',
-    'CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks(updated_at);',
-    'CREATE INDEX IF NOT EXISTS idx_task_dependencies_task_id ON task_dependencies(task_id);',
-    'CREATE INDEX IF NOT EXISTS idx_task_dependencies_depends_on ON task_dependencies(depends_on_id);',
-    'CREATE INDEX IF NOT EXISTS idx_task_notes_task_id ON task_notes(task_id);',
-    'CREATE INDEX IF NOT EXISTS idx_task_notes_created_at ON task_notes(created_at);',
-    'CREATE INDEX IF NOT EXISTS idx_task_files_task_id ON task_files(task_id);',
-    'CREATE INDEX IF NOT EXISTS idx_task_files_path ON task_files(file_path);',
-    'CREATE INDEX IF NOT EXISTS idx_task_keywords_task_id ON task_keywords(task_id);',
-    'CREATE INDEX IF NOT EXISTS idx_task_keywords_keyword ON task_keywords(keyword);',
-    'CREATE INDEX IF NOT EXISTS idx_task_git_task_id ON task_git(task_id);',
-    'CREATE INDEX IF NOT EXISTS idx_task_git_commit_hash ON task_git(commit_hash);',
-    'CREATE INDEX IF NOT EXISTS idx_task_audit_task_id ON task_audit(task_id);',
-    'CREATE INDEX IF NOT EXISTS idx_task_audit_created_at ON task_audit(created_at);'
+  'CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);',
+  'CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);',
+  'CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee);',
+  'CREATE INDEX IF NOT EXISTS idx_tasks_category ON tasks(category);',
+  'CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);',
+  'CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks(updated_at);',
+  'CREATE INDEX IF NOT EXISTS idx_task_dependencies_task_id ON task_dependencies(task_id);',
+  'CREATE INDEX IF NOT EXISTS idx_task_dependencies_depends_on ON task_dependencies(depends_on_id);',
+  'CREATE INDEX IF NOT EXISTS idx_task_notes_task_id ON task_notes(task_id);',
+  'CREATE INDEX IF NOT EXISTS idx_task_notes_created_at ON task_notes(created_at);',
+  'CREATE INDEX IF NOT EXISTS idx_task_files_task_id ON task_files(task_id);',
+  'CREATE INDEX IF NOT EXISTS idx_task_files_path ON task_files(file_path);',
+  'CREATE INDEX IF NOT EXISTS idx_task_keywords_task_id ON task_keywords(task_id);',
+  'CREATE INDEX IF NOT EXISTS idx_task_keywords_keyword ON task_keywords(keyword);',
+  'CREATE INDEX IF NOT EXISTS idx_task_git_task_id ON task_git(task_id);',
+  'CREATE INDEX IF NOT EXISTS idx_task_git_commit_hash ON task_git(commit_hash);',
+  'CREATE INDEX IF NOT EXISTS idx_task_audit_task_id ON task_audit(task_id);',
+  'CREATE INDEX IF NOT EXISTS idx_task_audit_created_at ON task_audit(created_at);',
 ];
 
 /**
  * Triggers for automatic timestamp updates
  */
 export const TRIGGERS = [
-    `CREATE TRIGGER IF NOT EXISTS update_tasks_timestamp 
+  `CREATE TRIGGER IF NOT EXISTS update_tasks_timestamp 
      AFTER UPDATE ON tasks 
      BEGIN 
          UPDATE tasks SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
      END;`,
-     
-    `CREATE TRIGGER IF NOT EXISTS update_task_notes_timestamp 
+
+  `CREATE TRIGGER IF NOT EXISTS update_task_notes_timestamp 
      AFTER UPDATE ON task_notes 
      BEGIN 
          UPDATE task_notes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
      END;`,
-    
-    `CREATE TRIGGER IF NOT EXISTS update_project_config_timestamp 
+
+  `CREATE TRIGGER IF NOT EXISTS update_project_config_timestamp 
      AFTER UPDATE ON project_config 
      BEGIN 
          UPDATE project_config SET updated_at = CURRENT_TIMESTAMP WHERE key = NEW.key;
      END;`,
-     
-    `CREATE TRIGGER IF NOT EXISTS update_schema_meta_timestamp 
+
+  `CREATE TRIGGER IF NOT EXISTS update_schema_meta_timestamp 
      AFTER UPDATE ON schema_meta 
      BEGIN 
          UPDATE schema_meta SET updated_at = CURRENT_TIMESTAMP WHERE key = NEW.key;
-     END;`
+     END;`,
 ];
 
 /**
  * Complete table creation array in dependency order
  */
 export const ALL_TABLES = [
-    SCHEMA_META_TABLE,
-    PROJECT_CONFIG_TABLE,
-    TASKS_TABLE,
-    TASK_DEPENDENCIES_TABLE,
-    TASK_NOTES_TABLE,
-    TASK_FILES_TABLE,
-    TASK_KEYWORDS_TABLE,
-    TASK_GIT_TABLE,
-    TASK_AUDIT_TABLE
+  SCHEMA_META_TABLE,
+  PROJECT_CONFIG_TABLE,
+  TASKS_TABLE,
+  TASK_DEPENDENCIES_TABLE,
+  TASK_NOTES_TABLE,
+  TASK_FILES_TABLE,
+  TASK_KEYWORDS_TABLE,
+  TASK_GIT_TABLE,
+  TASK_AUDIT_TABLE,
 ];
 
 /**
  * Default data to insert after schema creation
  */
 export const DEFAULT_DATA = [
-    {
-        table: 'schema_meta',
-        data: [
-            { key: 'version', value: SCHEMA_VERSION },
-            { key: 'created_at', value: new Date().toISOString() },
-            { key: 'last_migration', value: SCHEMA_VERSION }
-        ]
-    },
-    {
-        table: 'project_config',
-        data: [
-            { key: 'default_priority', value: 'medium', config_type: 'setting', description: 'Default priority for new tasks' },
-            { key: 'auto_create_branch', value: 'true', config_type: 'setting', description: 'Automatically create Git branches for tasks' },
-            { key: 'validate_dependencies', value: 'true', config_type: 'setting', description: 'Validate dependencies before starting tasks' },
-            { key: 'timeline_tracking', value: 'true', config_type: 'setting', description: 'Enable detailed timeline tracking' },
-            { key: 'require_estimates', value: 'false', config_type: 'rule', description: 'Require time estimates for new tasks' },
-            { key: 'auto_complete_subtasks', value: 'true', config_type: 'rule', description: 'Auto-complete parent when all subtasks done' }
-        ]
-    }
+  {
+    table: 'schema_meta',
+    data: [
+      { key: 'version', value: SCHEMA_VERSION },
+      { key: 'created_at', value: new Date().toISOString() },
+      { key: 'last_migration', value: SCHEMA_VERSION },
+    ],
+  },
+  {
+    table: 'project_config',
+    data: [
+      {
+        key: 'default_priority',
+        value: 'medium',
+        config_type: 'setting',
+        description: 'Default priority for new tasks',
+      },
+      {
+        key: 'auto_create_branch',
+        value: 'true',
+        config_type: 'setting',
+        description: 'Automatically create Git branches for tasks',
+      },
+      {
+        key: 'validate_dependencies',
+        value: 'true',
+        config_type: 'setting',
+        description: 'Validate dependencies before starting tasks',
+      },
+      {
+        key: 'timeline_tracking',
+        value: 'true',
+        config_type: 'setting',
+        description: 'Enable detailed timeline tracking',
+      },
+      {
+        key: 'require_estimates',
+        value: 'false',
+        config_type: 'rule',
+        description: 'Require time estimates for new tasks',
+      },
+      {
+        key: 'auto_complete_subtasks',
+        value: 'true',
+        config_type: 'rule',
+        description: 'Auto-complete parent when all subtasks done',
+      },
+    ],
+  },
 ];
 
 /**
  * Schema validation queries
  */
 export const VALIDATION_QUERIES = [
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='tasks';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_dependencies';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_notes';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_files';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_keywords';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_git';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_audit';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='schema_meta';",
-    "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='project_config';"
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='tasks';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_dependencies';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_notes';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_files';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_keywords';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_git';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='task_audit';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='schema_meta';",
+  "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='project_config';",
 ];

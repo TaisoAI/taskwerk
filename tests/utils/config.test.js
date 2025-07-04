@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { writeFile, rm } from 'fs/promises';
 import { join } from 'path';
-import { loadConfig } from '../../src/utils/config.js';
+import { loadConfig, resetConfigCache } from '../../src/utils/config.js';
 
 const TEST_CONFIG_FILE = join(process.cwd(), '.test-taskrc.json');
 
@@ -12,39 +12,47 @@ async function cleanupConfig() {
 
 test('loadConfig returns default config when no file exists', async () => {
   await cleanupConfig();
+  resetConfigCache(); // Clear cache before test
 
-  // Temporarily change working directory context
-  const originalCwd = process.cwd;
-  process.cwd = () => '/nonexistent/directory';
+  // Clean up any config files in current directory
+  await rm('.taskwerk.json', { force: true });
+  await rm('.taskwerkrc', { force: true });
+  await rm('.taskwerkrc.json', { force: true });
 
   const config = await loadConfig();
 
-  assert.strictEqual(config.tasksFile, 'tasks/tasks.md');
-  assert.strictEqual(config.completedFile, 'tasks/tasks_completed.md');
-  assert.strictEqual(config.defaultPriority, 'medium');
-  assert.strictEqual(config.autoCommit, false);
-
-  process.cwd = originalCwd;
+  assert.strictEqual(config.databasePath, '.taskwerk.db');
+  assert.strictEqual(config.outputFormat, 'pretty');
+  assert.strictEqual(config.git.autoCommit, false);
+  assert.strictEqual(config.workflow.validateDependencies, true);
 });
 
 test('loadConfig merges user config with defaults', async () => {
   await cleanupConfig();
+  resetConfigCache(); // Clear cache before test
 
   const userConfig = {
-    tasksFile: 'custom/tasks.md',
-    defaultPriority: 'high',
+    version: '3.0.0', // Include required version field
+    databasePath: 'custom/tasks.db',
+    outputFormat: 'json',
     customField: 'custom value',
+    git: {
+      autoCommit: true,
+      branchPrefix: 'feature/',
+    },
   };
 
   // Create the config file that loadConfig actually looks for
-  const testConfigFile = join(process.cwd(), '.taskrc.json');
+  const testConfigFile = join(process.cwd(), '.taskwerk.json');
   await writeFile(testConfigFile, JSON.stringify(userConfig, null, 2));
 
   const config = await loadConfig();
 
-  assert.strictEqual(config.tasksFile, 'custom/tasks.md');
-  assert.strictEqual(config.defaultPriority, 'high');
-  assert.strictEqual(config.completedFile, 'tasks/tasks_completed.md'); // from default
+  assert.strictEqual(config.databasePath, 'custom/tasks.db');
+  assert.strictEqual(config.outputFormat, 'json');
+  assert.strictEqual(config.git.autoCommit, true); // from user config
+  assert.strictEqual(config.git.branchPrefix, 'feature/'); // from user config
+  assert.strictEqual(config.git.commitPrefix, 'task:'); // from default
   assert.strictEqual(config.customField, 'custom value');
 
   // Clean up the config file

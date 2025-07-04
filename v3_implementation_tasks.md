@@ -2,10 +2,10 @@
 
 **Development Workflow Rules:**
 
-1. **Task Branch Creation**: Before starting any task, create a feature branch: `git checkout -b v0.3.0.{task-number}` (e.g., `v0.3.0.1`, `v0.3.0.2`)
+1. **Task Branch Creation**: Before starting any task, create a feature branch: `git checkout -b v0.3.0.{task-number}` (e.g., `v0.3.0.1`, `v0.3.0.2`) and then rev the version number (0.3.1 or similar in package.json)
 2. **Implementation**: Complete the task implementation following the specifications in `/dev/v3-cli-vision-reference.md`
 3. **Testing**: Write comprehensive tests for the implemented functionality (unit tests, integration tests, error cases)
-4. **Validation**: Ensure all tests pass before proceeding
+4. **Validation**: Ensure all tests pass before proceeding, (npm run build, npm run test should return no errors or warnings)
 5. **Commit**: Create detailed commit message describing what was implemented, what files were touched, and any important decisions
 6. **Merge**: Merge feature branch back to `v0.3.0` main branch
 7. **Cleanup**: Delete feature branch after successful merge

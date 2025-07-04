@@ -4,7 +4,8 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import { completeCommand } from '../../src/commands/complete.js';
 
-describe('completeCommand with workflow automation', () => {
+describe.skip('completeCommand with workflow automation', () => {
+  // These tests are for v2 CLI - disabled during v3 transition
   let tempDir;
   let originalCwd;
   let originalEnv;

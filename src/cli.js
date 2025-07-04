@@ -645,7 +645,7 @@ Example:
  */
 function shouldUseV3CLI(args) {
   // Commands that have been converted to v3 framework
-  const v3Commands = ['init', 'add', 'list', 'get', 'import', 'export'];
+  const v3Commands = ['init', 'add', 'list', 'get', 'import', 'export', 'config'];
 
   // Check if first argument is a v3 command
   if (args.length > 0 && v3Commands.includes(args[0])) {

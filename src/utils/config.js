@@ -4,8 +4,8 @@
  * Handles loading, validation, and management of TaskWerk configuration
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
 import { homedir } from 'os';
 
 /**
@@ -110,7 +110,7 @@ function loadConfigFile(path) {
 /**
  * Save configuration to file
  */
-export function saveConfig(config, path = null) {
+export async function saveConfig(config, path = null) {
   const configPath = path || config._configPath || CONFIG_LOCATIONS[0];
 
   // Remove internal properties
@@ -118,6 +118,12 @@ export function saveConfig(config, path = null) {
   delete configToSave._configPath;
 
   try {
+    // Ensure directory exists
+    const dir = dirname(configPath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+
     writeFileSync(configPath, JSON.stringify(configToSave, null, 2));
 
     // Update cache
@@ -257,6 +263,32 @@ export function createDefaultConfig(path = CONFIG_LOCATIONS[0]) {
   }
 }
 
+/**
+ * Get the path where configuration will be saved
+ */
+export function getConfigPath() {
+  if (configCache && configCache._configPath) {
+    return configCache._configPath;
+  }
+
+  // Check standard locations
+  for (const location of CONFIG_LOCATIONS) {
+    if (existsSync(location)) {
+      return location;
+    }
+  }
+
+  // Return default location
+  return CONFIG_LOCATIONS[0];
+}
+
+/**
+ * Get default configuration
+ */
+export function getDefaultConfig() {
+  return { ...DEFAULT_CONFIG };
+}
+
 export default {
   loadConfig,
   saveConfig,
@@ -264,6 +296,8 @@ export default {
   setConfigValue,
   resetConfigCache,
   getConfigPaths,
+  getConfigPath,
+  getDefaultConfig,
   createDefaultConfig,
   DEFAULT_CONFIG,
 };

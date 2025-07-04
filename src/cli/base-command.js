@@ -5,10 +5,10 @@
  * validation, error handling, and output formatting.
  */
 
+import { TaskWerkAPI, ValidationError, APIError } from '../api/index.js';
 import { TaskAPI } from '../api/task-api.js';
 import { RelationshipAPI } from '../api/relationship-api.js';
 import { NotesAPI } from '../api/notes-api.js';
-import { ValidationError, APIError } from '../api/base-api.js';
 // import { formatTask, formatTaskList } from '../utils/formatting.js';
 import { loadConfig } from '../utils/config.js';
 import chalk from 'chalk';
@@ -169,16 +169,22 @@ export class BaseCommand {
     // Load configuration
     this.config = await loadConfig();
 
-    // Initialize APIs
+    // Initialize main API
     const dbPath = this.config.databasePath || '.taskwerk.db';
+    this.mainApi = new TaskWerkAPI(dbPath);
+    await this.mainApi.initialize();
+
+    // Initialize individual APIs
     this.apis = {
       task: new TaskAPI(dbPath),
       relationship: new RelationshipAPI(dbPath),
       notes: new NotesAPI(dbPath),
     };
 
-    // Initialize database if needed
+    // Initialize individual APIs
     await this.apis.task.initialize();
+    await this.apis.relationship.initialize();
+    await this.apis.notes.initialize();
   }
 
   /**
@@ -216,6 +222,11 @@ export class BaseCommand {
       // Clean up
       if (this.apis) {
         this.apis.task.close();
+        this.apis.relationship.close();
+        this.apis.notes.close();
+      }
+      if (this.mainApi) {
+        this.mainApi.close();
       }
     }
   }

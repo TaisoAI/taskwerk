@@ -1,5 +1,17 @@
 #!/usr/bin/env node
 
+/**
+ * TaskWerk CLI Entry Point (Transitional)
+ *
+ * This file provides backward compatibility while transitioning to the new v3 CLI framework.
+ * It detects which CLI mode to use based on command and environment.
+ */
+
+import { registry } from './cli/command-registry.js';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Legacy CLI imports (for backward compatibility)
 import { Command } from 'commander';
 import { addCommand } from './commands/add.js';
 import { listCommand } from './commands/list.js';
@@ -22,6 +34,8 @@ import { askCommand } from './commands/ask.js';
 import { agentCommand } from './commands/agent.js';
 import { llmConfigCommand } from './commands/llmconfig.js';
 import { aboutCommand } from './commands/about.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const program = new Command();
 
@@ -626,5 +640,110 @@ Example:
   )
   .action(aboutCommand);
 
-// Parse command line arguments
-program.parse();
+/**
+ * Determine if we should use the new v3 CLI framework
+ */
+function shouldUseV3CLI(args) {
+  // Commands that have been converted to v3 framework
+  const v3Commands = ['init'];
+
+  // Check if first argument is a v3 command
+  if (args.length > 0 && v3Commands.includes(args[0])) {
+    return true;
+  }
+
+  // Check environment variable for forcing v3 mode
+  if (process.env.TASKWERK_CLI_V3 === 'true') {
+    return true;
+  }
+
+  // Default to legacy CLI for now
+  return false;
+}
+
+/**
+ * Configure global options for v3 CLI
+ */
+function configureV3GlobalOptions() {
+  registry
+    .globalOption('-h, --help', 'Show help information')
+    .globalOption('-v, --version', 'Show version information')
+    .globalOption('-f, --format <format>', 'Output format (pretty, plain, json)', 'pretty')
+    .globalOption('-q, --quiet', 'Suppress non-essential output')
+    .globalOption('--verbose', 'Show detailed output')
+    .globalOption('--debug', 'Show debug information')
+    .globalOption('--no-color', 'Disable colored output')
+    .globalOption('--config <path>', 'Path to configuration file');
+}
+
+/**
+ * Run the v3 CLI framework
+ */
+async function runV3CLI(args) {
+  try {
+    // Configure global options
+    configureV3GlobalOptions();
+
+    // Load all commands from the commands directory
+    const commandsDir = join(__dirname, 'commands');
+    await registry.loadCommandsFromDirectory(commandsDir);
+
+    // Handle no-color option early
+    if (args.includes('--no-color')) {
+      process.env.FORCE_COLOR = '0';
+    }
+
+    // Execute the command
+    const exitCode = await registry.execute(args);
+    process.exit(exitCode);
+  } catch (error) {
+    console.error('Fatal error:', error.message);
+    if (process.env.DEBUG || args.includes('--debug')) {
+      console.error(error.stack);
+    }
+    process.exit(1);
+  }
+}
+
+/**
+ * Run the legacy CLI
+ */
+function runLegacyCLI() {
+  program.parse();
+}
+
+/**
+ * Main CLI entry point
+ */
+async function main() {
+  const args = process.argv.slice(2);
+
+  if (shouldUseV3CLI(args)) {
+    await runV3CLI(args);
+  } else {
+    runLegacyCLI();
+  }
+}
+
+// Handle uncaught errors
+process.on('uncaughtException', error => {
+  console.error('Uncaught exception:', error.message);
+  if (process.env.DEBUG) {
+    console.error(error.stack);
+  }
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled promise rejection:', reason);
+  if (process.env.DEBUG) {
+    console.error('Promise:', promise);
+  }
+  process.exit(1);
+});
+
+// Run the CLI
+main().catch(error => {
+  console.error('CLI initialization failed:', error.message);
+  process.exit(1);
+});

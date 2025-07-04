@@ -38,6 +38,8 @@ import { aboutCommand } from './commands/about.js';
 import { resumeCommand } from './commands/resume.js';
 import { blockCommand } from './commands/block.js';
 import { unblockCommand } from './commands/unblock.js';
+import { readyCommand } from './commands/ready.js';
+import { treeCommand } from './commands/tree.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -411,6 +413,72 @@ program
     $ git add . && taskwerk commit --auto`
   )
   .action(branchCommand);
+
+// Dependency commands
+program
+  .command('ready')
+  .description('Show tasks ready to start (no blockers)')
+  .option('-c, --category <category>', 'Filter by category')
+  .option('-a, --assignee <assignee>', 'Filter by assignee')
+  .option('-n, --limit <number>', 'Limit number of results', '10')
+  .option('--all', 'Show all ready tasks (no limit)')
+  .option('--score', 'Show priority scores')
+  .option('--json', 'Output in JSON format')
+  .addHelpText(
+    'after',
+    `
+
+Shows tasks that have no unresolved dependencies and are ready to begin.
+Tasks are sorted by priority score, which considers:
+  - Task priority (high, medium, low)
+  - Age of the task (older tasks score higher)
+  - Number of dependent tasks
+  - Due dates and milestones
+
+Examples:
+  $ taskwerk ready                      # Show top 10 ready tasks
+  $ taskwerk ready --all                # Show all ready tasks
+  $ taskwerk ready -c bugs              # Show ready bug tasks
+  $ taskwerk ready -a john              # Show ready tasks assigned to john
+  $ taskwerk ready --score              # Show with priority scores
+  $ taskwerk ready --json               # Output as JSON for scripts`
+  )
+  .action(readyCommand);
+
+program
+  .command('tree')
+  .description('Display task dependency tree')
+  .argument('[taskId]', 'Task ID to show tree for (e.g., TASK-001)')
+  .option('-d, --depth <number>', 'Maximum tree depth', '5')
+  .option('--dependencies', 'Show dependencies (default)', true)
+  .option('--dependents', 'Show dependent tasks')
+  .option('--subtasks', 'Include subtasks in tree')
+  .option('--all', 'Show all relationships')
+  .option('--critical-path', 'Highlight critical path')
+  .option('--json', 'Output in JSON format')
+  .option('--ascii', 'Use ASCII characters only')
+  .addHelpText(
+    'after',
+    `
+
+Visualizes task dependencies as a tree structure.
+Without a task ID, shows a forest view of all root tasks.
+
+The tree shows:
+  - Task status with icons (○ todo, ● in-progress, ✓ completed, etc.)
+  - Task metadata (priority, assignee, estimates)
+  - Dependency relationships
+
+Examples:
+  $ taskwerk tree                       # Show forest of all root tasks
+  $ taskwerk tree TASK-001              # Show dependency tree for TASK-001
+  $ taskwerk tree TASK-001 --all        # Show all relationships
+  $ taskwerk tree TASK-001 --dependents # Show tasks that depend on this
+  $ taskwerk tree TASK-001 --critical-path # Highlight critical path
+  $ taskwerk tree --depth 10            # Show deeper tree
+  $ taskwerk tree --json                # Output as JSON for processing`
+  )
+  .action(treeCommand);
 
 // Search and statistics commands
 program

@@ -84,7 +84,7 @@ export class InitCommand extends BaseCommand {
       }
 
       // Show database info
-      const stats = await initializer.getDatabaseStats();
+      const stats = initializer.getStats();
       this.info(`Database version: ${stats.version}`);
       this.info(
         `Tables created: ${stats.tables.tasks !== undefined ? Object.keys(stats.tables).length : 0}`

@@ -68,7 +68,7 @@ export class CompleteCommand extends BaseCommand {
 
       // Prepare completion details
       const completionDetails = {};
-      
+
       if (options.level !== 'basic') {
         // Collect file changes
         if (options.files) {
@@ -105,7 +105,7 @@ export class CompleteCommand extends BaseCommand {
       console.log(chalk.bold('Completion Details:'));
       console.log(`  Status: ${chalk.green('✓ completed')}`);
       console.log(`  Completed: ${chalk.gray(new Date().toLocaleString())}`);
-      
+
       if (options.note) {
         console.log(`  Note: ${chalk.gray(options.note)}`);
       }
@@ -121,10 +121,14 @@ export class CompleteCommand extends BaseCommand {
           console.log(`  Actual: ${chalk.cyan(completedTask.actual_hours + ' hours')}`);
           if (completedTask.estimated) {
             const variance = Math.round(
-              ((completedTask.actual_hours - completedTask.estimated) / completedTask.estimated) * 100
+              ((completedTask.actual_hours - completedTask.estimated) / completedTask.estimated) *
+                100
             );
-            const varianceColor = variance > 20 ? chalk.red : variance < -20 ? chalk.green : chalk.yellow;
-            console.log(`  Variance: ${varianceColor((variance >= 0 ? '+' : '') + variance + '%')}`);
+            const varianceColor =
+              variance > 20 ? chalk.red : variance < -20 ? chalk.green : chalk.yellow;
+            console.log(
+              `  Variance: ${varianceColor((variance >= 0 ? '+' : '') + variance + '%')}`
+            );
           }
         }
       }
@@ -142,7 +146,7 @@ export class CompleteCommand extends BaseCommand {
       if (this.shouldAutomate(options)) {
         console.log();
         console.log(chalk.bold('Workflow Automation:'));
-        
+
         if (options.versionImpact && options.versionImpact !== 'none') {
           await this.bumpVersion(options.versionImpact);
         }
@@ -159,7 +163,7 @@ export class CompleteCommand extends BaseCommand {
       // Show next steps
       console.log();
       console.log(chalk.bold('Next steps:'));
-      
+
       const hasChanges = await this.hasUncommittedChanges();
       if (hasChanges) {
         console.log(`  - Run ${chalk.cyan('taskwerk stage')} to review changes`);
@@ -179,7 +183,7 @@ export class CompleteCommand extends BaseCommand {
    * Create custom validation function for completion
    */
   createCustomValidation() {
-    return async (task) => {
+    return async task => {
       const errors = [];
 
       // Check if task has been in progress
@@ -247,7 +251,7 @@ export class CompleteCommand extends BaseCommand {
       const newVersion = this.incrementVersion(currentVersion, impact);
 
       pkg.version = newVersion;
-      
+
       const { writeFileSync } = await import('fs');
       writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + '\n');
 
@@ -262,7 +266,7 @@ export class CompleteCommand extends BaseCommand {
    */
   incrementVersion(version, impact) {
     const parts = version.split('.').map(n => parseInt(n, 10));
-    
+
     switch (impact) {
       case 'major':
         return `${parts[0] + 1}.0.0`;
@@ -300,16 +304,21 @@ export class CompleteCommand extends BaseCommand {
   async createCommit(task, details) {
     try {
       const gitManager = new GitManager();
-      
+
       // Generate commit message
       const type = this.getCommitType(task.category);
       const scope = task.scope || '';
       const message = task.name;
-      
+
       let commitMessage = `${type}${scope ? `(${scope})` : ''}: ${message}`;
-      
+
       if (task.notes && task.notes.length > 0) {
         commitMessage += '\n\n' + task.notes.map(n => `- ${n.content}`).join('\n');
+      }
+
+      // Add file changes if available
+      if (details.files && details.files.length > 0) {
+        commitMessage += '\n\nFiles changed:\n' + details.files.map(f => `- ${f}`).join('\n');
       }
 
       commitMessage += `\n\nCompleted: ${task.string_id}`;

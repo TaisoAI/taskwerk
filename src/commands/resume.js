@@ -72,7 +72,7 @@ export class ResumeCommand extends BaseCommand {
       if (task.assignee) {
         console.log(`  Assignee: ${chalk.cyan('@' + task.assignee)}`);
       }
-      
+
       // Show progress info
       if (task.estimated || task.progress) {
         console.log();
@@ -84,8 +84,12 @@ export class ResumeCommand extends BaseCommand {
           console.log(`  Estimated: ${chalk.magenta(task.estimated + ' hours')}`);
         }
         if (task.actual_hours) {
-          const variance = Math.round(((task.actual_hours - task.estimated) / task.estimated) * 100);
-          console.log(`  Actual: ${chalk.magenta(task.actual_hours + ' hours')} (${variance >= 0 ? '+' : ''}${variance}%)`);
+          const variance = Math.round(
+            ((task.actual_hours - task.estimated) / task.estimated) * 100
+          );
+          console.log(
+            `  Actual: ${chalk.magenta(task.actual_hours + ' hours')} (${variance >= 0 ? '+' : ''}${variance}%)`
+          );
         }
       }
 
@@ -105,9 +109,7 @@ export class ResumeCommand extends BaseCommand {
       console.log(chalk.bold('Next steps:'));
       console.log(`  - Continue working on the task`);
       console.log(`  - Run ${chalk.cyan('taskwerk pause ' + task.string_id)} to pause again`);
-      console.log(
-        `  - Run ${chalk.cyan('taskwerk complete ' + task.string_id)} when done`
-      );
+      console.log(`  - Run ${chalk.cyan('taskwerk complete ' + task.string_id)} when done`);
 
       return task;
     } finally {
@@ -121,7 +123,7 @@ export class ResumeCommand extends BaseCommand {
   async switchToGitBranch(task) {
     try {
       const branchName = this.generateBranchName(task);
-      
+
       // Check if we're in a git repo
       const { spawn } = await import('child_process');
       const { promisify } = await import('util');
@@ -154,7 +156,7 @@ export class ResumeCommand extends BaseCommand {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       .substring(0, 50);
-    
+
     return `${prefix}${id}-${name}`;
   }
 

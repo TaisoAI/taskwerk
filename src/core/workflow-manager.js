@@ -127,9 +127,7 @@ export class WorkflowManager extends EventEmitter {
 
     // Validate transition
     if (!this.canTransition(task.status, WorkflowStates.IN_PROGRESS)) {
-      throw new Error(
-        `Cannot start task in ${task.status} state. Task must be in 'todo' state.`
-      );
+      throw new Error(`Cannot start task in ${task.status} state. Task must be in 'todo' state.`);
     }
 
     // Check dependencies
@@ -137,9 +135,7 @@ export class WorkflowManager extends EventEmitter {
       const blockers = await this.checkBlockingDependencies(task.id);
       if (blockers.length > 0) {
         throw new Error(
-          `Task has unresolved dependencies: ${blockers
-            .map(b => b.string_id)
-            .join(', ')}`
+          `Task has unresolved dependencies: ${blockers.map(b => b.string_id).join(', ')}`
         );
       }
     }
@@ -288,9 +284,7 @@ export class WorkflowManager extends EventEmitter {
 
     // Validate transition
     if (!this.canTransition(task.status, WorkflowStates.COMPLETED)) {
-      throw new Error(
-        `Cannot complete task in ${task.status} state. Task must be in progress.`
-      );
+      throw new Error(`Cannot complete task in ${task.status} state. Task must be in progress.`);
     }
 
     // Validate completion requirements
@@ -401,9 +395,7 @@ export class WorkflowManager extends EventEmitter {
     }
 
     // Determine target status
-    const targetStatus = options.resume
-      ? WorkflowStates.IN_PROGRESS
-      : WorkflowStates.TODO;
+    const targetStatus = options.resume ? WorkflowStates.IN_PROGRESS : WorkflowStates.TODO;
 
     // Update task
     const updatedTask = await this.taskApi.updateTask(task.id, {

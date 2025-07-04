@@ -46,7 +46,8 @@ export class BlockCommand extends BaseCommand {
 
     if (!options.reason && !options.blockedBy && !options.dependency && !options.external) {
       throw new TaskWerkError('MISSING_REQUIRED_ARG', {
-        message: 'You must provide a reason for blocking the task (use --reason, --blocked-by, --dependency, or --external)',
+        message:
+          'You must provide a reason for blocking the task (use --reason, --blocked-by, --dependency, or --external)',
         argument: 'reason',
       });
     }
@@ -83,7 +84,7 @@ export class BlockCommand extends BaseCommand {
       console.log(`  Status: ${chalk.red('⛔ blocked')}`);
       console.log(`  Reason: ${chalk.gray(blockReason)}`);
       console.log(`  Blocked at: ${chalk.gray(new Date().toLocaleString())}`);
-      
+
       if (options.blockedBy) {
         console.log(`  Blocked by: ${chalk.cyan(options.blockedBy)}`);
       }
@@ -107,13 +108,9 @@ export class BlockCommand extends BaseCommand {
       if (dependents.tasks && dependents.tasks.length > 0) {
         console.log();
         console.log(chalk.bold('Impact:'));
-        console.log(
-          chalk.yellow(`  ⚠  This blocks ${dependents.total} dependent task(s):`)
-        );
+        console.log(chalk.yellow(`  ⚠  This blocks ${dependents.total} dependent task(s):`));
         dependents.tasks.forEach(dep => {
-          console.log(
-            `    - ${dep.string_id}: ${dep.name} (${dep.status})`
-          );
+          console.log(`    - ${dep.string_id}: ${dep.name} (${dep.status})`);
         });
         if (dependents.total > 5) {
           console.log(`    ... and ${dependents.total - 5} more`);
@@ -123,20 +120,14 @@ export class BlockCommand extends BaseCommand {
       // Show next steps
       console.log();
       console.log(chalk.bold('Next steps:'));
-      console.log(
-        `  - Resolve the blocking issue: ${chalk.gray(blockReason)}`
-      );
+      console.log(`  - Resolve the blocking issue: ${chalk.gray(blockReason)}`);
       if (options.blockedBy) {
         console.log(
           `  - Complete blocking task: ${chalk.cyan('taskwerk complete ' + options.blockedBy)}`
         );
       }
-      console.log(
-        `  - Run ${chalk.cyan('taskwerk unblock ' + task.string_id)} when resolved`
-      );
-      console.log(
-        `  - Run ${chalk.cyan('taskwerk status')} to see all blocked tasks`
-      );
+      console.log(`  - Run ${chalk.cyan('taskwerk unblock ' + task.string_id)} when resolved`);
+      console.log(`  - Run ${chalk.cyan('taskwerk status')} to see all blocked tasks`);
 
       return task;
     } finally {

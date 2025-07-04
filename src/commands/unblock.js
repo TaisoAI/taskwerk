@@ -73,7 +73,7 @@ export class UnblockCommand extends BaseCommand {
             `Warning: Blocking task ${blockingTask.string_id} is not completed (status: ${blockingTask.status})`
           );
           console.log('Use --force to unblock anyway');
-          
+
           if (!options.force) {
             throw new TaskWerkError('BLOCKING_TASK_NOT_RESOLVED', {
               message: `Blocking task ${blockingTask.string_id} must be completed first`,
@@ -98,9 +98,11 @@ export class UnblockCommand extends BaseCommand {
       console.log();
       console.log(chalk.bold('Unblock Details:'));
       console.log(`  Previous: ${chalk.red('⛔ blocked')}`);
-      console.log(`  Current: ${task.status === 'in_progress' ? chalk.blue('● in_progress') : chalk.gray('○ todo')}`);
+      console.log(
+        `  Current: ${task.status === 'in_progress' ? chalk.blue('● in_progress') : chalk.gray('○ todo')}`
+      );
       console.log(`  Unblocked at: ${chalk.gray(new Date().toLocaleString())}`);
-      
+
       if (options.reason) {
         console.log(`  Reason: ${chalk.gray(options.reason)}`);
       }
@@ -122,9 +124,7 @@ export class UnblockCommand extends BaseCommand {
       if (dependents.tasks && dependents.tasks.length > 0) {
         console.log();
         console.log(chalk.bold('Unblocked Dependencies:'));
-        console.log(
-          chalk.green(`  ✓ ${dependents.total} dependent task(s) can now proceed:`)
-        );
+        console.log(chalk.green(`  ✓ ${dependents.total} dependent task(s) can now proceed:`));
         dependents.tasks.forEach(dep => {
           console.log(`    - ${dep.string_id}: ${dep.name}`);
         });
@@ -136,17 +136,13 @@ export class UnblockCommand extends BaseCommand {
       // Show next steps
       console.log();
       console.log(chalk.bold('Next steps:'));
-      
+
       if (options.resume) {
         console.log(`  - Continue working on the task`);
         console.log(`  - Run ${chalk.cyan('taskwerk pause ' + task.string_id)} to pause`);
-        console.log(
-          `  - Run ${chalk.cyan('taskwerk complete ' + task.string_id)} when done`
-        );
+        console.log(`  - Run ${chalk.cyan('taskwerk complete ' + task.string_id)} when done`);
       } else {
-        console.log(
-          `  - Run ${chalk.cyan('taskwerk start ' + task.string_id)} to begin work`
-        );
+        console.log(`  - Run ${chalk.cyan('taskwerk start ' + task.string_id)} to begin work`);
         console.log(`  - Run ${chalk.cyan('taskwerk list')} to see all tasks`);
       }
 

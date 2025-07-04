@@ -25,8 +25,10 @@ export class PauseCommand extends BaseCommand {
     this.argument('taskId', 'Task ID to pause (e.g., TASK-001)');
 
     // Define options
-    this.option('-r, --reason <reason>', 'Reason for pausing the task')
-      .option('--time', 'Show time spent on task');
+    this.option('-r, --reason <reason>', 'Reason for pausing the task').option(
+      '--time',
+      'Show time spent on task'
+    );
   }
 
   /**
@@ -73,7 +75,7 @@ export class PauseCommand extends BaseCommand {
         console.log(chalk.bold('Session Summary:'));
         console.log(`  Time spent: ${chalk.cyan(this.formatTime(timeSpent))}`);
         if (task.estimated) {
-          const percentComplete = Math.round((task.progress || 0));
+          const percentComplete = Math.round(task.progress || 0);
           console.log(`  Progress: ${chalk.cyan(percentComplete + '%')}`);
         }
       }
@@ -81,12 +83,8 @@ export class PauseCommand extends BaseCommand {
       // Show next steps
       console.log();
       console.log(chalk.bold('Next steps:'));
-      console.log(
-        `  - Run ${chalk.cyan('taskwerk resume ' + task.string_id)} to continue`
-      );
-      console.log(
-        `  - Run ${chalk.cyan('taskwerk start [other-task]')} to work on another task`
-      );
+      console.log(`  - Run ${chalk.cyan('taskwerk resume ' + task.string_id)} to continue`);
+      console.log(`  - Run ${chalk.cyan('taskwerk start [other-task]')} to work on another task`);
 
       return task;
     } finally {

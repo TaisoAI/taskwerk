@@ -90,9 +90,7 @@ export class StartCommand extends BaseCommand {
         console.log();
         console.log(chalk.yellow('⚠  Warning: Task has incomplete dependencies:'));
         blockers.forEach(blocker => {
-          console.log(
-            `    - ${blocker.string_id}: ${blocker.name} (${blocker.status})`
-          );
+          console.log(`    - ${blocker.string_id}: ${blocker.name} (${blocker.status})`);
         });
       }
 
@@ -101,9 +99,7 @@ export class StartCommand extends BaseCommand {
       console.log(chalk.bold('Next steps:'));
       console.log(`  - Work on the task`);
       console.log(`  - Run ${chalk.cyan('taskwerk pause ' + task.string_id)} to pause`);
-      console.log(
-        `  - Run ${chalk.cyan('taskwerk complete ' + task.string_id)} when done`
-      );
+      console.log(`  - Run ${chalk.cyan('taskwerk complete ' + task.string_id)} when done`);
 
       return task;
     } catch (error) {
@@ -126,7 +122,7 @@ export class StartCommand extends BaseCommand {
   async createGitBranch(task) {
     try {
       const branchName = this.generateBranchName(task);
-      
+
       // Check if we're in a git repo
       const { spawn } = await import('child_process');
       const { promisify } = await import('util');
@@ -134,7 +130,7 @@ export class StartCommand extends BaseCommand {
 
       // Create and checkout branch
       await exec('git', ['checkout', '-b', branchName]);
-      
+
       this.success(`Created Git branch: ${branchName}`);
     } catch (error) {
       this.warn(`Failed to create Git branch: ${error.message}`);
@@ -152,7 +148,7 @@ export class StartCommand extends BaseCommand {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       .substring(0, 50);
-    
+
     return `${prefix}${id}-${name}`;
   }
 

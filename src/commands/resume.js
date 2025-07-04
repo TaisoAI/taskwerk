@@ -1,7 +1,7 @@
 /**
- * TaskWerk v3 Start Command
+ * TaskWerk v3 Resume Command
  *
- * Start working on a task with workflow validation
+ * Resume work on a paused task
  */
 
 import { BaseCommand } from '../cli/base-command.js';
@@ -12,27 +12,26 @@ import { loadConfig } from '../utils/config.js';
 import chalk from 'chalk';
 
 /**
- * Start command implementation for v3
+ * Resume command implementation for v3
  */
-export class StartCommand extends BaseCommand {
+export class ResumeCommand extends BaseCommand {
   constructor() {
-    super('start', 'Start working on a task');
+    super('resume', 'Resume work on a paused task');
 
     // Set category
     this.category = 'Workflow';
 
     // Define arguments
-    this.argument('taskId', 'Task ID to start (e.g., TASK-001)');
+    this.argument('taskId', 'Task ID to resume (e.g., TASK-001)');
 
     // Define options
-    this.option('-f, --force', 'Force start even if another task is in progress')
-      .option('--no-validate', 'Skip dependency validation')
-      .option('-r, --reason <reason>', 'Reason for starting this task')
-      .option('--git', 'Create a Git branch for this task');
+    this.option('-f, --force', 'Force resume even if another task is in progress')
+      .option('-r, --reason <reason>', 'Reason for resuming the task')
+      .option('--git', 'Create/switch to Git branch for this task');
   }
 
   /**
-   * Execute start command
+   * Execute resume command
    */
   async execute(args, options) {
     const taskId = args[0];
@@ -49,20 +48,19 @@ export class StartCommand extends BaseCommand {
     await workflow.initialize();
 
     try {
-      // Start the task
-      const task = await workflow.startTask(taskId, {
+      // Resume the task
+      const task = await workflow.resumeTask(taskId, {
         force: options.force,
         reason: options.reason,
-        validateDependencies: options.validate !== false,
       });
 
-      // Create Git branch if requested
+      // Create/switch Git branch if requested
       if (options.git) {
-        await this.createGitBranch(task);
+        await this.switchToGitBranch(task);
       }
 
       // Display success message
-      this.success(`Started working on: ${task.string_id} - ${task.name}`);
+      this.success(`Resumed task: ${task.string_id} - ${task.name}`);
 
       // Show task details
       console.log();
@@ -74,56 +72,53 @@ export class StartCommand extends BaseCommand {
       if (task.assignee) {
         console.log(`  Assignee: ${chalk.cyan('@' + task.assignee)}`);
       }
-      if (task.estimated) {
-        console.log(`  Estimate: ${chalk.magenta(task.estimated + ' hours')}`);
+      
+      // Show progress info
+      if (task.estimated || task.progress) {
+        console.log();
+        console.log(chalk.bold('Progress:'));
+        if (task.progress) {
+          console.log(`  Completion: ${chalk.cyan(task.progress + '%')}`);
+        }
+        if (task.estimated) {
+          console.log(`  Estimated: ${chalk.magenta(task.estimated + ' hours')}`);
+        }
+        if (task.actual_hours) {
+          const variance = Math.round(((task.actual_hours - task.estimated) / task.estimated) * 100);
+          console.log(`  Actual: ${chalk.magenta(task.actual_hours + ' hours')} (${variance >= 0 ? '+' : ''}${variance}%)`);
+        }
       }
 
       // Show workflow info
       console.log();
       console.log(chalk.bold('Workflow:'));
       console.log(`  Status: ${chalk.blue('● in_progress')}`);
-      console.log(`  Started: ${chalk.gray(new Date().toLocaleString())}`);
-
-      // Check for dependencies
-      const blockers = await workflow.checkBlockingDependencies(task.id);
-      if (blockers.length > 0 && options.validate === false) {
-        console.log();
-        console.log(chalk.yellow('⚠  Warning: Task has incomplete dependencies:'));
-        blockers.forEach(blocker => {
-          console.log(
-            `    - ${blocker.string_id}: ${blocker.name} (${blocker.status})`
-          );
-        });
+      console.log(`  Resumed: ${chalk.gray(new Date().toLocaleString())}`);
+      if (task.paused_at) {
+        const pausedDate = new Date(task.paused_at);
+        const pauseDuration = Math.round((new Date() - pausedDate) / 60000);
+        console.log(`  Paused for: ${chalk.gray(this.formatTime(pauseDuration))}`);
       }
 
       // Show next steps
       console.log();
       console.log(chalk.bold('Next steps:'));
-      console.log(`  - Work on the task`);
-      console.log(`  - Run ${chalk.cyan('taskwerk pause ' + task.string_id)} to pause`);
+      console.log(`  - Continue working on the task`);
+      console.log(`  - Run ${chalk.cyan('taskwerk pause ' + task.string_id)} to pause again`);
       console.log(
         `  - Run ${chalk.cyan('taskwerk complete ' + task.string_id)} when done`
       );
 
       return task;
-    } catch (error) {
-      // Enhance error messages
-      if (error.message.includes('already in progress')) {
-        const stats = await workflow.getWorkflowStats();
-        if (stats.activeTask) {
-          error.suggestion = `Complete or pause ${stats.activeTask.string_id} first, or use --force to switch tasks`;
-        }
-      }
-      throw error;
     } finally {
       workflow.close();
     }
   }
 
   /**
-   * Create a Git branch for the task
+   * Switch to Git branch for the task
    */
-  async createGitBranch(task) {
+  async switchToGitBranch(task) {
     try {
       const branchName = this.generateBranchName(task);
       
@@ -132,12 +127,19 @@ export class StartCommand extends BaseCommand {
       const { promisify } = await import('util');
       const exec = promisify(spawn);
 
-      // Create and checkout branch
-      await exec('git', ['checkout', '-b', branchName]);
-      
-      this.success(`Created Git branch: ${branchName}`);
+      // Check if branch exists
+      try {
+        await exec('git', ['rev-parse', '--verify', branchName]);
+        // Branch exists, just checkout
+        await exec('git', ['checkout', branchName]);
+        this.success(`Switched to existing branch: ${branchName}`);
+      } catch {
+        // Branch doesn't exist, create it
+        await exec('git', ['checkout', '-b', branchName]);
+        this.success(`Created and switched to branch: ${branchName}`);
+      }
     } catch (error) {
-      this.warn(`Failed to create Git branch: ${error.message}`);
+      this.warn(`Failed to manage Git branch: ${error.message}`);
     }
   }
 
@@ -171,27 +173,35 @@ export class StartCommand extends BaseCommand {
         return chalk.white;
     }
   }
+
+  /**
+   * Format time in minutes to human-readable string
+   */
+  formatTime(minutes) {
+    if (minutes < 60) {
+      return `${minutes} minutes`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  }
 }
 
 // Export as default for auto-discovery
-export default StartCommand;
+export default ResumeCommand;
 
 // Export legacy function for v2 CLI compatibility
-export async function startCommand(taskId) {
+export async function resumeCommand(taskId) {
   try {
     const config = await loadConfig();
     const taskManager = new TaskManager(config);
 
+    // In v2, resume is essentially the same as start
     const task = await taskManager.startTask(taskId);
 
-    console.log(`🚀 Started task: ${task.id} - ${task.description}`);
-
-    const session = await taskManager.getCurrentSession();
-    if (session.branch) {
-      console.log(`📝 Session: ${session.agent || 'Unknown'} on ${session.branch}`);
-    }
+    console.log(`▶️  Resumed task: ${task.id} - ${task.description}`);
   } catch (error) {
-    console.error('❌ Failed to start task:', error.message);
+    console.error('❌ Failed to resume task:', error.message);
     process.exit(1);
   }
 }

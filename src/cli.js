@@ -35,6 +35,9 @@ import { askCommand } from './commands/ask.js';
 import { agentCommand } from './commands/agent.js';
 import { llmConfigCommand } from './commands/llmconfig.js';
 import { aboutCommand } from './commands/about.js';
+import { resumeCommand } from './commands/resume.js';
+import { blockCommand } from './commands/block.js';
+import { unblockCommand } from './commands/unblock.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -211,6 +214,66 @@ Examples:
   $ taskwerk pause TASK-001    # Pause current work on TASK-001`
   )
   .action(pauseCommand);
+
+program
+  .command('resume')
+  .description('Resume work on a paused task')
+  .argument('<taskId>', 'Task ID (e.g., TASK-001)')
+  .option('-f, --force', 'Force resume even if another task is in progress')
+  .option('-r, --reason <reason>', 'Reason for resuming the task')
+  .addHelpText(
+    'after',
+    `
+
+Resumes a paused task and sets it back to in-progress status.
+Only one task can be active at a time unless --force is used.
+
+Examples:
+  $ taskwerk resume TASK-001           # Resume work on TASK-001
+  $ taskwerk resume TASK-001 --force   # Force resume, pausing any active task`
+  )
+  .action(resumeCommand);
+
+program
+  .command('block')
+  .description('Block a task with a reason')
+  .argument('<taskId>', 'Task ID (e.g., TASK-001)')
+  .option('-r, --reason <reason>', 'Reason for blocking the task')
+  .option('-b, --blocked-by <taskId>', 'Task ID that is blocking this one')
+  .addHelpText(
+    'after',
+    `
+
+Marks a task as blocked when it cannot proceed due to dependencies,
+external factors, or other blockers. Blocked tasks cannot be started
+until they are unblocked.
+
+Examples:
+  $ taskwerk block TASK-001 --reason "Waiting for API access"
+  $ taskwerk block TASK-001 --blocked-by TASK-042
+  $ taskwerk block TASK-001 -r "Client approval needed"`
+  )
+  .action(blockCommand);
+
+program
+  .command('unblock')
+  .description('Unblock a previously blocked task')
+  .argument('<taskId>', 'Task ID (e.g., TASK-001)')
+  .option('-r, --reason <reason>', 'Reason for unblocking the task')
+  .option('--resume', 'Resume work on the task immediately after unblocking')
+  .addHelpText(
+    'after',
+    `
+
+Removes the blocked status from a task, allowing it to be worked on again.
+By default, the task returns to todo status unless --resume is used.
+
+Examples:
+  $ taskwerk unblock TASK-001                    # Unblock and return to todo
+  $ taskwerk unblock TASK-001 --resume           # Unblock and start working
+  $ taskwerk unblock TASK-001 -r "API access granted"`
+  )
+  .action(unblockCommand);
 
 program
   .command('archive')

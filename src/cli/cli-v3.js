@@ -54,7 +54,7 @@ async function main() {
 
     } catch (error) {
         console.error('Fatal error:', error.message);
-        if (process.env.DEBUG || args.includes('--debug')) {
+        if (process.env.DEBUG || process.argv.includes('--debug')) {
             console.error(error.stack);
         }
         process.exit(1);

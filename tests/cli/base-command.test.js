@@ -2,7 +2,7 @@
  * Tests for CLI Base Command
  */
 
-import { describe, test, beforeEach, afterEach } from 'node:test';
+import { describe, test, beforeEach } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { BaseCommand } from '../../src/cli/base-command.js';
 import { ValidationError } from '../../src/api/base-api.js';

@@ -9,7 +9,7 @@ import { TaskAPI } from '../api/task-api.js';
 import { RelationshipAPI } from '../api/relationship-api.js';
 import { NotesAPI } from '../api/notes-api.js';
 import { ValidationError, APIError } from '../api/base-api.js';
-import { formatTask, formatTaskList } from '../utils/formatting.js';
+// import { formatTask, formatTaskList } from '../utils/formatting.js';
 import { loadConfig } from '../utils/config.js';
 import chalk from 'chalk';
 
@@ -182,7 +182,7 @@ export class BaseCommand {
     /**
      * Execute the command (to be implemented by subclasses)
      */
-    async execute(args, options) {
+    async execute(_args, _options) {
         throw new Error(`Command ${this.name} must implement execute()`);
     }
 
@@ -274,7 +274,9 @@ export class BaseCommand {
             console.log(chalk.bold('Arguments:'));
             for (const arg of this.arguments) {
                 let argStr = `  ${arg.name}`;
-                if (arg.variadic) argStr += '...';
+                if (arg.variadic) {
+                    argStr += '...';
+                }
                 console.log(`${argStr.padEnd(20)} ${arg.description}`);
                 if (arg.defaultValue !== undefined) {
                     console.log(`${''.padEnd(20)} (default: ${arg.defaultValue})`);
@@ -288,8 +290,12 @@ export class BaseCommand {
             console.log(chalk.bold('Options:'));
             for (const opt of this.options) {
                 let optStr = '';
-                if (opt.short) optStr += `-${opt.short}, `;
-                if (opt.long) optStr += `--${opt.long}`;
+                if (opt.short) {
+                    optStr += `-${opt.short}, `;
+                }
+                if (opt.long) {
+                    optStr += `--${opt.long}`;
+                }
                 if (opt.hasValue) {
                     optStr += opt.required ? ' <value>' : ' [value]';
                 }

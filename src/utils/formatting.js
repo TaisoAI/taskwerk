@@ -118,7 +118,9 @@ export function formatTaskList(tasks, options = {}) {
         const groups = groupTasks(tasks, groupBy);
         
         for (const [groupName, groupTasks] of Object.entries(groups)) {
-            if (groupTasks.length === 0) continue;
+            if (groupTasks.length === 0) {
+                continue;
+            }
             
             lines.push(chalk.bold.underline(groupName || 'Uncategorized'));
             lines.push('');
@@ -318,9 +320,15 @@ export function formatDuration(startDate, endDate) {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     const parts = [];
-    if (days > 0) parts.push(`${days}d`);
-    if (hours > 0) parts.push(`${hours}h`);
-    if (minutes > 0) parts.push(`${minutes}m`);
+    if (days > 0) {
+        parts.push(`${days}d`);
+    }
+    if (hours > 0) {
+        parts.push(`${hours}h`);
+    }
+    if (minutes > 0) {
+        parts.push(`${minutes}m`);
+    }
     
     return parts.length > 0 ? parts.join(' ') : '< 1m';
 }

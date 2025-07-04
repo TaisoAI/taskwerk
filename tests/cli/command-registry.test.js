@@ -2,7 +2,7 @@
  * Tests for Command Registry
  */
 
-import { describe, test, beforeEach, afterEach } from 'node:test';
+import { describe, test, beforeEach } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { CommandRegistry, CommandGroup } from '../../src/cli/command-registry.js';
 import { BaseCommand } from '../../src/cli/base-command.js';

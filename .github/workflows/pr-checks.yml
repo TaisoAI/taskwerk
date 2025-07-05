@@ -1,0 +1,148 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-title:
+    name: PR Title Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check PR title format
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const title = context.payload.pull_request.title;
+            const pattern = /^(feat|fix|docs|style|refactor|test|chore|build|ci|perf)(\(.+\))?: .+$/;
+            
+            if (!pattern.test(title)) {
+              core.setFailed(`PR title does not follow conventional commit format.
+                Expected format: type(scope?): description
+                Examples:
+                  - feat: add new command
+                  - fix(cli): resolve parsing error
+                  - docs: update README
+                
+                Types: feat, fix, docs, style, refactor, test, chore, build, ci, perf`);
+            }
+
+  size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check PR size
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const additions = pr.additions;
+            const deletions = pr.deletions;
+            const total = additions + deletions;
+            
+            let label = '';
+            if (total < 10) {
+              label = 'size/XS';
+            } else if (total < 100) {
+              label = 'size/S';
+            } else if (total < 500) {
+              label = 'size/M';
+            } else if (total < 1000) {
+              label = 'size/L';
+            } else {
+              label = 'size/XL';
+              core.warning(`This PR is very large (${total} lines changed). Consider breaking it into smaller PRs.`);
+            }
+            
+            // Add size label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: [label]
+            });
+
+  coverage-check:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+        env:
+          CI: true
+      
+      - name: Generate coverage report comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const coverage = fs.readFileSync('coverage/lcov.info', 'utf8');
+            
+            // Parse coverage data (simplified)
+            let totalLines = 0;
+            let coveredLines = 0;
+            
+            coverage.split('\n').forEach(line => {
+              if (line.startsWith('LF:')) {
+                totalLines += parseInt(line.substring(3));
+              } else if (line.startsWith('LH:')) {
+                coveredLines += parseInt(line.substring(3));
+              }
+            });
+            
+            const percentage = totalLines > 0 ? ((coveredLines / totalLines) * 100).toFixed(2) : 0;
+            
+            const comment = `## Coverage Report
+            
+            **Overall Coverage:** ${percentage}%
+            
+            | Lines | Covered | Total | Coverage |
+            |-------|---------|-------|----------|
+            | ✅ | ${coveredLines} | ${totalLines} | ${percentage}% |
+            
+            View detailed coverage report in the [Actions tab](${context.payload.pull_request.html_url}/checks).`;
+            
+            // Find and update or create comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('Coverage Report')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }

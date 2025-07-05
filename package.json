@@ -1,6 +1,6 @@
 {
   "name": "taskwerk",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "author": "manu chatterjee <deftio@deftio.com>",
   "description": "A lightweight CLI task manager optimized for human-AI collaboration workflows",
   "repository": {
@@ -19,6 +19,7 @@
   "scripts": {
     "start": "node bin/taskwerk.js",
     "test": "node scripts/test.js",
+    "test:coverage": "node scripts/test.js --coverage",
     "test:watch": "node --test --watch tests/**/*.test.js",
     "lint": "eslint src/ tests/ bin/",
     "lint:fix": "eslint src/ tests/ bin/ --fix",
@@ -48,6 +49,7 @@
     "commander": "^11.1.0"
   },
   "devDependencies": {
+    "c8": "^10.1.3",
     "esbuild": "^0.25.5",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5"

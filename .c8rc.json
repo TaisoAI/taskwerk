@@ -1,0 +1,35 @@
+{
+  "// Coverage thresholds": "These are set to current baseline values. Goal is to gradually increase them as we add more tests.",
+  "all": true,
+  "include": [
+    "src/**/*.js"
+  ],
+  "exclude": [
+    "src/llm/**",
+    "**/*.test.js",
+    "tests/**",
+    "scripts/**",
+    "bin/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    "node_modules/**"
+  ],
+  "reporter": [
+    "text",
+    "lcov",
+    "text-summary",
+    "html"
+  ],
+  "check-coverage": true,
+  "branches": 70,
+  "lines": 50,
+  "functions": 70,
+  "statements": 50,
+  "watermarks": {
+    "lines": [80, 95],
+    "functions": [80, 95],
+    "branches": [80, 95],
+    "statements": [80, 95]
+  }
+}

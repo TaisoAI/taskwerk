@@ -37,11 +37,31 @@ async function test() {
     // Show version banner
     await runCommand('node', [join(scriptsDir, 'version-banner.js'), 'running tests']);
 
-    // Run tests
-    await runCommand('node', ['--test', 'tests/**/*.test.js']);
+    // Check if running with coverage
+    const withCoverage = process.argv.includes('--coverage') || process.env.CI === 'true';
+
+    if (withCoverage) {
+      // Run tests with coverage using c8
+      console.log('\n📊 Running tests with code coverage...\n');
+      await runCommand('npx', [
+        'c8',
+        'node',
+        '--test',
+        'tests/**/*.test.js'
+      ]);
+    } else {
+      // Run tests without coverage
+      await runCommand('node', ['--test', 'tests/**/*.test.js']);
+    }
 
     // Success banner
     await runCommand('node', [join(scriptsDir, 'completion-banner.js'), 'tests', '0']);
+
+    // Print coverage summary if running with coverage
+    if (withCoverage) {
+      console.log('\n📊 Code Coverage Summary:\n');
+      // The coverage summary is already printed by c8
+    }
   } catch (error) {
     exitCode = 1;
     

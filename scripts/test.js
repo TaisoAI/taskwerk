@@ -59,8 +59,8 @@ async function test() {
 
     // Print coverage summary if running with coverage
     if (withCoverage) {
-      console.log('\n📊 Code Coverage Summary:\n');
-      // The coverage summary is already printed by c8
+      console.log('\n📊 Code Coverage Summary printed above by c8\n');
+      console.log('📁 Detailed coverage report available at: coverage/lcov-report/index.html');
     }
   } catch (error) {
     exitCode = 1;

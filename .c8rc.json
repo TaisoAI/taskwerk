@@ -18,8 +18,8 @@
   "reporter": [
     "text",
     "lcov",
-    "text-summary",
-    "html"
+    "html",
+    "text-summary"
   ],
   "check-coverage": true,
   "branches": 70,

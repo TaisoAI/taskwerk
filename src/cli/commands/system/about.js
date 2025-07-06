@@ -6,12 +6,21 @@
  */
 
 import { Command } from 'commander';
-import { promises as fs } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import chalk from 'chalk';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+// Try to import version info, use sentinel values if not found
+let VERSION = '0.0.0-dev';
+let NAME = 'taskwerk';
+let DESCRIPTION = 'A git-aware task management CLI for developers and AI agents working together';
+
+try {
+  const versionModule = await import('../../../version.js');
+  VERSION = versionModule.VERSION;
+  NAME = versionModule.NAME;
+  DESCRIPTION = versionModule.DESCRIPTION;
+} catch (err) {
+  console.warn(chalk.yellow('Warning: version.js not found, using fallback values'));
+}
 
 /**
  * Creates the about command
@@ -30,32 +39,6 @@ export function makeAboutCommand() {
  */
 async function handleAbout() {
   try {
-    // Get version from package.json - try multiple paths for bundled vs unbundled
-    let packageData = null;
-    const possiblePaths = [
-      join(__dirname, '../../../../package.json'), // Development/unbundled
-      join(process.cwd(), 'package.json'), // Current working directory
-      './package.json', // Relative to CWD
-    ];
-
-    for (const packagePath of possiblePaths) {
-      try {
-        packageData = JSON.parse(await fs.readFile(packagePath, 'utf8'));
-        break;
-      } catch (error) {
-        // Continue trying other paths
-      }
-    }
-
-    // Fallback to hardcoded values if package.json not found
-    if (!packageData) {
-      packageData = {
-        name: 'taskwerk',
-        version: '0.3.12',
-        description:
-          'A git-aware task management CLI for developers and AI agents working together',
-      };
-    }
 
     // ASCII Banner
     const banner = `
@@ -68,14 +51,14 @@ async function handleAbout() {
 `;
 
     console.log(chalk.cyan(banner));
-    console.log(chalk.bold(`🚀 taskwerk v${packageData.version} by Taiso.AI (www.taiso.ai)`));
-    console.log(packageData.description);
+    console.log(chalk.bold(`🚀 taskwerk v${VERSION} by Taiso.AI (www.taiso.ai)`));
+    console.log(DESCRIPTION);
     console.log('');
     
     console.log(chalk.bold('📦 Package Information:'));
-    console.log(`   Name: ${packageData.name}`);
-    console.log(`   Version: ${packageData.version}`);
-    console.log(`   Description: ${packageData.description}`);
+    console.log(`   Name: ${NAME}`);
+    console.log(`   Version: ${VERSION}`);
+    console.log(`   Description: ${DESCRIPTION}`);
     console.log('');
     
     console.log(chalk.bold('🔗 Project Links:'));

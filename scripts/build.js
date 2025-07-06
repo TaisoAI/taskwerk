@@ -17,6 +17,8 @@ async function build() {
   console.log('Building Taskwerk...');
 
   try {
+    // Update version.js first
+    await import('./update-version.js');
     // Build the CLI into a single file
     const result = await esbuild.build({
       entryPoints: [join(projectRoot, 'src/cli/index.js')],

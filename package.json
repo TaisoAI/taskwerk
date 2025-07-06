@@ -26,6 +26,7 @@
     "format": "prettier --write src/ tests/",
     "format:check": "prettier --check src/ tests/",
     "dev": "node src/cli/index.js",
+    "prebuild": "node scripts/update-version.js",
     "build": "node scripts/build.js"
   },
   "keywords": [

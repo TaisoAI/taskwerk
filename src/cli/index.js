@@ -8,45 +8,26 @@
  */
 
 import { program } from 'commander';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
-// Get package info
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Try to import version info, use sentinel values if not found
+let VERSION = '0.0.0-dev';
+let NAME = 'taskwerk';
+let DESCRIPTION = 'A git-aware task management CLI for developers and AI agents working together';
 
-// Try multiple paths for package.json (bundled vs unbundled)
-let packageJson = null;
-const possiblePaths = [
-  join(__dirname, '../../package.json'), // Development/unbundled
-  join(process.cwd(), 'package.json'), // Current working directory
-  './package.json', // Relative to CWD
-];
-
-for (const packagePath of possiblePaths) {
-  try {
-    packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
-    break;
-  } catch (error) {
-    // Continue trying other paths
-  }
-}
-
-// Fallback to hardcoded values if package.json not found
-if (!packageJson) {
-  packageJson = {
-    name: 'taskwerk',
-    version: '0.3.13',
-    description: 'A git-aware task management CLI for developers and AI agents working together',
-  };
+try {
+  const versionModule = await import('../version.js');
+  VERSION = versionModule.VERSION;
+  NAME = versionModule.NAME;
+  DESCRIPTION = versionModule.DESCRIPTION;
+} catch (err) {
+  console.warn('Warning: version.js not found, using fallback values');
 }
 
 // Configure main program
 program
-  .name('taskwerk')
-  .description('Git-aware task management CLI for developers and AI agents')
-  .version(packageJson.version)
+  .name(NAME)
+  .description(DESCRIPTION)
+  .version(VERSION)
   .alias('twrk');
 
 // Import subcommands

@@ -11,6 +11,7 @@ yarn-error.log*
 dist/
 build/
 *.tgz
+src/version.js
 
 # Environment variables
 .env

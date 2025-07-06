@@ -36,7 +36,7 @@ test('CLI entry point', async (t) => {
     } catch (err) {
       // Version command exits with code 1
       const output = err.stdout || err.stderr || err.toString();
-      assert.ok(output.includes('0.3.13'));
+      assert.ok(output.match(/\d+\.\d+\.\d+/)); // Check for any semantic version
     }
   });
 

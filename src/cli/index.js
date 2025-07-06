@@ -15,9 +15,32 @@ import { dirname, join } from 'path';
 // Get package info
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const packageJson = JSON.parse(
-  readFileSync(join(__dirname, '../../package.json'), 'utf-8')
-);
+
+// Try multiple paths for package.json (bundled vs unbundled)
+let packageJson = null;
+const possiblePaths = [
+  join(__dirname, '../../package.json'), // Development/unbundled
+  join(process.cwd(), 'package.json'), // Current working directory
+  './package.json', // Relative to CWD
+];
+
+for (const packagePath of possiblePaths) {
+  try {
+    packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
+    break;
+  } catch (error) {
+    // Continue trying other paths
+  }
+}
+
+// Fallback to hardcoded values if package.json not found
+if (!packageJson) {
+  packageJson = {
+    name: 'taskwerk',
+    version: '0.3.13',
+    description: 'A git-aware task management CLI for developers and AI agents working together',
+  };
+}
 
 // Configure main program
 program

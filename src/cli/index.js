@@ -27,14 +27,15 @@ program
   .alias('twrk');
 
 // Import subcommands
-import { makeSystemCommand, makeInitCommand, makeStatusCommand } from './commands/system/index.js';
+import { makeSystemCommand, makeInitCommand, makeStatusCommand, makeAboutCommand } from './commands/system/index.js';
 
 // Add subcommands
 program.addCommand(makeSystemCommand());
 
-// Also add init and status as top-level commands for convenience
+// Also add init, status, and about as top-level commands for convenience
 program.addCommand(makeInitCommand());
 program.addCommand(makeStatusCommand());
+program.addCommand(makeAboutCommand());
 
 // Error handling
 program.exitOverride();

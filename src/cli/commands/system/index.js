@@ -8,6 +8,7 @@
 import { Command } from 'commander';
 import { makeInitCommand } from './init.js';
 import { makeStatusCommand } from './status.js';
+import { makeAboutCommand } from './about.js';
 
 /**
  * Creates the system command group
@@ -21,6 +22,7 @@ export function makeSystemCommand() {
   // Add subcommands
   cmd.addCommand(makeInitCommand());
   cmd.addCommand(makeStatusCommand());
+  cmd.addCommand(makeAboutCommand());
 
   return cmd;
 }
@@ -28,3 +30,4 @@ export function makeSystemCommand() {
 // Also export individual commands for direct use
 export { makeInitCommand } from './init.js';
 export { makeStatusCommand } from './status.js';
+export { makeAboutCommand } from './about.js';

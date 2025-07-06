@@ -61,12 +61,12 @@ test('TaskwerkAPI', async (t) => {
   await t.test('service method stubs throw not implemented', async () => {
     await assert.rejects(
       api.createTask({ title: 'test' }),
-      /Not implemented/
+      /Database not initialized/
     );
 
     await assert.rejects(
       api.listTasks(),
-      /Not implemented/
+      /Database not initialized/
     );
 
     await assert.rejects(

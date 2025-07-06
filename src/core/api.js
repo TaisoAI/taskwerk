@@ -117,7 +117,15 @@ export class TaskwerkAPI {
     return this.importExport.exportTasks(options);
   }
 
-  async importTasks(data) {
-    return this.importExport.importTasks(data);
+  async importTasks(data, options) {
+    return this.importExport.importTasks(data, options);
+  }
+
+  async exportToFile(filePath, options) {
+    return this.importExport.exportToFile(filePath, options);
+  }
+
+  async importFromFile(filePath, options) {
+    return this.importExport.importFromFile(filePath, options);
   }
 }

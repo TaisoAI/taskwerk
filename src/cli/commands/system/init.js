@@ -9,6 +9,7 @@ import { Command } from 'commander';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { DEFAULTS } from '../../../core/constants.js';
+import { initializeStorage } from '../../../storage/index.js';
 import chalk from 'chalk';
 
 /**
@@ -51,10 +52,19 @@ async function handleInit(options) {
       writeFileSync(rulesPath, getDefaultRules(), 'utf-8');
     }
 
+    // Initialize database
+    console.log(chalk.gray('Initializing database...'));
+    const storage = await initializeStorage({ 
+      projectRoot: process.cwd(),
+      force: options.force 
+    });
+    storage.close();
+
     // Success message
     console.log(chalk.green('✓ Taskwerk initialized successfully!'));
     console.log(chalk.gray(`Created ${taskwerkDir}/ directory`));
     console.log(chalk.gray(`Created ${rulesPath}`));
+    console.log(chalk.gray(`Created ${join(taskwerkDir, DEFAULTS.DB_FILENAME)}`));
     console.log('');
     console.log('Next steps:');
     console.log(chalk.cyan('  twrk task add "My first task"'));

@@ -18,6 +18,7 @@ export class TaskwerkAPI {
   /**
    * @param {Object} options - API options
    * @param {string} options.projectRoot - Project root directory
+   * @param {Database} options.database - Optional database instance
    */
   constructor(options = {}) {
     this.options = {
@@ -25,11 +26,27 @@ export class TaskwerkAPI {
       ...options
     };
     
-    // Services will be initialized in TASK-002 when we add database
-    this.tasks = new TaskService();
-    this.notes = new NoteService();
-    this.query = new QueryService();
-    this.importExport = new ImportExportService();
+    // Initialize database if provided
+    this.db = options.database || null;
+    
+    // Initialize services with database
+    this.tasks = new TaskService(this.db);
+    this.notes = new NoteService(this.db);
+    this.query = new QueryService(this.db);
+    this.importExport = new ImportExportService(this.db);
+  }
+  
+  /**
+   * Set database instance
+   * @param {Database} db - Database instance
+   */
+  setDatabase(db) {
+    this.db = db;
+    // Update services with new database
+    this.tasks.db = db;
+    this.notes.db = db;
+    this.query.db = db;
+    this.importExport.db = db;
   }
 
   // Task CRUD

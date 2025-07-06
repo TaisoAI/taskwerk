@@ -2,10 +2,13 @@
 
 **Version**: 0.3.x  
 **Architecture**: v3 (Refocused)
+**Language**: JavaScript (ES modules)
 
 ## Overview
 
 This guide provides technical implementation details for Taskwerk v3. It consolidates the database schema, API design, data structures, and development guidelines.
+
+**Note**: This implementation uses pure JavaScript with ES modules. No TypeScript compilation is needed, keeping the tooling simple and development fast.
 
 ## Architecture
 
@@ -35,7 +38,7 @@ This guide provides technical implementation details for Taskwerk v3. It consoli
 └─────────────────────────────────────┘
 ```
 
-### Optional AI Module
+###  AI Module
 
 ```
 src/ai/
@@ -270,29 +273,29 @@ Consider adding an index on user_id column
 ```javascript
 class TaskwerkAPI {
   // Task CRUD
-  async createTask(data: CreateTaskInput): Promise<Task>
-  async getTask(id: string): Promise<Task>
-  async updateTask(id: string, updates: UpdateTaskInput): Promise<Task>
-  async deleteTask(id: string, force: boolean = false): Promise<void>
-  async listTasks(filters: TaskFilters): Promise<TaskList>
+  async createTask(data) // returns Task object
+  async getTask(id) // returns Task object
+  async updateTask(id, updates) // returns updated Task
+  async deleteTask(id, force = false) // returns void
+  async listTasks(filters) // returns TaskList
   
   // Relationships
-  async addDependency(taskId: string, dependsOnId: string): Promise<void>
-  async removeDependency(taskId: string, dependsOnId: string): Promise<void>
-  async getTaskTree(id: string): Promise<TaskTree>
+  async addDependency(taskId, dependsOnId) // returns void
+  async removeDependency(taskId, dependsOnId) // returns void
+  async getTaskTree(id) // returns TaskTree
   
   // Notes
-  async appendNote(taskId: string, note: NoteInput): Promise<void>
-  async addTaskNote(taskId: string, note: TaskNote): Promise<void>
+  async appendNote(taskId, note) // returns void
+  async addTaskNote(taskId, note) // returns void
   
   // Queries
-  async queryTasks(query: TaskQuery): Promise<Task[]>
-  async searchTasks(text: string): Promise<Task[]>
-  async getStats(): Promise<WorkspaceStats>
+  async queryTasks(query) // returns Task array
+  async searchTasks(text) // returns Task array
+  async getStats() // returns WorkspaceStats
   
   // Import/Export
-  async exportTasks(format: 'markdown' | 'json', filters?: TaskFilters): Promise<string>
-  async importTasks(data: string, format: 'markdown' | 'json', options?: ImportOptions): Promise<ImportResult>
+  async exportTasks(format, filters) // format: 'markdown' | 'json'
+  async importTasks(data, format, options) // returns ImportResult
 }
 ```
 

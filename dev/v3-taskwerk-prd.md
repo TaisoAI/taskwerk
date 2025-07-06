@@ -20,7 +20,7 @@ Modern development involves:
 
 Traditional task managers live outside your code. Taskwerk lives WITH your code, understanding your git workflow and providing rich context to both humans and AI agents.
 
-### Our Solution
+### Solution
 
 1. **Git-Native**: Tasks are tied to branches, commits reference tasks
 2. **CLI-First**: Fast, scriptable, works in any terminal

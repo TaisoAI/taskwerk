@@ -3,7 +3,7 @@
 ## Development Standards
 
 ### Code Quality
-- [ ] All functions have JSDoc comments
+- [ ] All functions have JSDoc comments (with params, purpose, description, return value, side-effects)
 - [ ] Use async/await, not callbacks
 - [ ] Handle errors with try/catch
 - [ ] Use custom error classes
@@ -17,7 +17,7 @@
 - [ ] Use Node.js built-in test runner
 
 ### Before Starting a Task
-- [ ] Read the task description completely
+- [ ] Read the task description completely and make sure it is clear before starting work.  
 - [ ] Check dependencies are completed
 - [ ] Review related code in implementation guide
 - [ ] Create feature branch: feature/TASK-XXX
@@ -44,7 +44,7 @@
 ### Architecture Rules
 - [ ] CLI calls API, never database directly
 - [ ] API returns data, not formatted strings
-- [ ] All database access through storage layer
+- [ ] All database access through storage API layer
 - [ ] Subcommands for all operations
 - [ ] State transitions must be valid
 

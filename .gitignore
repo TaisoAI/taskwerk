@@ -50,3 +50,8 @@ temp/
 # AI tools
 .claude/
 
+# Taskwerk data
+.taskwerk/
+*.db
+*.db-journal
+

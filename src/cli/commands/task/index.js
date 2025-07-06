@@ -11,6 +11,7 @@ import { makeListCommand } from './list.js';
 import { makeShowCommand } from './show.js';
 import { makeUpdateCommand } from './update.js';
 import { makeDeleteCommand } from './delete.js';
+import { makeStatusCommand } from './status.js';
 
 /**
  * Creates the task command with all subcommands
@@ -26,6 +27,7 @@ export function makeTaskCommand() {
   taskCommand.addCommand(makeShowCommand());
   taskCommand.addCommand(makeUpdateCommand());
   taskCommand.addCommand(makeDeleteCommand());
+  taskCommand.addCommand(makeStatusCommand());
 
   return taskCommand;
 }
@@ -36,5 +38,6 @@ export {
   makeListCommand,
   makeShowCommand,
   makeUpdateCommand,
-  makeDeleteCommand
+  makeDeleteCommand,
+  makeStatusCommand
 };

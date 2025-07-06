@@ -465,12 +465,14 @@ describe('TaskService', () => {
     it('should change task status with validation', async () => {
       const task = await taskService.createTask({ name: 'Test task' });
       
-      const updated = await taskService.changeTaskStatus(
+      const result = await taskService.changeTaskStatus(
         task.string_id,
         TaskStatus.ACTIVE
       );
       
-      expect(updated.status).toBe(TaskStatus.ACTIVE);
+      expect(result.task.status).toBe(TaskStatus.ACTIVE);
+      expect(result.transition.oldStatus).toBe(TaskStatus.TODO);
+      expect(result.transition.newStatus).toBe(TaskStatus.ACTIVE);
     });
 
     it('should validate status transition', async () => {

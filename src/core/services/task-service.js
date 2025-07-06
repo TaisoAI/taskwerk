@@ -7,10 +7,12 @@
 
 import { getNextTaskId } from '../../storage/index.js';
 import { TaskStatus, Priority, DEFAULTS, STATE_TRANSITIONS } from '../constants.js';
+import StateMachine from './state-machine.js';
 
 export default class TaskService {
   constructor(database) {
     this.db = database;
+    this.stateMachine = new StateMachine(database);
   }
 
   /**
@@ -411,10 +413,27 @@ export default class TaskService {
    * Change task status with validation
    * @param {string} id - Task ID
    * @param {string} status - New status
-   * @returns {Object} Updated task
+   * @param {Object} options - Additional options
+   * @param {string} options.reason - Reason for status change (required for blocked)
+   * @param {boolean} options.cascade - Whether to cascade to children
+   * @returns {Object} Updated task with transition details
    */
-  async changeTaskStatus(id, status) {
-    return this.updateTask(id, { status });
+  async changeTaskStatus(id, status, options = {}) {
+    // Get task to get numeric ID
+    const task = await this.getTask(id);
+    if (!task) {
+      throw new Error(`Task not found: ${id}`);
+    }
+
+    // Use state machine for transition
+    const result = await this.stateMachine.transitionTask(task.id, status, options);
+
+    // Return updated task with transition details
+    const updatedTask = await this.getTask(id);
+    return {
+      task: updatedTask,
+      transition: result
+    };
   }
 
   /**

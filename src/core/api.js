@@ -70,6 +70,10 @@ export class TaskwerkAPI {
     return this.tasks.listTasks(filters);
   }
 
+  async changeTaskStatus(id, status, options = {}) {
+    return this.tasks.changeTaskStatus(id, status, options);
+  }
+
   // Notes
   async addNote(taskId, note) {
     return this.notes.addNote(taskId, note);

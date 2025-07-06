@@ -80,6 +80,9 @@ function displayTask(task) {
   if (task.description) {
     console.log(`${chalk.gray('Description:')} ${task.description}`);
   }
+  if (task.blocked_reason) {
+    console.log(`${chalk.gray('Blocked:')}    ${chalk.red(task.blocked_reason)}`);
+  }
   if (task.estimate) {
     console.log(`${chalk.gray('Estimate:')}   ${formatEstimate(task.estimate)}`);
   }

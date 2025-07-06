@@ -79,8 +79,24 @@ export class TaskwerkAPI {
     return this.notes.addNote(taskId, note);
   }
 
-  async getTaskNotes(taskId) {
-    return this.notes.getTaskNotes(taskId);
+  async getTaskNotes(taskId, options) {
+    return this.notes.getTaskNotes(taskId, options);
+  }
+
+  async getNote(noteId) {
+    return this.notes.getNote(noteId);
+  }
+
+  async updateNote(noteId, noteData) {
+    return this.notes.updateNote(noteId, noteData);
+  }
+
+  async deleteNote(noteId) {
+    return this.notes.deleteNote(noteId);
+  }
+
+  async searchNotes(query, options) {
+    return this.notes.searchNotes(query, options);
   }
 
   // Queries

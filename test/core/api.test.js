@@ -105,7 +105,7 @@ describe('TaskwerkAPI', () => {
       api.notes.getTaskNotes = vi.fn();
       
       await api.getTaskNotes('TASK-001');
-      expect(api.notes.getTaskNotes).toHaveBeenCalledWith('TASK-001');
+      expect(api.notes.getTaskNotes).toHaveBeenCalledWith('TASK-001', undefined);
     });
 
     it('should delegate search to QueryService', async () => {

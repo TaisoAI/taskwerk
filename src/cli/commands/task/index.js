@@ -12,6 +12,7 @@ import { makeShowCommand } from './show.js';
 import { makeUpdateCommand } from './update.js';
 import { makeDeleteCommand } from './delete.js';
 import { makeStatusCommand } from './status.js';
+import { makeNoteCommand } from './note.js';
 
 /**
  * Creates the task command with all subcommands
@@ -28,6 +29,7 @@ export function makeTaskCommand() {
   taskCommand.addCommand(makeUpdateCommand());
   taskCommand.addCommand(makeDeleteCommand());
   taskCommand.addCommand(makeStatusCommand());
+  taskCommand.addCommand(makeNoteCommand());
 
   return taskCommand;
 }

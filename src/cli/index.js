@@ -32,9 +32,11 @@ program
 
 // Import subcommands
 import { makeSystemCommand, makeInitCommand, makeStatusCommand, makeAboutCommand } from './commands/system/index.js';
+import { makeTaskCommand } from './commands/task/index.js';
 
 // Add subcommands
 program.addCommand(makeSystemCommand());
+program.addCommand(makeTaskCommand());
 
 // Also add init, status, and about as top-level commands for convenience
 program.addCommand(makeInitCommand());

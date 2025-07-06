@@ -30,6 +30,22 @@ export default class TaskService {
     // Get next task ID
     const stringId = getNextTaskId(this.db);
 
+    // Resolve parent_id if it's a string ID
+    let parentId = null;
+    if (data.parent_id) {
+      if (typeof data.parent_id === 'string' && data.parent_id.startsWith('TASK-')) {
+        // Resolve string ID to numeric ID
+        const parentStmt = this.db.prepare('SELECT id FROM tasks WHERE string_id = ?');
+        const parent = parentStmt.get(data.parent_id);
+        if (!parent) {
+          throw new Error(`Parent task not found: ${data.parent_id}`);
+        }
+        parentId = parent.id;
+      } else {
+        parentId = data.parent_id;
+      }
+    }
+
     // Prepare task data with defaults
     const task = {
       string_id: stringId,
@@ -43,7 +59,7 @@ export default class TaskService {
       actual: data.actual || null,
       due_date: data.due_date || null,
       progress: data.progress || DEFAULTS.PROGRESS,
-      parent_id: data.parent_id || null,
+      parent_id: parentId,
       branch: data.branch || null,
       category: data.category || null,
       blocked_reason: data.blocked_reason || null,
@@ -162,6 +178,19 @@ export default class TaskService {
       'parent_id', 'branch', 'category', 'blocked_reason',
       'is_milestone', 'is_template'
     ];
+
+    // Handle parent_id resolution
+    if ('parent_id' in updates && updates.parent_id) {
+      if (typeof updates.parent_id === 'string' && updates.parent_id.startsWith('TASK-')) {
+        // Resolve string ID to numeric ID
+        const parentStmt = this.db.prepare('SELECT id FROM tasks WHERE string_id = ?');
+        const parent = parentStmt.get(updates.parent_id);
+        if (!parent) {
+          throw new Error(`Parent task not found: ${updates.parent_id}`);
+        }
+        updates.parent_id = parent.id;
+      }
+    }
 
     for (const field of allowedFields) {
       if (field in updates) {

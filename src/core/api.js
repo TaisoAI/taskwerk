@@ -5,10 +5,10 @@
  * @module taskwerk/core/api
  */
 
-import { TaskService } from './services/task-service.js';
-import { NoteService } from './services/note-service.js';
-import { QueryService } from './services/query-service.js';
-import { ImportExportService } from './services/import-export-service.js';
+import TaskService from './services/task-service.js';
+import NoteService from './services/note-service.js';
+import QueryService from './services/query-service.js';
+import ImportExportService from './services/import-export-service.js';
 
 /**
  * Main API class for Taskwerk
@@ -16,78 +16,71 @@ import { ImportExportService } from './services/import-export-service.js';
  */
 export class TaskwerkAPI {
   /**
-   * @param {Database} database - SQLite database instance
+   * @param {Object} options - API options
+   * @param {string} options.projectRoot - Project root directory
    */
-  constructor(database) {
-    this.db = database;
-    this.tasks = new TaskService(database);
-    this.notes = new NoteService(database);
-    this.query = new QueryService(database);
-    this.importExport = new ImportExportService(database);
+  constructor(options = {}) {
+    this.options = {
+      projectRoot: process.cwd(),
+      ...options
+    };
+    
+    // Services will be initialized in TASK-002 when we add database
+    this.tasks = new TaskService();
+    this.notes = new NoteService();
+    this.query = new QueryService();
+    this.importExport = new ImportExportService();
   }
 
   // Task CRUD
   async createTask(data) {
-    return this.tasks.create(data);
+    return this.tasks.createTask(data);
   }
 
   async getTask(id) {
-    return this.tasks.get(id);
+    return this.tasks.getTask(id);
   }
 
   async updateTask(id, updates) {
-    return this.tasks.update(id, updates);
+    return this.tasks.updateTask(id, updates);
   }
 
   async deleteTask(id, force = false) {
-    return this.tasks.delete(id, force);
+    return this.tasks.deleteTask(id);
   }
 
   async listTasks(filters) {
-    return this.query.listTasks(filters);
-  }
-
-  // Relationships
-  async addDependency(taskId, dependsOnId) {
-    return this.tasks.addDependency(taskId, dependsOnId);
-  }
-
-  async removeDependency(taskId, dependsOnId) {
-    return this.tasks.removeDependency(taskId, dependsOnId);
-  }
-
-  async getTaskTree(id) {
-    return this.query.getTaskTree(id);
+    return this.tasks.listTasks(filters);
   }
 
   // Notes
-  async appendNote(taskId, note) {
-    return this.notes.appendNote(taskId, note);
+  async addNote(taskId, note) {
+    return this.notes.addNote(taskId, note);
   }
 
-  async addTaskNote(taskId, note) {
-    return this.notes.addTaskNote(taskId, note);
+  async getTaskNotes(taskId) {
+    return this.notes.getTaskNotes(taskId);
   }
 
   // Queries
-  async queryTasks(query) {
-    return this.query.queryTasks(query);
+  async search(query) {
+    return this.query.search(query);
   }
 
-  async searchTasks(text) {
-    return this.query.searchTasks(text);
+  async getTasksByStatus(status) {
+    return this.query.getTasksByStatus(status);
   }
 
-  async getStats() {
-    return this.query.getStats();
+  async getTasksByDate(dateFilter) {
+    return this.query.getTasksByDate(dateFilter);
   }
 
   // Import/Export
-  async exportTasks(format, filters) {
-    return this.importExport.export(format, filters);
+  async exportTasks(options) {
+    return this.importExport.exportTasks(options);
   }
 
-  async importTasks(data, format, options) {
-    return this.importExport.import(data, format, options);
+  async importTasks(data) {
+    return this.importExport.importTasks(data);
   }
 }

@@ -5,29 +5,29 @@
  * @module taskwerk/core/services/query-service
  */
 
-export class QueryService {
+export default class QueryService {
   constructor(database) {
     this.db = database;
   }
 
   // TODO: Implement in TASK-003
-  async listTasks(filters) {
+  async search(query) {
     throw new Error('Not implemented');
   }
 
-  async getTaskTree(id) {
+  async getTasksByStatus(status) {
     throw new Error('Not implemented');
   }
 
-  async queryTasks(query) {
+  async getTasksByDate(dateFilter) {
     throw new Error('Not implemented');
   }
 
-  async searchTasks(text) {
+  async getTasksByTag(tag) {
     throw new Error('Not implemented');
   }
 
-  async getStats() {
+  async getTasksByProject(projectId) {
     throw new Error('Not implemented');
   }
 }

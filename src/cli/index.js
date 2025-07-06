@@ -27,7 +27,14 @@ program
   .alias('twrk');
 
 // Import subcommands
-// TODO: Import command modules as they are implemented
+import { makeSystemCommand, makeInitCommand, makeStatusCommand } from './commands/system/index.js';
+
+// Add subcommands
+program.addCommand(makeSystemCommand());
+
+// Also add init and status as top-level commands for convenience
+program.addCommand(makeInitCommand());
+program.addCommand(makeStatusCommand());
 
 // Error handling
 program.exitOverride();

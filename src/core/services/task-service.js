@@ -5,33 +5,33 @@
  * @module taskwerk/core/services/task-service
  */
 
-export class TaskService {
+export default class TaskService {
   constructor(database) {
     this.db = database;
   }
 
   // TODO: Implement in TASK-003
-  async create(data) {
+  async createTask(data) {
     throw new Error('Not implemented');
   }
 
-  async get(id) {
+  async getTask(id) {
     throw new Error('Not implemented');
   }
 
-  async update(id, updates) {
+  async updateTask(id, updates) {
     throw new Error('Not implemented');
   }
 
-  async delete(id, force) {
+  async deleteTask(id) {
     throw new Error('Not implemented');
   }
 
-  async addDependency(taskId, dependsOnId) {
+  async listTasks(filters) {
     throw new Error('Not implemented');
   }
 
-  async removeDependency(taskId, dependsOnId) {
+  async changeTaskStatus(id, status) {
     throw new Error('Not implemented');
   }
 }

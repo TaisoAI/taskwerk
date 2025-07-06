@@ -15,7 +15,7 @@ A lightweight CLI task manager optimized for human-AI collaboration workflows.
 
 ## Taskwerk Overview
 
-Taskwerk is a lightweight task tracker that can be used in side of software repos to break up and track trasks and is focused on agentic coding.  It includes task creation, git integration, and agentic-llm support to help get code written quickly and accurately without creating large numbers of subtasks that would as would be in a traditional issue tracking system.
+Taskwerk is a lightweight task tracker that can be used inside software repos to break up and track tasks and is focused on agentic coding. It includes task creation, git integration, and agentic-llm support to help get code written quickly and accurately without creating large numbers of subtasks that would as would be in a traditional issue tracking system.
 
 - **Structured yet Human-Readable**: YAML frontmatter for metadata, markdown for content
 - **Advanced Task Management**: Dependencies, subtasks, timeline tracking, and assignees
@@ -23,6 +23,23 @@ Taskwerk is a lightweight task tracker that can be used in side of software repo
 - **Zero Vendor Lock-In**: Plain text files that work without the CLI
 - **AI-Optimized**: Built for human-AI collaboration workflows
 - **Backward Compatible**: Automatically migrates older task formats
+
+## Documentation (v3 Architecture - In Development)
+
+**Note:** Taskwerk is evolving to v3 architecture (0.3.x releases). The documentation below reflects the current v2 release, but new v3 documentation is available:
+
+### For Users
+- **[Product Overview & User Guide](dev/v3-taskwerk-prd.md)** - Start here! Learn what Taskwerk v3 is, why it exists, and how to use it effectively with AI assistants.
+- **[CLI Reference](dev/v3-cli-reference.md)** - Complete v3 command reference with examples and workflows.
+
+### For Developers  
+- **[Implementation Guide](dev/v3-implementation-guide.md)** - Technical architecture, database schema, API design, and development setup for v3.
+
+The v3 architecture introduces:
+- Subcommand structure for better organization
+- SQLite database for robust task management
+- Three AI interaction modes (ask, agent, raw)
+- Enhanced notes system with dual storage approach
 
 ## Quick Start
 

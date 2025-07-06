@@ -1,153 +1,67 @@
-# taskwerk Workflow Rules
+# Taskwerk v3 Implementation Rules
 
-This file defines workflow rules and development hygiene enforcement for taskwerk.
-Rules are applied differently based on whether tasks are handled by AI agents or humans.
+## Development Standards
 
-## AI Agent Workflow Rules
+### Code Quality
+- [ ] All functions have JSDoc comments
+- [ ] Use async/await, not callbacks
+- [ ] Handle errors with try/catch
+- [ ] Use custom error classes
+- [ ] No console.log in production code
 
-When AI agents (Claude Code, Cursor, etc.) take on tasks, the following rules are enforced:
+### Testing Requirements
+- [ ] Write tests before implementation (TDD)
+- [ ] Minimum 80% code coverage
+- [ ] Test both success and error cases
+- [ ] Integration tests for all CLI commands
+- [ ] Use Node.js built-in test runner
 
-### Required Workflow Phases
-- **plan**: Create implementation plan and identify requirements
-- **implement**: Write the actual code following project standards
-- **test**: Write and run tests to ensure functionality works correctly
-- **document**: Add documentation, comments, and usage examples
+### Before Starting a Task
+- [ ] Read the task description completely
+- [ ] Check dependencies are completed
+- [ ] Review related code in implementation guide
+- [ ] Create feature branch: feature/TASK-XXX
 
-### Quality Gates
-- **Tests Required**: Yes
-- **Tests Must Pass**: Yes
-- **Documentation Required**: Yes
-- **Linting Required**: Yes
-- **Type Checking Required**: Yes
+### During Implementation
+- [ ] Follow patterns from v3-implementation-guide.md
+- [ ] Update task progress regularly
+- [ ] Commit frequently with clear messages
+- [ ] Include task ID in commits: "TASK-XXX: description"
 
-### Commit Rules
-- **Auto Commit**: Disabled
-- **Require All Phases**: Yes
-- **Version Bump Required**: Yes
-- **Auto Version Bump**: Enabled
-- **Version Bump Type**: patch
-- **Auto Stage Files**: Enabled
-- **All Tests Must Pass**: Required before any commit
-- **Co-Authorship Required**: All commits must include proper Co-Authored-By tags for collaboration
-- **Build Validation**: All targets must build successfully before commit
+### Before Completing a Task
+- [ ] All acceptance criteria met
+- [ ] All tests pass
+- [ ] No linting errors
+- [ ] Code follows project style
+- [ ] Documentation updated if needed
 
-### Timeouts
-- **Max Task Duration**: 4h
-- **Phase Timeout**: 30m
+### Git Workflow
+- [ ] Work in feature branches
+- [ ] Never commit directly to main
+- [ ] Squash commits before merging
+- [ ] Delete feature branch after merge
 
-## Human Workflow Rules
+### Architecture Rules
+- [ ] CLI calls API, never database directly
+- [ ] API returns data, not formatted strings
+- [ ] All database access through storage layer
+- [ ] Subcommands for all operations
+- [ ] State transitions must be valid
 
-When humans manage tasks manually, workflow enforcement is minimal:
+### Specific v3 Guidelines
+- [ ] Use 'active' not 'in_progress' for status
+- [ ] Task IDs format: TASK-XXX (minimum 3 digits)
+- [ ] Notes use YAML frontmatter format
+- [ ] Dual notes approach: field + table
+- [ ] Export must preserve all data
 
-- **Workflow Enforcement**: Disabled
-- **Required Phases**: None
-- **Quality Gates**: None enforced
+## For AI Agents
 
-## Configuration
+When implementing tasks:
+1. Start with the simplest implementation that works
+2. Follow existing patterns from the implementation guide
+3. Test as you go
+4. Ask for clarification if requirements are unclear
+5. Update task status and notes frequently
 
-To customize these rules:
-
-1. Edit this file directly
-2. Modify `.taskrc.json` configuration
-3. Use `taskwerk rules` command to manage rules interactively
-
-## Workflow Phases
-
-### Plan
-- Create implementation plan
-- Identify dependencies and requirements
-- Estimate complexity and timeline
-
-### Implement
-- Write the actual code
-- Follow project coding standards
-- Implement error handling
-
-### Test
-- Write unit tests for new functionality
-- Ensure all tests pass
-- Achieve required coverage thresholds
-
-### Document
-- Add/update docstrings and comments
-- Update README if needed
-- Create usage examples
-
-## Quality Gates Details
-
-### Tests Required
-When enabled, all new functionality must include tests:
-- Unit tests for functions/methods
-- Integration tests for complex workflows
-- Edge case coverage
-
-### Documentation Required
-When enabled, all new functionality must include:
-- Function/method docstrings
-- Usage examples
-- Updated README sections if applicable
-
-### Linting Required
-When enabled, code must pass:
-- ESLint checks (JavaScript/TypeScript)
-- Prettier formatting
-- Project-specific linting rules
-
-### Type Checking Required
-When enabled, code must pass:
-- TypeScript type checking
-- JSDoc type annotations (JavaScript)
-- No `any` types without justification
-
-## Workflow Automation
-
-taskwerk can automate version management and git operations based on workflow rules:
-
-### Version Bumping
-- **Automatic**: Version is bumped automatically when tasks are completed in AI mode
-- **Types**: patch (0.1.0 → 0.1.1), minor (0.1.0 → 0.2.0), major (0.1.0 → 1.0.0)
-- **Manual Override**: Use `--version-impact` flag to override automatic detection
-
-### Auto-Staging
-- **Automatic**: Changed files are automatically staged for commit
-- **Scope**: Includes modified files and new untracked files
-- **Manual Override**: Use `--auto-stage` flag to force staging
-
-### Auto-Commit
-- **Automatic**: Creates commits automatically after task completion
-- **Message Format**: Follows conventional commit format with task details
-- **Manual Override**: Use `--auto-commit` flag to force commits
-
-### Commit Message Format
-All commits must follow this format:
-```
-Subject line (imperative mood, < 72 chars)
-
-Optional body explaining what and why vs. how.
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: manu chatterjee <deftio@deftio.com>
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-**Required elements:**
-- Clear, descriptive subject line
-- Standard attribution: "🤖 Generated with [Claude Code](https://claude.ai/code)"
-- Co-authored tags for all contributors: manu chatterjee <deftio@deftio.com> and Claude <noreply@anthropic.com>
-
-### Integration Commands
-```bash
-# Complete task with full automation
-taskwerk complete TASK-001 --auto-stage --auto-commit
-
-# Complete with specific version bump
-taskwerk complete TASK-001 --version-impact minor --auto-commit
-
-# Force automation in human mode
-taskwerk complete TASK-001 --auto-stage --auto-commit --force
-```
-
----
-
-*This file was generated by taskwerk. You can edit it manually or use `taskwerk rules` to modify settings.*
+Remember: The implementation guide has most answers. Check there first!

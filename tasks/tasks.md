@@ -1,348 +1,394 @@
-<!-- TaskWerk v2.0 Format -->
+# Taskwerk v3 Implementation Tasks
+
+## Active Tasks
 
 ---
-id: TASK-080
-description: Finalize v2.0 release preparation
-status: completed
+id: TASK-001
+description: Set up v3 project structure
+status: todo
 priority: high
-category: release
-assignee: @claude
-estimated: 4h
-created: 2025-06-30T00:00:00.000Z
-completed: 2025-06-30T01:30:00.000Z
-dependencies: []
-subtasks:
-  - id: TASK-080.1
-    description: Update version to 0.2.0 across codebase
-    status: completed
-    assignee: @claude
-  - id: TASK-080.2
-    description: Update README.md to reflect v2.0 features
-    status: completed
-    assignee: @claude
-  - id: TASK-080.3
-    description: Create comprehensive user documentation
-    status: completed
-    assignee: @claude
-  - id: TASK-080.4
-    description: Create developer documentation
-    status: completed
-    assignee: @claude
-  - id: TASK-080.5
-    description: Validate all tests pass
-    status: completed
-    assignee: @claude
-timeline:
-  - timestamp: 2025-06-30T00:00:00.000Z
-    action: created
-    user: @claude
-    note: Starting v2.0 release preparation
-  - timestamp: 2025-06-30T00:15:00.000Z
-    action: started
-    user: @claude
-  - timestamp: 2025-06-30T01:30:00.000Z
-    action: completed
-    user: @claude
-    note: All v2.0 release tasks completed successfully
-files:
-  - package.json
-  - src/cli.js
-  - README.md
-  - docs/user-guide.md
-  - docs/developer-guide.md
-  - docs/taskwerk-flow.md
-git:
-  commits: []
-  branch: main
-  pullRequest: null
----
-
-# Finalize v2.0 release preparation
-
-Complete all remaining tasks for TaskWerk v2.0 release, including documentation updates, version bumps, and validation testing.
-
-## Acceptance Criteria
-- [x] Version updated to 0.2.0 in all relevant files
-- [x] README.md reflects v2.0 YAML frontmatter architecture
-- [x] User guide created with comprehensive v2.0 examples
-- [x] Developer guide created with architecture details
-- [x] All existing documentation updated to v2.0
-- [x] Full test suite passes (331 tests passing)
-- [x] TaskWerk project itself uses v2.0 format
-
----
-id: TASK-078
-description: Implement comprehensive v2.0 architecture with YAML frontmatter
-status: completed
-priority: high
-category: features
-assignee: @claude
-estimated: 8h
-created: 2025-06-29T10:00:00.000Z
-completed: 2025-06-30T00:00:00.000Z
-dependencies: []
-subtasks:
-  - id: TASK-078.1
-    description: Create YamlTaskParser for dual v1/v2 support
-    status: completed
-    assignee: @claude
-  - id: TASK-078.2
-    description: Implement TaskSchema with validation
-    status: completed
-    assignee: @claude
-  - id: TASK-078.3
-    description: Create MigrationUtil for v1 to v2 conversion
-    status: completed
-    assignee: @claude
-  - id: TASK-078.4
-    description: Build V2TaskManager with enhanced features
-    status: completed
-    assignee: @claude
-  - id: TASK-078.5
-    description: Create comprehensive test suite (109+ tests)
-    status: completed
-    assignee: @claude
-timeline:
-  - timestamp: 2025-06-29T10:00:00.000Z
-    action: created
-    user: @claude
-    note: Based on Fred's YAML frontmatter feedback
-  - timestamp: 2025-06-29T10:30:00.000Z
-    action: started
-    user: @claude
-  - timestamp: 2025-06-30T00:00:00.000Z
-    action: completed
-    user: @claude
-    note: Complete v2.0 architecture implemented with 109 passing tests
-files:
-  - src/core/yaml-task-parser.js
-  - src/core/task-schema.js
-  - src/core/migration-util.js
-  - src/core/v2-task-manager.js
-  - tests/core/yaml-task-parser.test.js
-  - tests/core/task-schema.test.js
-  - tests/core/migration-util.test.js
-  - tests/core/v2-task-manager.test.js
-git:
-  commits: []
-  branch: main
-  pullRequest: null
----
-
-# Implement comprehensive v2.0 architecture with YAML frontmatter
-
-Design and implement the complete v2.0 architecture based on Fred's feedback about YAML frontmatter approach. This includes structured metadata with human-readable markdown content, enhanced task schema, and backward compatibility.
-
-## Technical Requirements
-- YAML frontmatter for structured task metadata
-- Markdown content for human-readable descriptions
-- Automatic migration from v1 format
-- Enhanced features: dependencies, subtasks, timeline tracking, assignees
-- Comprehensive validation and error handling
-- Full test coverage for all new components
-
-## Implementation Details
-- **YamlTaskParser**: Handles both v1 and v2 formats with error recovery
-- **TaskSchema**: Defines and validates v2 task structure
-- **MigrationUtil**: Seamless v1 to v2 format conversion
-- **V2TaskManager**: Enhanced task manager supporting all v2 features
-
----
-id: TASK-033
-description: Build single minified JS distribution for TaskWerk
-status: completed
-priority: high
-category: build
-assignee: @claude
-estimated: 2h
-created: 2025-06-27T10:00:00.000Z
-completed: 2025-06-30T01:30:00.000Z
+category: infrastructure
+assignee: @ai
+estimated: 1h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
 dependencies: []
 subtasks: []
-timeline:
-  - timestamp: 2025-06-27T10:00:00.000Z
-    action: created
-    user: @claude
-  - timestamp: 2025-06-30T01:00:00.000Z
-    action: started
-    user: @claude
-  - timestamp: 2025-06-30T01:30:00.000Z
-    action: completed
-    user: @claude
-    note: Minified bundle built and validated with v0.2.0
-files:
-  - scripts/build-minified.js
-  - dist/taskwerk.min.js
-  - tests/dist/about-minified.test.js
-git:
-  commits: []
-  branch: main
-  pullRequest: null
 ---
 
-# Build single minified JS distribution for TaskWerk
+# Set up v3 project structure
 
-Create a build system that bundles TaskWerk into a single minified JavaScript file for easy distribution and standalone execution.
+## Description
+Create the foundational directory structure for Taskwerk v3 following the architecture defined in the implementation guide.
 
 ## Acceptance Criteria
-- [x] Single minified bundle created with esbuild
-- [x] Bundle includes all dependencies
-- [x] Executable permissions and shebang
-- [x] Version information correctly embedded
-- [x] Tests validate bundle functionality
+- [ ] Create src/ directory with proper subdirectories
+- [ ] Create tests/ directory mirroring src/ structure
+- [ ] Set up initial index files
+- [ ] Create .gitignore for node_modules and .taskwerk/
+
+## Technical Notes
+Follow the structure from v3-implementation-guide.md:
+- src/storage/ - Database layer
+- src/core/ - Business logic
+- src/cli/ - Command interface
+- src/ai/ - AI module (optional)
 
 ---
-id: TASK-081
-description: Plan TaskWerk v2.1 roadmap with community feedback integration
+id: TASK-002
+description: Implement SQLite database layer
+status: todo
+priority: high
+category: core
+assignee: @ai
+estimated: 3h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-001]
+subtasks:
+  - id: TASK-002.1
+    description: Create database connection module
+    status: todo
+  - id: TASK-002.2
+    description: Implement schema from implementation guide
+    status: todo
+  - id: TASK-002.3
+    description: Add migration system
+    status: todo
+---
+
+# Implement SQLite database layer
+
+## Description
+Set up the SQLite database with schema from v3-implementation-guide.md, including all tables, indexes, and triggers.
+
+## Acceptance Criteria
+- [ ] Database initialization works
+- [ ] All tables created with proper constraints
+- [ ] Indexes for performance
+- [ ] Update trigger for timestamps
+- [ ] Migration system for future updates
+
+## Technical Notes
+Use better-sqlite3 which is already in dependencies. Schema is fully defined in the implementation guide.
+
+---
+id: TASK-003
+description: Create core API layer
+status: todo
+priority: high
+category: core
+assignee: @ai
+estimated: 4h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-002]
+subtasks:
+  - id: TASK-003.1
+    description: Implement TaskwerkAPI class
+    status: todo
+  - id: TASK-003.2
+    description: Create task service methods
+    status: todo
+  - id: TASK-003.3
+    description: Implement note service (dual approach)
+    status: todo
+  - id: TASK-003.4
+    description: Add ID generator (TASK-XXX format)
+    status: todo
+---
+
+# Create core API layer
+
+## Description
+Implement the core API that all interfaces (CLI, future MCP) will use. This is the business logic layer.
+
+## Acceptance Criteria
+- [ ] TaskwerkAPI class with all CRUD methods
+- [ ] Note management with dual approach (field + table)
+- [ ] ID generation for TASK-XXX format
+- [ ] Query service for complex filters
+- [ ] Proper error handling with custom errors
+
+## Technical Notes
+Follow the API design from v3-implementation-guide.md. Ensure all methods return structured data, not formatted strings.
+
+---
+id: TASK-004
+description: Implement CLI with subcommand structure
+status: todo
+priority: high
+category: interface
+assignee: @ai
+estimated: 4h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-003]
+subtasks:
+  - id: TASK-004.1
+    description: Set up commander.js with subcommands
+    status: todo
+  - id: TASK-004.2
+    description: Implement 'init' command
+    status: todo
+  - id: TASK-004.3
+    description: Implement 'task add' command
+    status: todo
+  - id: TASK-004.4
+    description: Implement 'task list' command
+    status: todo
+  - id: TASK-004.5
+    description: Implement 'task show' command
+    status: todo
+  - id: TASK-004.6
+    description: Implement 'task update' command
+    status: todo
+---
+
+# Implement CLI with subcommand structure
+
+## Description
+Create the CLI interface using commander.js with the new subcommand structure (task add, task list, etc).
+
+## Acceptance Criteria
+- [ ] Main CLI entry point works
+- [ ] Subcommand structure implemented
+- [ ] Basic task CRUD commands working
+- [ ] Proper help text for all commands
+- [ ] Error messages are user-friendly
+
+## Technical Notes
+Use commander.js (already in dependencies). Follow command structure from v3-cli-reference.md.
+
+---
+id: TASK-005
+description: Add state transition logic
 status: todo
 priority: medium
-category: planning
-assignee: @team
+category: core
+assignee: @ai
+estimated: 2h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-004]
+subtasks: []
+---
+
+# Add state transition logic
+
+## Description
+Implement the state machine for task status transitions with validation.
+
+## Acceptance Criteria
+- [ ] Valid transitions enforced
+- [ ] Invalid transitions return clear errors
+- [ ] State change side effects implemented
+- [ ] History tracking for state changes
+
+## State Rules
+```
+todo → active, blocked, completed, archived
+active → paused, blocked, completed
+paused → active, blocked, completed
+blocked → todo, active, completed
+completed → archived
+archived → (terminal state)
+```
+
+---
+id: TASK-006
+description: Implement notes system with YAML frontmatter
+status: todo
+priority: medium
+category: core
+assignee: @ai
 estimated: 3h
-created: 2025-06-30T01:32:00.000Z
-dependencies: [TASK-080]
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-004]
 subtasks:
-  - id: TASK-081.1
-    description: Analyze user feedback from v2.0 release
+  - id: TASK-006.1
+    description: YAML frontmatter parser
     status: todo
-    assignee: @team
-  - id: TASK-081.2
-    description: Prioritize feature requests and bug reports
+  - id: TASK-006.2
+    description: Note append logic
     status: todo
-    assignee: @team
-  - id: TASK-081.3
-    description: Define v2.1 scope and timeline
+  - id: TASK-006.3
+    description: Task notes table for events
     status: todo
-    assignee: @team
-timeline:
-  - timestamp: 2025-06-30T01:32:00.000Z
-    action: created
-    user: @claude
-    note: Next iteration planning after v2.0 release
-files: []
-git:
-  commits: []
-  branch: main
-  pullRequest: null
 ---
 
-# Plan TaskWerk v2.1 roadmap with community feedback integration
+# Implement notes system with YAML frontmatter
 
-After the successful v2.0 release, gather community feedback and plan the next iteration of TaskWerk with enhanced features and improvements based on real-world usage.
+## Description
+Create the dual-approach notes system: mutable notes field with YAML frontmatter + immutable task_notes table.
 
-## Potential v2.1 Features
-- Interactive CLI mode with syntax highlighting
-- Enhanced Git integration with pull request management
-- Team collaboration features
-- Plugin system for custom integrations
-- Performance optimizations for large task sets
+## Acceptance Criteria
+- [ ] Notes append to task.notes field
+- [ ] YAML frontmatter format working
+- [ ] Significant events create task_notes entries
+- [ ] Notes are parsed and displayed correctly
 
-## Research Areas
-- User workflow patterns and pain points
-- Integration opportunities with popular development tools
-- Advanced AI features for task automation
-- Mobile/web interface considerations
+## Format Example
+```markdown
+---
+created_at: 2024-01-15T10:00:00Z
+author: john
+type: progress
+---
+Found the bug in auth.js
+```
 
 ---
-id: TASK-082
-description: Create video tutorial series for TaskWerk v2.0
+id: TASK-007
+description: Add import/export functionality
+status: todo
+priority: medium
+category: features
+assignee: @ai
+estimated: 3h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-006]
+subtasks:
+  - id: TASK-007.1
+    description: Markdown export format
+    status: todo
+  - id: TASK-007.2
+    description: JSON export format
+    status: todo
+  - id: TASK-007.3
+    description: Import parser for both formats
+    status: todo
+  - id: TASK-007.4
+    description: Migration from v2 format
+    status: todo
+---
+
+# Add import/export functionality
+
+## Description
+Implement data import/export in both markdown and JSON formats for backups and migration.
+
+## Acceptance Criteria
+- [ ] Export to markdown preserves all data
+- [ ] Export to JSON is complete
+- [ ] Import handles both formats
+- [ ] V2 migration path works
+- [ ] IDs preserved where possible
+
+## Technical Notes
+Formats are defined in v3-implementation-guide.md. Use yaml package for parsing.
+
+---
+id: TASK-008
+description: Implement git integration
+status: todo
+priority: medium
+category: features
+assignee: @ai
+estimated: 2h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-004]
+subtasks:
+  - id: TASK-008.1
+    description: git branch command
+    status: todo
+  - id: TASK-008.2
+    description: git commit with task context
+    status: todo
+---
+
+# Implement git integration
+
+## Description
+Add git commands that integrate with task context for branch creation and commits.
+
+## Acceptance Criteria
+- [ ] Can create branches from task IDs
+- [ ] Commit messages include task context
+- [ ] Branch names follow pattern
+- [ ] Git operations are safe
+
+## Technical Notes
+Can reuse some patterns from v2 git integration in archive.
+
+---
+id: TASK-009
+description: Add comprehensive test suite
+status: todo
+priority: high
+category: quality
+assignee: @ai
+estimated: 4h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-004]
+subtasks:
+  - id: TASK-009.1
+    description: Unit tests for API layer
+    status: todo
+  - id: TASK-009.2
+    description: Integration tests for CLI
+    status: todo
+  - id: TASK-009.3
+    description: Test coverage > 80%
+    status: todo
+---
+
+# Add comprehensive test suite
+
+## Description
+Create test suite for v3 implementation ensuring high quality and reliability.
+
+## Acceptance Criteria
+- [ ] Unit tests for all API methods
+- [ ] Integration tests for CLI commands
+- [ ] Test coverage > 80%
+- [ ] All tests pass
+- [ ] Tests are maintainable
+
+## Technical Notes
+Use Node.js built-in test runner. Follow test patterns from implementation guide.
+
+---
+id: TASK-010
+description: Create AI module with three modes
 status: todo
 priority: low
-category: docs
-assignee: @team
-estimated: 1w
-created: 2025-06-30T01:32:00.000Z
-dependencies: [TASK-080]
+category: features
+assignee: @ai
+estimated: 4h
+created: 2025-01-06T01:00:00.000Z
+updated: 2025-01-06T01:00:00.000Z
+dependencies: [TASK-004]
 subtasks:
-  - id: TASK-082.1
-    description: Script basic TaskWerk workflow tutorial
+  - id: TASK-010.1
+    description: Ask mode (read-only)
     status: todo
-    assignee: @team
-  - id: TASK-082.2
-    description: Record advanced features demonstration
+  - id: TASK-010.2
+    description: Agent mode (mutations)
     status: todo
-    assignee: @team
-  - id: TASK-082.3
-    description: Create team collaboration workflow example
+  - id: TASK-010.3
+    description: Raw mode (pipeline)
     status: todo
-    assignee: @team
-timeline:
-  - timestamp: 2025-06-30T01:32:00.000Z
-    action: created
-    user: @claude
-    note: Educational content for wider adoption
-files: []
-git:
-  commits: []
-  branch: main
-  pullRequest: null
+  - id: TASK-010.4
+    description: Natural language detection
+    status: todo
 ---
 
-# Create video tutorial series for TaskWerk v2.0
+# Create AI module with three modes
 
-Develop a comprehensive video tutorial series showcasing TaskWerk v2.0 capabilities, from basic usage to advanced team collaboration workflows.
+## Description
+Implement the optional AI module with ask, agent, and raw modes as designed.
 
-## Tutorial Topics
-1. **Getting Started**: Installation, initialization, first tasks
-2. **Advanced Features**: Dependencies, subtasks, timeline tracking
-3. **Git Integration**: Intelligent commits, branch management
-4. **Team Workflows**: Assignees, categories, collaboration patterns
-5. **AI Integration**: Natural language task management
-6. **Migration Guide**: Moving from other task management tools
+## Acceptance Criteria
+- [ ] Ask mode handles read-only queries
+- [ ] Agent mode can modify tasks
+- [ ] Raw mode works as text pipeline
+- [ ] Natural language detection works
+- [ ] AI config separate from core
 
-## Target Audience
-- Individual developers looking for better task management
-- Development teams seeking collaboration tools
-- AI-assisted development workflows
-- Open source project maintainers
-
----
-id: TASK-063
-description: Remove confusing human vs AI mode distinction - implement unified workflow
-status: completed
-priority: high
-category: refactor
-assignee: @claude
-estimated: 3h
-created: 2025-06-25T10:00:00.000Z
-completed: 2025-06-29T15:00:00.000Z
-dependencies: []
-subtasks: []
-timeline:
-  - timestamp: 2025-06-25T10:00:00.000Z
-    action: created
-    user: @claude
-  - timestamp: 2025-06-29T14:00:00.000Z
-    action: started
-    user: @claude
-  - timestamp: 2025-06-29T15:00:00.000Z
-    action: completed
-    user: @claude
-    note: Unified workflow implemented, mode detection simplified
-files:
-  - src/core/task-rules.js
-  - src/commands/complete.js
-  - tests/commands/complete.test.js
-git:
-  commits: []
-  branch: main
-  pullRequest: null
----
-
-# Remove confusing human vs AI mode distinction - implement unified workflow
-
-Simplify TaskWerk's workflow by removing the confusing distinction between "human mode" and "AI mode". Implement a unified workflow that works consistently for all users while maintaining intelligent features.
-
-## Changes Made
-- Simplified workflow rules to focus on task completion quality
-- Removed automatic mode detection based on environment
-- Unified command behavior across all usage contexts
-- Maintained AI-powered features as optional enhancements
-- Updated all tests to reflect simplified behavior
-
-## Benefits
-- Clearer, more predictable user experience
-- Reduced complexity in codebase
-- Better documentation and onboarding
-- Consistent behavior regardless of how TaskWerk is used
-- [ ] **TASK-013** fix repo in package.json to match taiso ai
+## Technical Notes
+This is optional module in src/ai/. Can be implemented after core is working.

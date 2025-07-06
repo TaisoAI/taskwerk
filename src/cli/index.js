@@ -66,11 +66,21 @@ program.exitOverride();
 try {
   await program.parseAsync(process.argv);
 } catch (error) {
-  console.error(`Error: ${error.message}`);
-  process.exit(1);
+  // Handle --version and --help exits gracefully
+  if (error.code === 'commander.version') {
+    // Version is already displayed by commander
+    process.exit(0);
+  } else if (error.code === 'commander.help') {
+    // Help is already displayed by commander
+    process.exit(0);
+  } else {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
+  }
 }
 
 // Show help if no command provided
 if (!process.argv.slice(2).length) {
   program.outputHelp();
+  process.exit(0);
 }

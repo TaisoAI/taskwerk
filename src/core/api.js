@@ -9,6 +9,7 @@ import TaskService from './services/task-service.js';
 import NoteService from './services/note-service.js';
 import QueryService from './services/query-service.js';
 import ImportExportService from './services/import-export-service.js';
+import GitService from './services/git-service.js';
 
 /**
  * Main API class for Taskwerk
@@ -34,6 +35,7 @@ export class TaskwerkAPI {
     this.notes = new NoteService(this.db);
     this.query = new QueryService(this.db);
     this.importExport = new ImportExportService(this.db);
+    this.git = new GitService({ cwd: this.options.projectRoot });
   }
   
   /**
@@ -127,5 +129,31 @@ export class TaskwerkAPI {
 
   async importFromFile(filePath, options) {
     return this.importExport.importFromFile(filePath, options);
+  }
+
+  // Git operations
+  async createTaskBranch(taskId, options) {
+    return this.git.createTaskBranch(taskId, this.tasks, options);
+  }
+
+  async commitWithTask(taskId, options) {
+    return this.git.commitWithTask(taskId, this.tasks, options);
+  }
+
+  async syncGitBranches(options) {
+    return this.git.syncTaskBranches(this.tasks, options);
+  }
+
+  // Git utilities
+  isGitRepository() {
+    return this.git.isGitRepository();
+  }
+
+  getGitStatus() {
+    return this.git.getStatus();
+  }
+
+  getCurrentBranch() {
+    return this.git.getCurrentBranch();
   }
 }

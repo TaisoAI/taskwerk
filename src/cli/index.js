@@ -36,6 +36,7 @@ import { makeTaskCommand } from './commands/task/index.js';
 import { makeExportCommand } from './commands/export.js';
 import { makeImportCommand } from './commands/import.js';
 import { makeBackupCommand } from './commands/backup.js';
+import { createGitCommand } from './commands/git.js';
 
 // Add subcommands
 program.addCommand(makeSystemCommand());
@@ -43,6 +44,7 @@ program.addCommand(makeTaskCommand());
 program.addCommand(makeExportCommand());
 program.addCommand(makeImportCommand());
 program.addCommand(makeBackupCommand());
+program.addCommand(createGitCommand());
 
 // Also add init, status, and about as top-level commands for convenience
 program.addCommand(makeInitCommand());

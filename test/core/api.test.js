@@ -148,6 +148,83 @@ describe('TaskwerkAPI', () => {
     });
   });
 
+  describe('Git Operations', () => {
+    let api;
+    let mockGit;
+
+    beforeEach(() => {
+      mockGit = {
+        createTaskBranch: vi.fn(),
+        commitWithTask: vi.fn(),
+        syncTaskBranches: vi.fn(),
+        isGitRepository: vi.fn(),
+        getStatus: vi.fn(),
+        getCurrentBranch: vi.fn()
+      };
+      
+      api = new TaskwerkAPI();
+      api.git = mockGit;
+    });
+
+    it('should delegate createTaskBranch to GitService', async () => {
+      const mockResult = { created: true, branch: 'feature/TASK-001' };
+      mockGit.createTaskBranch.mockResolvedValue(mockResult);
+      
+      const result = await api.createTaskBranch('TASK-001', { prefix: 'feature/' });
+      
+      expect(mockGit.createTaskBranch).toHaveBeenCalledWith('TASK-001', api.tasks, { prefix: 'feature/' });
+      expect(result).toBe(mockResult);
+    });
+
+    it('should delegate commitWithTask to GitService', async () => {
+      const mockResult = { committed: true, message: 'TASK-001: Update files' };
+      mockGit.commitWithTask.mockResolvedValue(mockResult);
+      
+      const result = await api.commitWithTask('TASK-001', { message: 'Custom message' });
+      
+      expect(mockGit.commitWithTask).toHaveBeenCalledWith('TASK-001', api.tasks, { message: 'Custom message' });
+      expect(result).toBe(mockResult);
+    });
+
+    it('should delegate syncGitBranches to GitService', async () => {
+      const mockResult = { updated: [], pruned: [], errors: [] };
+      mockGit.syncTaskBranches.mockResolvedValue(mockResult);
+      
+      const result = await api.syncGitBranches({ prune: true });
+      
+      expect(mockGit.syncTaskBranches).toHaveBeenCalledWith(api.tasks, { prune: true });
+      expect(result).toBe(mockResult);
+    });
+
+    it('should delegate isGitRepository to GitService', () => {
+      mockGit.isGitRepository.mockReturnValue(true);
+      
+      const result = api.isGitRepository();
+      
+      expect(mockGit.isGitRepository).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('should delegate getGitStatus to GitService', () => {
+      const mockStatus = [{ status: 'M', file: 'test.js' }];
+      mockGit.getStatus.mockReturnValue(mockStatus);
+      
+      const result = api.getGitStatus();
+      
+      expect(mockGit.getStatus).toHaveBeenCalled();
+      expect(result).toBe(mockStatus);
+    });
+
+    it('should delegate getCurrentBranch to GitService', () => {
+      mockGit.getCurrentBranch.mockReturnValue('main');
+      
+      const result = api.getCurrentBranch();
+      
+      expect(mockGit.getCurrentBranch).toHaveBeenCalled();
+      expect(result).toBe('main');
+    });
+  });
+
   describe('Return Value Propagation', () => {
     let api;
 

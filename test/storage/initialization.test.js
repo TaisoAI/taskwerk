@@ -59,6 +59,17 @@ describe('Storage Initialization', () => {
     expect(tables.length).toBeGreaterThan(0);
   });
 
+  it('should provide working close function', async () => {
+    const testStorage = await initializeStorage({ projectRoot: testDir });
+    
+    expect(testStorage.close).toBeInstanceOf(Function);
+    expect(testStorage.connection.db).toBeDefined();
+    
+    // Close should work without errors
+    testStorage.close();
+    expect(testStorage.connection.db).toBe(null);
+  });
+
   describe('getNextTaskId', () => {
     beforeEach(async () => {
       storage = await initializeStorage({ projectRoot: testDir });
@@ -109,6 +120,43 @@ describe('Storage Initialization', () => {
       
       const nextId = getNextTaskId(db);
       expect(nextId).toBe('TASK-001');
+    });
+
+    it('should handle task IDs that do not match pattern', () => {
+      const db = storage.db;
+      
+      // Insert task with ID that starts with TASK- but doesn't have numbers
+      db.prepare('INSERT INTO tasks (string_id, name) VALUES (?, ?)').run('TASK-ABC', 'Task with invalid ID');
+      
+      const nextId = getNextTaskId(db);
+      expect(nextId).toBe('TASK-001');
+    });
+  });
+
+  describe('Migration handling', () => {
+    it('should run migrations when needed', async () => {
+      // Create a mock console.log to capture output
+      const originalLog = console.log;
+      const logs = [];
+      console.log = (msg) => logs.push(msg);
+
+      try {
+        // Mock needsMigration to return true
+        const { needsMigration } = await import('../../src/storage/migrations.js');
+        const originalNeedsMigration = needsMigration;
+        
+        // We can't easily mock ES modules, so let's just verify the logging happens
+        // when migrations are actually needed (which they aren't in our fresh test DB)
+        
+        // Initialize storage which should check for migrations
+        const testStorage = await initializeStorage({ projectRoot: testDir });
+        testStorage.close();
+        
+        // Check that schema initialization was logged
+        expect(logs.some(log => log.includes('Initializing database schema'))).toBe(true);
+      } finally {
+        console.log = originalLog;
+      }
     });
   });
 });

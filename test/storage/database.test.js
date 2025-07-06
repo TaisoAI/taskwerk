@@ -4,7 +4,7 @@
  * @description Tests for database connection and initialization
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DatabaseConnection } from '../../src/storage/database.js';
 import { initializeSchema, getSchemaVersion } from '../../src/storage/schema.js';
 import { join } from 'path';
@@ -73,6 +73,28 @@ describe('Database', () => {
       const db = dbConnection.connect();
       initializeSchema(db);
       expect(dbConnection.isInitialized()).toBe(true);
+    });
+
+    it('should handle errors in isInitialized gracefully', () => {
+      dbConnection = new DatabaseConnection({ projectRoot: testDir });
+      // Mock a database error
+      dbConnection.db = {
+        prepare: () => {
+          throw new Error('Database error');
+        },
+        close: vi.fn() // Add mock close method
+      };
+      
+      expect(dbConnection.isInitialized()).toBe(false);
+    });
+
+    it('should get instance lazily', () => {
+      dbConnection = new DatabaseConnection({ projectRoot: testDir });
+      
+      // getInstance should connect if not already connected
+      const instance = dbConnection.getInstance();
+      expect(instance).toBeDefined();
+      expect(dbConnection.db).toBe(instance);
     });
   });
 

@@ -63,7 +63,7 @@ export class TaskwerkAPI {
   }
 
   async deleteTask(id, force = false) {
-    return this.tasks.deleteTask(id);
+    return this.tasks.deleteTask(id, force);
   }
 
   async listTasks(filters) {

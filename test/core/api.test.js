@@ -71,11 +71,18 @@ describe('TaskwerkAPI', () => {
       expect(api.tasks.updateTask).toHaveBeenCalledWith('TASK-001', updates);
     });
 
-    it('should delegate deleteTask to TaskService', async () => {
+    it('should delegate deleteTask to TaskService with force parameter', async () => {
       api.tasks.deleteTask = vi.fn();
       
       await api.deleteTask('TASK-001', true);
-      expect(api.tasks.deleteTask).toHaveBeenCalledWith('TASK-001');
+      expect(api.tasks.deleteTask).toHaveBeenCalledWith('TASK-001', true);
+    });
+
+    it('should delegate deleteTask with default force=false', async () => {
+      api.tasks.deleteTask = vi.fn();
+      
+      await api.deleteTask('TASK-001');
+      expect(api.tasks.deleteTask).toHaveBeenCalledWith('TASK-001', false);
     });
 
     it('should delegate listTasks to TaskService', async () => {
@@ -138,6 +145,148 @@ describe('TaskwerkAPI', () => {
       
       await api.importTasks(data);
       expect(api.importExport.importTasks).toHaveBeenCalledWith(data);
+    });
+  });
+
+  describe('Return Value Propagation', () => {
+    let api;
+
+    beforeEach(() => {
+      api = new TaskwerkAPI();
+    });
+
+    it('should return value from createTask', async () => {
+      const mockTask = { id: 1, name: 'Test' };
+      api.tasks.createTask = vi.fn().mockResolvedValue(mockTask);
+      
+      const result = await api.createTask({ name: 'Test' });
+      expect(result).toBe(mockTask);
+    });
+
+    it('should return value from getTask', async () => {
+      const mockTask = { id: 1, name: 'Test' };
+      api.tasks.getTask = vi.fn().mockResolvedValue(mockTask);
+      
+      const result = await api.getTask('TASK-001');
+      expect(result).toBe(mockTask);
+    });
+
+    it('should return value from updateTask', async () => {
+      const mockTask = { id: 1, name: 'Updated' };
+      api.tasks.updateTask = vi.fn().mockResolvedValue(mockTask);
+      
+      const result = await api.updateTask('TASK-001', { name: 'Updated' });
+      expect(result).toBe(mockTask);
+    });
+
+    it('should return value from deleteTask', async () => {
+      api.tasks.deleteTask = vi.fn().mockResolvedValue(undefined);
+      
+      const result = await api.deleteTask('TASK-001');
+      expect(result).toBeUndefined();
+    });
+
+    it('should return value from listTasks', async () => {
+      const mockTasks = [{ id: 1 }, { id: 2 }];
+      api.tasks.listTasks = vi.fn().mockResolvedValue(mockTasks);
+      
+      const result = await api.listTasks({});
+      expect(result).toBe(mockTasks);
+    });
+
+    it('should return value from addNote', async () => {
+      api.notes.addNote = vi.fn().mockResolvedValue(undefined);
+      
+      const result = await api.addNote('TASK-001', 'Note');
+      expect(result).toBeUndefined();
+    });
+
+    it('should return value from getTaskNotes', async () => {
+      const mockNotes = ['Note 1', 'Note 2'];
+      api.notes.getTaskNotes = vi.fn().mockResolvedValue(mockNotes);
+      
+      const result = await api.getTaskNotes('TASK-001');
+      expect(result).toBe(mockNotes);
+    });
+
+    it('should return value from search', async () => {
+      const mockResults = [{ id: 1 }];
+      api.query.search = vi.fn().mockResolvedValue(mockResults);
+      
+      const result = await api.search('test');
+      expect(result).toBe(mockResults);
+    });
+
+    it('should return value from getTasksByStatus', async () => {
+      const mockTasks = [{ id: 1, status: 'active' }];
+      api.query.getTasksByStatus = vi.fn().mockResolvedValue(mockTasks);
+      
+      const result = await api.getTasksByStatus('active');
+      expect(result).toBe(mockTasks);
+    });
+
+    it('should return value from getTasksByDate', async () => {
+      const mockTasks = [{ id: 1 }];
+      api.query.getTasksByDate = vi.fn().mockResolvedValue(mockTasks);
+      
+      const result = await api.getTasksByDate({ after: '2024-01-01' });
+      expect(result).toBe(mockTasks);
+    });
+
+    it('should return value from exportTasks', async () => {
+      const mockExport = { tasks: [] };
+      api.importExport.exportTasks = vi.fn().mockResolvedValue(mockExport);
+      
+      const result = await api.exportTasks({});
+      expect(result).toBe(mockExport);
+    });
+
+    it('should return value from importTasks', async () => {
+      const mockResult = { imported: 5 };
+      api.importExport.importTasks = vi.fn().mockResolvedValue(mockResult);
+      
+      const result = await api.importTasks({ tasks: [] });
+      expect(result).toBe(mockResult);
+    });
+  });
+
+  describe('Error Propagation', () => {
+    let api;
+
+    beforeEach(() => {
+      api = new TaskwerkAPI();
+    });
+
+    it('should propagate errors from service methods', async () => {
+      const error = new Error('Service error');
+      api.tasks.createTask = vi.fn().mockRejectedValue(error);
+      
+      await expect(api.createTask({ name: 'Test' })).rejects.toThrow('Service error');
+    });
+  });
+
+  describe('Service Initialization', () => {
+    it('should initialize all services with null database', () => {
+      const api = new TaskwerkAPI();
+      
+      expect(api.tasks).toBeDefined();
+      expect(api.tasks.db).toBe(null);
+      expect(api.notes).toBeDefined();
+      expect(api.notes.db).toBe(null);
+      expect(api.query).toBeDefined();
+      expect(api.query.db).toBe(null);
+      expect(api.importExport).toBeDefined();
+      expect(api.importExport.db).toBe(null);
+    });
+
+    it('should initialize all services with provided database', () => {
+      const mockDb = { prepare: vi.fn() };
+      const api = new TaskwerkAPI({ database: mockDb });
+      
+      expect(api.tasks.db).toBe(mockDb);
+      expect(api.notes.db).toBe(mockDb);
+      expect(api.query.db).toBe(mockDb);
+      expect(api.importExport.db).toBe(mockDb);
     });
   });
 });

@@ -144,7 +144,7 @@ describe('TaskwerkAPI', () => {
       api.importExport.importTasks = vi.fn();
       
       await api.importTasks(data);
-      expect(api.importExport.importTasks).toHaveBeenCalledWith(data);
+      expect(api.importExport.importTasks).toHaveBeenCalledWith(data, undefined);
     });
   });
 

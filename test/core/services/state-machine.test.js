@@ -63,7 +63,7 @@ describe('StateMachine', () => {
 
     beforeEach(async () => {
       task = await taskService.createTask({
-        name: 'Test task',
+        name: 'Test task ' + Date.now(),
         status: 'todo'
       });
     });
@@ -151,19 +151,20 @@ describe('StateMachine', () => {
     let parent, child1, child2;
 
     beforeEach(async () => {
+      const timestamp = Date.now();
       parent = await taskService.createTask({
-        name: 'Parent task',
+        name: 'Parent task ' + timestamp,
         status: 'active'
       });
       
       child1 = await taskService.createTask({
-        name: 'Child 1',
+        name: 'Child 1 ' + timestamp,
         status: 'active',
         parent_id: parent.id
       });
       
       child2 = await taskService.createTask({
-        name: 'Child 2',
+        name: 'Child 2 ' + timestamp,
         status: 'todo',
         parent_id: parent.id
       });
@@ -215,7 +216,7 @@ describe('StateMachine', () => {
   describe('getTaskState', () => {
     it('should return current state info', async () => {
       const task = await taskService.createTask({
-        name: 'Test task',
+        name: 'Test task ' + Date.now(),
         status: 'active'
       });
       
@@ -228,7 +229,7 @@ describe('StateMachine', () => {
 
     it('should identify terminal states', async () => {
       const task = await taskService.createTask({
-        name: 'Test task',
+        name: 'Test task ' + Date.now(),
         status: 'completed'
       });
       
@@ -241,13 +242,14 @@ describe('StateMachine', () => {
 
   describe('validateBulkTransitions', () => {
     it('should validate multiple transitions', async () => {
-      const task1 = await taskService.createTask({ name: 'Task 1', status: 'todo' });
-      const task2 = await taskService.createTask({ name: 'Task 2', status: 'active' });
+      const timestamp = Date.now();
+      const task1 = await taskService.createTask({ name: 'Task 1 ' + timestamp, status: 'todo' });
+      const task2 = await taskService.createTask({ name: 'Task 2 ' + timestamp, status: 'active' });
       
       const result = await stateMachine.validateBulkTransitions([
         { taskId: task1.id, newStatus: 'active' },
         { taskId: task2.id, newStatus: 'completed' },
-        { taskId: 999, newStatus: 'active' }
+        { taskId: 999999, newStatus: 'active' }
       ]);
       
       expect(result.valid).toBe(false);
@@ -268,8 +270,8 @@ describe('StateMachine', () => {
 
     it('should handle non-existent task', async () => {
       await expect(
-        stateMachine.transitionTask(999, 'active')
-      ).rejects.toThrow('Task not found: 999');
+        stateMachine.transitionTask(999999, 'active')
+      ).rejects.toThrow('Task not found: 999999');
     });
   });
 });

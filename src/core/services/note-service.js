@@ -102,13 +102,14 @@ export default class NoteService {
 
     // Insert into task_notes table
     const insertStmt = this.db.prepare(`
-      INSERT INTO task_notes (task_id, content, created_by, note_type)
-      VALUES (@task_id, @content, @created_by, @note_type)
+      INSERT INTO task_notes (task_id, content, created_at, created_by, note_type)
+      VALUES (@task_id, @content, @created_at, @created_by, @note_type)
     `);
     
     const info = insertStmt.run({
       task_id: task.id,
       content: formattedNote,
+      created_at: metadata.created_at,
       created_by: metadata.created_by,
       note_type: metadata.type
     });
@@ -415,8 +416,8 @@ export default class NoteService {
     };
 
     for (const row of results) {
-      stats.total = row.total;
-      stats.tasks_with_notes = row.tasks_with_notes;
+      stats.total += row.count_by_type;  // Sum up all counts
+      stats.tasks_with_notes = Math.max(stats.tasks_with_notes, row.tasks_with_notes);
       stats.by_type[row.note_type] = row.count_by_type;
     }
 

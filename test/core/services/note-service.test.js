@@ -164,27 +164,38 @@ Note content`;
 
     it('should handle non-existent task', async () => {
       await expect(
-        noteService.addNote('TASK-999', 'Note')
+        noteService.addNote('TASK-NONEXISTENT', 'Note')
       ).rejects.toThrow('Task not found');
     });
   });
 
   describe('getTaskNotes', () => {
     beforeEach(async () => {
-      // Add various notes
+      // Add various notes with explicit timestamps to ensure order
+      const baseTime = new Date();
+      
       await noteService.addNote(testTask.string_id, {
         content: 'Comment 1',
-        metadata: { type: NoteType.COMMENT }
+        metadata: { 
+          type: NoteType.COMMENT,
+          created_at: new Date(baseTime.getTime() - 2000).toISOString() // 2 seconds ago
+        }
       });
       
       await noteService.addNote(testTask.string_id, {
         content: 'Plan note',
-        metadata: { type: NoteType.PLAN }
+        metadata: { 
+          type: NoteType.PLAN,
+          created_at: new Date(baseTime.getTime() - 1000).toISOString() // 1 second ago
+        }
       });
       
       await noteService.addNote(testTask.string_id, {
         content: 'Update note',
-        metadata: { type: NoteType.UPDATE }
+        metadata: { 
+          type: NoteType.UPDATE,
+          created_at: baseTime.toISOString() // now
+        }
       });
     });
 
@@ -224,16 +235,21 @@ Note content`;
       `);
       stmt.run(testTask.id, `---
 custom: value
-tags: [test, yaml]
+tags:
+  - test
+  - yaml
 ---
 Content with frontmatter`, NoteType.COMMENT);
 
       const notes = await noteService.getTaskNotes(testTask.string_id);
-      const lastNote = notes[notes.length - 1];
       
-      expect(lastNote.metadata.custom).toBe('value');
-      expect(lastNote.metadata.tags).toEqual(['test', 'yaml']);
-      expect(lastNote.content).toBe('Content with frontmatter');
+      // Find the note with frontmatter
+      const noteWithFrontmatter = notes.find(n => n.content === 'Content with frontmatter');
+      
+      expect(noteWithFrontmatter).toBeDefined();
+      expect(noteWithFrontmatter.metadata.custom).toBe('value');
+      expect(noteWithFrontmatter.metadata.tags).toEqual(['test', 'yaml']);
+      expect(noteWithFrontmatter.content).toBe('Content with frontmatter');
     });
   });
 
@@ -247,7 +263,7 @@ Content with frontmatter`, NoteType.COMMENT);
     });
 
     it('should return null for non-existent note', async () => {
-      const note = await noteService.getNote(999);
+      const note = await noteService.getNote(999999);
       expect(note).toBeNull();
     });
   });
@@ -291,7 +307,7 @@ Content with frontmatter`, NoteType.COMMENT);
 
     it('should handle non-existent note', async () => {
       await expect(
-        noteService.updateNote(999, 'Update')
+        noteService.updateNote(999999, 'Update')
       ).rejects.toThrow('Note not found');
     });
   });
@@ -322,36 +338,49 @@ Content with frontmatter`, NoteType.COMMENT);
 
     it('should handle non-existent note', async () => {
       await expect(
-        noteService.deleteNote(999)
+        noteService.deleteNote(999999)
       ).rejects.toThrow('Note not found');
     });
   });
 
   describe('searchNotes', () => {
+    let searchTask1;
+    let searchTask2;
+    
     beforeEach(async () => {
-      await noteService.addNote(testTask.string_id, 'Note about bugs');
-      await noteService.addNote(testTask.string_id, 'Feature implementation');
-      await noteService.addNote(testTask.string_id, 'Bug fix completed');
+      // Create tasks specifically for search tests with unique names
+      searchTask1 = await taskService.createTask({ 
+        name: 'Search test task 1 ' + Date.now() 
+      });
+      searchTask2 = await taskService.createTask({ 
+        name: 'Search test task 2 ' + Date.now() 
+      });
       
-      // Create another task with notes
-      const task2 = await taskService.createTask({ name: 'Another task' });
-      await noteService.addNote(task2.string_id, 'Another bug report');
+      await noteService.addNote(searchTask1.string_id, 'Note about bugs');
+      await noteService.addNote(searchTask1.string_id, 'Feature implementation');
+      await noteService.addNote(searchTask1.string_id, 'Bug fix completed');
+      await noteService.addNote(searchTask2.string_id, 'Another bug report');
     });
 
     it('should search notes by content', async () => {
       const results = await noteService.searchNotes('bug');
       
-      expect(results).toHaveLength(3);
-      expect(results.every(r => r.content.toLowerCase().includes('bug'))).toBe(true);
+      // Filter to only notes from our test tasks
+      const testResults = results.filter(r => 
+        r.task_id === searchTask1.id || r.task_id === searchTask2.id
+      );
+      
+      expect(testResults).toHaveLength(3);
+      expect(testResults.every(r => r.content.toLowerCase().includes('bug'))).toBe(true);
     });
 
     it('should filter by task', async () => {
       const results = await noteService.searchNotes('bug', {
-        taskId: testTask.string_id
+        taskId: searchTask1.string_id
       });
       
       expect(results).toHaveLength(2);
-      expect(results.every(r => r.task_id === testTask.id)).toBe(true);
+      expect(results.every(r => r.task_id === searchTask1.id)).toBe(true);
     });
 
     it('should limit results', async () => {

@@ -18,9 +18,9 @@
   },
   "scripts": {
     "start": "node src/cli/index.js",
-    "test": "node --test tests/**/*.test.js",
-    "test:coverage": "c8 node --test tests/**/*.test.js",
-    "test:watch": "node --test --watch tests/**/*.test.js",
+    "test": "vitest run test/ --pool=forks --poolOptions.forks.singleFork=true",
+    "test:coverage": "vitest run test/ --coverage --pool=forks --poolOptions.forks.singleFork=true",
+    "test:watch": "vitest test/",
     "test:vitest": "vitest run test/",
     "test:vitest:coverage": "vitest run test/ --coverage",
     "lint": "eslint src/ tests/",

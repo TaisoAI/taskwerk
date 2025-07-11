@@ -1,18 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskAddCommand } from '../../../src/commands/task/add.js';
+import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
 
 describe('task add command', () => {
-  let consoleLogSpy;
-  let processExitSpy;
+  let testSetup;
 
   beforeEach(() => {
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {});
+    testSetup = setupCommandTest();
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
-    processExitSpy.mockRestore();
+    testSetup.cleanup();
   });
 
   it('should create command with correct name and description', () => {
@@ -51,10 +49,12 @@ describe('task add command', () => {
     const command = taskAddCommand();
     command.parse(['Test task'], { from: 'user' });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      'Not implemented: task add - Add new task "Test task"'
+    expectNotImplemented(
+      testSetup.consoleLogSpy,
+      testSetup.processExitSpy,
+      'task add',
+      'Add new task "Test task"'
     );
-    expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
   it('should handle all options', () => {
@@ -79,8 +79,11 @@ describe('task add command', () => {
       { from: 'user' }
     );
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      'Not implemented: task add - Add new task "Test task"'
+    expectNotImplemented(
+      testSetup.consoleLogSpy,
+      testSetup.processExitSpy,
+      'task add',
+      'Add new task "Test task"'
     );
   });
 });

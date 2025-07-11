@@ -1,18 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskListCommand } from '../../../src/commands/task/list.js';
+import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
 
 describe('task list command', () => {
-  let consoleLogSpy;
-  let processExitSpy;
+  let testSetup;
 
   beforeEach(() => {
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {});
+    testSetup = setupCommandTest();
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
-    processExitSpy.mockRestore();
+    testSetup.cleanup();
   });
 
   it('should create command with correct name and description', () => {
@@ -39,9 +37,11 @@ describe('task list command', () => {
     const command = taskListCommand();
     command.parse(['list'], { from: 'user' });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      'Not implemented: task list - List all tasks with filters'
+    expectNotImplemented(
+      testSetup.consoleLogSpy,
+      testSetup.processExitSpy,
+      'task list',
+      'List all tasks with filters'
     );
-    expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 });

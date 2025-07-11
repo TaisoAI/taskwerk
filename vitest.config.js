@@ -15,5 +15,6 @@ export default defineConfig({
         'vitest.config.js',
       ],
     },
+    reporters: ['default', './scripts/test-reporter.js']
   },
 });

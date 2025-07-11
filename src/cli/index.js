@@ -8,6 +8,7 @@ import { configCommand } from '../commands/config.js';
 import { exportCommand } from '../commands/export.js';
 import { importCommand } from '../commands/import.js';
 import { gitCommand } from '../commands/git/index.js';
+import { ErrorHandler } from '../errors/index.js';
 
 const require = createRequire(import.meta.url);
 const packageJson = require('../../package.json');
@@ -19,7 +20,17 @@ program
   .description(packageJson.description)
   .version(packageJson.version)
   .helpOption('-h, --help', 'Display help for command')
-  .addHelpCommand('help [command]', 'Display help for command');
+  .addHelpCommand('help [command]', 'Display help for command')
+  .option('--verbose-error', 'Output detailed error information in JSON format for automation')
+  .hook('preAction', thisCommand => {
+    // Set up error handling before any command executes
+    process.on('uncaughtException', error => {
+      ErrorHandler.handle(error, thisCommand.name());
+    });
+    process.on('unhandledRejection', error => {
+      ErrorHandler.handle(error, thisCommand.name());
+    });
+  });
 
 // Add all commands
 program.addCommand(aboutCommand());

@@ -1,17 +1,17 @@
 {
   "name": "taskwerk",
-  "version": "0.4.5",
+  "version": "0.6.1",
   "author": "manu chatterjee <deftio@deftio.com>",
-  "description": "A git-aware task management CLI for developers and AI agents working together",
+  "description": "A task management CLI for developers and AI agents working together",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deftio/taskwerk.git"
+    "url": "git+https://github.com/taisoai/taskwerk.git"
   },
   "main": "src/index.js",
   "type": "module",
   "bin": {
-    "taskwerk": "./src/cli/index.js",
-    "twrk": "./src/cli/index.js"
+    "taskwerk": "./bin/taskwerk.js",
+    "twrk": "./bin/taskwerk.js"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -23,10 +23,10 @@
     "test:watch": "vitest test/",
     "test:vitest": "vitest run test/",
     "test:vitest:coverage": "vitest run test/ --coverage",
-    "lint": "eslint src/ tests/",
-    "lint:fix": "eslint src/ tests/ --fix",
-    "format": "prettier --write src/ tests/",
-    "format:check": "prettier --check src/ tests/",
+    "lint": "eslint src/ test/",
+    "lint:fix": "eslint src/ test/ --fix",
+    "format": "prettier --write src/ test/",
+    "format:check": "prettier --check src/ test/",
     "dev": "node src/cli/index.js",
     "prebuild": "node scripts/update-version.js",
     "build": "node scripts/build.js"

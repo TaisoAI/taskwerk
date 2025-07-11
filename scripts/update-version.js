@@ -1,0 +1,16 @@
+import { readFileSync, writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const packageJsonPath = join(__dirname, '../package.json');
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+
+const aboutPath = join(__dirname, '../src/commands/about.js');
+let aboutContent = readFileSync(aboutPath, 'utf8');
+
+// Update version reference in about.js if it has a hardcoded version
+// Currently it reads from package.json so no update needed
+console.log(`Version: ${packageJson.version}`);

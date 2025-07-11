@@ -11,7 +11,7 @@ This roadmap outlines the path to making Taskwerk a true "autonomous development
 4. Handle blockers gracefully
 5. Maintain detailed progress tracking
 
-## Phase 1: Enhanced Task Context (v0.4.0)
+## Phase 1: Enhanced Task Context (v0.6.0)
 
 ### Goal
 Tasks contain sufficient information for autonomous execution.

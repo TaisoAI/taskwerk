@@ -23,7 +23,7 @@ This guide provides technical implementation details for Taskwerk v3. It consoli
 └─────────────────┬───────────────────┘
                   │
 ┌─────────────────▼───────────────────┐
-│        Core Layer (src/core/)       │
+│        Core API Layer (src/core/)   │
 │  - Business logic                   │
 │  - Task operations                  │
 │  - Git integration                  │

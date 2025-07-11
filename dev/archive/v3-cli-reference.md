@@ -6,7 +6,6 @@
 ## Command Structure
 
 Taskwerk uses subcommands for organization:
-
 ```
 taskwerk <category> <action> [options]
 twrk <category> <action> [options]        # Short form

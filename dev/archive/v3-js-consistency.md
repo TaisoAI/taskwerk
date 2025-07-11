@@ -1,4 +1,4 @@
-# JavaScript Consistency Notes for v3
+# JavaScript Consistency Notes for v6
 
 ## Decision: Pure JavaScript
 

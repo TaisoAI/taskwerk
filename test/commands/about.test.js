@@ -37,11 +37,11 @@ describe('About Command', () => {
     // Check ASCII banner
     expect(output).toContain('████████╗');
     expect(output).toContain('███████╗██╗  ██╗██╗    ██╗███████╗██████╗'); // Part of ASCII art
-    
+
     // Check version line
     expect(output).toContain(`taskwerk v${packageJson.version}`);
     expect(output).toContain('by Taiso.AI');
-    
+
     // Check package info
     expect(output).toContain('📦 Package Information:');
     expect(output).toContain(`Name: ${packageJson.name}`);
@@ -49,7 +49,7 @@ describe('About Command', () => {
     expect(output).toContain(`Description: ${packageJson.description}`);
     expect(output).toContain(`Author: ${packageJson.author}`);
     expect(output).toContain(`License: ${packageJson.license}`);
-    
+
     // Check other sections
     expect(output).toContain('🔗 Project Links:');
     expect(output).toContain('🤖 AI Integration:');

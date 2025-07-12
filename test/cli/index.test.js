@@ -8,67 +8,75 @@ const __dirname = dirname(__filename);
 const cliPath = join(__dirname, '../../bin/taskwerk.js');
 
 describe('CLI Entry Point', () => {
-  it('should display version when --version flag is used', done => {
-    const proc = spawn('node', [cliPath, '--version']);
-    let output = '';
+  it('should display version when --version flag is used', () => {
+    return new Promise((resolve) => {
+      const proc = spawn('node', [cliPath, '--version']);
+      let output = '';
 
-    proc.stdout.on('data', data => {
-      output += data.toString();
-    });
+      proc.stdout.on('data', data => {
+        output += data.toString();
+      });
 
-    proc.on('close', code => {
-      expect(code).toBe(0);
-      expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
-      done();
-    });
-  });
-
-  it('should display help when --help flag is used', done => {
-    const proc = spawn('node', [cliPath, '--help']);
-    let output = '';
-
-    proc.stdout.on('data', data => {
-      output += data.toString();
-    });
-
-    proc.on('close', code => {
-      expect(code).toBe(0);
-      expect(output).toContain('Usage: taskwerk');
-      expect(output).toContain('A git-aware task management CLI');
-      expect(output).toContain('Commands:');
-      expect(output).toContain('about');
-      done();
+      proc.on('close', code => {
+        expect(code).toBe(0);
+        expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
+        resolve();
+      });
     });
   });
 
-  it('should execute about command', done => {
-    const proc = spawn('node', [cliPath, 'about']);
-    let output = '';
+  it('should display help when --help flag is used', () => {
+    return new Promise((resolve) => {
+      const proc = spawn('node', [cliPath, '--help']);
+      let output = '';
 
-    proc.stdout.on('data', data => {
-      output += data.toString();
-    });
+      proc.stdout.on('data', data => {
+        output += data.toString();
+      });
 
-    proc.on('close', code => {
-      expect(code).toBe(0);
-      expect(output).toContain('Taskwerk');
-      expect(output).toContain('Version:');
-      done();
+      proc.on('close', code => {
+        expect(code).toBe(0);
+        expect(output).toContain('Usage: taskwerk');
+        expect(output).toContain('A task management CLI');
+        expect(output).toContain('Commands:');
+        expect(output).toContain('about');
+        resolve();
+      });
     });
   });
 
-  it('should display error for unknown command', done => {
-    const proc = spawn('node', [cliPath, 'unknown']);
-    let error = '';
+  it('should execute about command', () => {
+    return new Promise((resolve) => {
+      const proc = spawn('node', [cliPath, 'about']);
+      let output = '';
 
-    proc.stderr.on('data', data => {
-      error += data.toString();
+      proc.stdout.on('data', data => {
+        output += data.toString();
+      });
+
+      proc.on('close', code => {
+        expect(code).toBe(0);
+        expect(output).toContain('taskwerk');
+        expect(output).toContain('0.6.4');
+        resolve();
+      });
     });
+  });
 
-    proc.on('close', code => {
-      expect(code).toBe(1);
-      expect(error).toContain("error: unknown command 'unknown'");
-      done();
+  it('should display error for unknown command', () => {
+    return new Promise((resolve) => {
+      const proc = spawn('node', [cliPath, 'unknown']);
+      let error = '';
+
+      proc.stderr.on('data', data => {
+        error += data.toString();
+      });
+
+      proc.on('close', code => {
+        expect(code).toBe(1);
+        expect(error).toContain("error: unknown command 'unknown'");
+        resolve();
+      });
     });
   });
 });

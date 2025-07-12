@@ -228,6 +228,27 @@ export const CONFIG_SCHEMA = {
         default: false,
         description: 'Enable experimental features',
       },
+      logLevel: {
+        type: 'string',
+        enum: ['error', 'warn', 'info', 'debug', 'trace'],
+        default: 'info',
+        description: 'Logging level',
+      },
+      logConsole: {
+        type: 'boolean',
+        default: true,
+        description: 'Enable console logging',
+      },
+      logFile: {
+        type: 'boolean',
+        default: true,
+        description: 'Enable file logging',
+      },
+      logDirectory: {
+        type: 'string',
+        default: '~/.taskwerk/logs',
+        description: 'Directory for log files',
+      },
     },
     required: [],
   },

@@ -27,6 +27,7 @@ describe('task list command', () => {
     expect(optionNames).toContain('--assignee');
     expect(optionNames).toContain('--priority');
     expect(optionNames).toContain('--tags');
+    expect(optionNames).toContain('--search');
     expect(optionNames).toContain('--sort');
     expect(optionNames).toContain('--format');
     expect(optionNames).toContain('--limit');

@@ -32,6 +32,7 @@ export function taskListCommand() {
     .option('-a, --assignee <name>', 'Filter by assignee')
     .option('-p, --priority <level>', 'Filter by priority')
     .option('-t, --tags <tags...>', 'Filter by tags')
+    .option('--search <term>', 'Search in task name, description, and content')
     .option('--sort <field>', 'Sort by field (created, updated, priority)', 'created')
     .option('--format <format>', 'Output format (table, json, csv)', 'table')
     .option('--limit <number>', 'Limit number of results', '50')
@@ -61,8 +62,10 @@ export function taskListCommand() {
         queryOptions.order_by = sortField;
         queryOptions.order_dir = 'DESC';
         
-        // Get tasks
-        const tasks = api.listTasks(queryOptions);
+        // Get tasks - use search if search term provided
+        const tasks = options.search 
+          ? api.searchTasks(options.search, queryOptions)
+          : api.listTasks(queryOptions);
         
         if (tasks.length === 0) {
           console.log('📝 No tasks found');
@@ -87,6 +90,7 @@ export function taskListCommand() {
         
         // Default table format
         let header = `📋 Tasks`;
+        if (options.search) header = `🔍 Search results for "${options.search}"`;
         if (options.status) header += ` (status: ${options.status})`;
         if (options.priority) header += ` (priority: ${options.priority})`;
         if (options.assignee) header += ` (assignee: ${options.assignee})`;

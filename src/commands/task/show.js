@@ -19,9 +19,10 @@ export function taskShowCommand() {
         const task = api.getTask(id);
         const tags = api.getTaskTags(id);
         const timeline = api.getTaskTimeline(id);
+        const notes = api.getTaskNotes(id);
         
         if (options.format === 'json') {
-          console.log(JSON.stringify({ task, tags, timeline }, null, 2));
+          console.log(JSON.stringify({ task, tags, timeline, notes }, null, 2));
           return;
         }
         
@@ -100,6 +101,20 @@ export function taskShowCommand() {
           for (const [key, value] of Object.entries(task.context)) {
             console.log(`  ${key}: ${value}`);
           }
+        }
+        
+        // Show notes
+        if (notes.length > 0) {
+          console.log(`\n💬 Notes:`);
+          notes.forEach(note => {
+            const date = new Date(note.created_at).toLocaleString();
+            console.log(`  [${date}] @${note.user}: ${note.note}`);
+            if (note.content) {
+              // Indent multiline content
+              const indentedContent = note.content.split('\n').map(line => `    ${line}`).join('\n');
+              console.log(indentedContent);
+            }
+          });
         }
         
         // Show recent timeline events

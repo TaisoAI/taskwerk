@@ -79,7 +79,7 @@ export function taskUpdateCommand() {
         
         // Add note if provided
         if (options.note) {
-          await api.addTimelineEvent(id, 'note_added', 'user', options.note);
+          await api.addTaskNote(id, options.note, 'user');
           console.log(`📝 Added note: ${options.note}`);
         }
         

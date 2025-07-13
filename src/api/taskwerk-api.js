@@ -700,4 +700,54 @@ export class TaskwerkAPI {
     const tags = db.prepare('SELECT tag FROM task_tags WHERE task_id = ? ORDER BY tag').all(taskId);
     return tags.map(row => row.tag);
   }
+
+  /**
+   * Get task notes
+   * @param {string} taskId - Task ID
+   * @returns {Array} Array of note objects
+   */
+  getTaskNotes(taskId) {
+    const db = this.getDatabase();
+    
+    const notes = db.prepare(`
+      SELECT id, note, content, user, created_at, updated_at 
+      FROM task_notes 
+      WHERE task_id = ? 
+      ORDER BY created_at DESC
+    `).all(taskId);
+    
+    return notes;
+  }
+
+  /**
+   * Add a note to a task
+   * @param {string} taskId - Task ID
+   * @param {string} note - Note text
+   * @param {string} user - User adding the note
+   * @param {string} content - Optional longer content
+   * @returns {boolean} Success
+   */
+  async addTaskNote(taskId, note, user = 'system', content = null) {
+    const db = this.getDatabase();
+    
+    // Verify task exists
+    this.getTask(taskId);
+
+    try {
+      const stmt = db.prepare(`
+        INSERT INTO task_notes (task_id, note, content, user) 
+        VALUES (?, ?, ?, ?)
+      `);
+      
+      stmt.run(taskId, note, content, user);
+
+      this.logger.info(`Added note to task ${taskId}`);
+      await this.addTimelineEvent(taskId, 'note_added', user, `Added note: ${note}`);
+      
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to add note to task ${taskId}: ${error.message}`);
+      throw error;
+    }
+  }
 }

@@ -5,6 +5,7 @@ import { taskShowCommand } from './show.js';
 import { taskUpdateCommand } from './update.js';
 import { taskDeleteCommand } from './delete.js';
 import { taskStatusCommand } from './status.js';
+import { taskSplitCommand } from './split.js';
 
 export function taskCommand() {
   const task = new Command('task');
@@ -16,7 +17,8 @@ export function taskCommand() {
     .addCommand(taskShowCommand())
     .addCommand(taskUpdateCommand())
     .addCommand(taskDeleteCommand())
-    .addCommand(taskStatusCommand());
+    .addCommand(taskStatusCommand())
+    .addCommand(taskSplitCommand());
 
   return task;
 }

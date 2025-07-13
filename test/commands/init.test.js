@@ -28,15 +28,13 @@ describe('init command', () => {
     expect(optionNames).toContain('--no-git');
   });
 
-  it('should output not implemented message when executed', () => {
+  it('should initialize taskwerk when executed', () => {
     const command = initCommand();
     command.parse(['init'], { from: 'user' });
 
-    expectNotImplemented(
-      testSetup.consoleLogSpy,
-      testSetup.processExitSpy,
-      'init',
-      'Initialize taskwerk repository'
+    // Check for initialization message
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('🚀 Initializing taskwerk')
     );
   });
 });

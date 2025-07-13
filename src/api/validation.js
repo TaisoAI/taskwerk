@@ -1,4 +1,4 @@
-import { TaskValidationError } from '../errors/task-errors.js';
+import { ValidationError } from '../errors/base-error.js';
 import { isValidTaskId } from '../db/task-id.js';
 
 export class ValidationRules {
@@ -53,7 +53,7 @@ export class Validator {
   throwIfErrors() {
     if (this.hasErrors()) {
       const messages = this.errors.map(err => `${err.field}: ${err.message}`);
-      throw new TaskValidationError(`Validation failed: ${messages.join(', ')}`);
+      throw new ValidationError(`Validation failed: ${messages.join(', ')}`);
     }
   }
 

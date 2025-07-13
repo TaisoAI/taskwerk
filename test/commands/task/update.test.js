@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskUpdateCommand } from '../../../src/commands/task/update.js';
 import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
+import { createTestTask } from '../../helpers/database-test-helper.js';
 
 describe('task update command', () => {
   let testSetup;
 
   beforeEach(() => {
-    testSetup = setupCommandTest();
+    testSetup = setupCommandTest(true); // Enable database
   });
 
   afterEach(() => {
@@ -32,15 +33,16 @@ describe('task update command', () => {
     expect(optionNames).toContain('--note');
   });
 
-  it('should output not implemented message when executed', () => {
+  it('should handle updating task with valid task ID', async () => {
+    // Create a test task first
+    const task = createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to update' });
+    
     const command = taskUpdateCommand();
-    command.parse(['123'], { from: 'user' });
+    await command.parseAsync(['TASK-123', '--status', 'in-progress'], { from: 'user' });
 
-    expectNotImplemented(
-      testSetup.consoleLogSpy,
-      testSetup.processExitSpy,
-      'task update',
-      'Update task 123'
+    // Should successfully update the task
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('✅ Updated task TASK-123')
     );
   });
 });

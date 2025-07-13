@@ -6,7 +6,7 @@ describe('status command', () => {
   let testSetup;
 
   beforeEach(() => {
-    testSetup = setupCommandTest();
+    testSetup = setupCommandTest(true); // Enable database
   });
 
   afterEach(() => {
@@ -25,15 +25,13 @@ describe('status command', () => {
     expect(optionNames).toContain('--format');
   });
 
-  it('should output not implemented message when executed', () => {
+  it('should show taskwerk status when executed', async () => {
     const command = statusCommand();
-    command.parse(['status'], { from: 'user' });
+    await command.parseAsync(['status'], { from: 'user' });
 
-    expectNotImplemented(
-      testSetup.consoleLogSpy,
-      testSetup.processExitSpy,
-      'status',
-      'Show repository status and statistics'
+    // Check for status output
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('📊 Taskwerk Status')
     );
   });
 });

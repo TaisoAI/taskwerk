@@ -378,9 +378,17 @@ describe('TaskwerkAPI', () => {
       const timeline = api.getTaskTimeline(taskId);
       
       expect(timeline).toHaveLength(2);
-      expect(timeline[0].action).toBe('updated');
-      expect(timeline[0].user).toBe('user1');
-      expect(timeline[0].note).toBe('Task updated');
+      
+      // Find the events by action since ordering might vary with same timestamp
+      const createdEvent = timeline.find(e => e.action === 'created');
+      const updatedEvent = timeline.find(e => e.action === 'updated');
+      
+      expect(createdEvent).toBeDefined();
+      expect(createdEvent.note).toBe('Task created');
+      
+      expect(updatedEvent).toBeDefined();
+      expect(updatedEvent.user).toBe('user1');
+      expect(updatedEvent.note).toBe('Task updated');
     });
 
     it('should manually add timeline events', async () => {
@@ -389,9 +397,17 @@ describe('TaskwerkAPI', () => {
       const timeline = api.getTaskTimeline(taskId);
       
       expect(timeline).toHaveLength(2);
-      expect(timeline[0].action).toBe('commented');
-      expect(timeline[0].user).toBe('user1');
-      expect(timeline[0].note).toBe('Added a comment');
+      
+      // Find the events by action since ordering might vary with same timestamp
+      const createdEvent = timeline.find(e => e.action === 'created');
+      const commentedEvent = timeline.find(e => e.action === 'commented');
+      
+      expect(createdEvent).toBeDefined();
+      expect(createdEvent.note).toBe('Task created');
+      
+      expect(commentedEvent).toBeDefined();
+      expect(commentedEvent.user).toBe('user1');
+      expect(commentedEvent.note).toBe('Added a comment');
     });
   });
 

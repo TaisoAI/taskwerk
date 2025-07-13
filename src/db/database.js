@@ -86,3 +86,10 @@ export function closeDatabase() {
     defaultInstance = null;
   }
 }
+
+export function setDatabase(database) {
+  if (defaultInstance) {
+    defaultInstance.close();
+  }
+  defaultInstance = database;
+}

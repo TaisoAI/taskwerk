@@ -1,6 +1,7 @@
 import { getDatabase } from '../db/database.js';
 import { generateTaskId, taskIdExists, isValidTaskId } from '../db/task-id.js';
-import { TaskNotFoundError, TaskValidationError, TaskConflictError } from '../errors/task-errors.js';
+import { TaskNotFoundError, DuplicateTaskIdError } from '../errors/task-errors.js';
+import { ValidationError } from '../errors/base-error.js';
 import { Logger } from '../logging/logger.js';
 import { query } from './query-builder.js';
 import { TaskValidator } from './validation.js';
@@ -33,14 +34,14 @@ export class TaskwerkAPI {
     const validation = TaskValidator.validateCreate(taskData);
     if (!validation.isValid) {
       const messages = validation.errors.map(err => `${err.field}: ${err.message}`);
-      throw new TaskValidationError(`Validation failed: ${messages.join(', ')}`);
+      throw new ValidationError(`Validation failed: ${messages.join(', ')}`);
     }
 
     // Generate ID if not provided
     if (!taskData.id) {
       taskData.id = await generateTaskId('TASK', db);
     } else if (taskIdExists(taskData.id, db)) {
-      throw new TaskConflictError(`Task with ID ${taskData.id} already exists`);
+      throw new DuplicateTaskIdError(taskData.id);
     }
 
     // Set defaults
@@ -88,7 +89,7 @@ export class TaskwerkAPI {
       );
 
       if (result.changes === 0) {
-        throw new TaskValidationError('Failed to create task');
+        throw new ValidationError('Failed to create task');
       }
 
       this.logger.info(`Created task ${task.id}: ${task.name}`);
@@ -145,7 +146,7 @@ export class TaskwerkAPI {
     const validation = TaskValidator.validateUpdate(updates);
     if (!validation.isValid) {
       const messages = validation.errors.map(err => `${err.field}: ${err.message}`);
-      throw new TaskValidationError(`Validation failed: ${messages.join(', ')}`);
+      throw new ValidationError(`Validation failed: ${messages.join(', ')}`);
     }
     
     // Check if task exists
@@ -188,7 +189,7 @@ export class TaskwerkAPI {
       const result = stmt.run(...values);
 
       if (result.changes === 0) {
-        throw new TaskValidationError('Failed to update task');
+        throw new ValidationError('Failed to update task');
       }
 
       this.logger.info(`Updated task ${taskId}`);
@@ -220,7 +221,7 @@ export class TaskwerkAPI {
       const result = stmt.run(taskId);
 
       if (result.changes === 0) {
-        throw new TaskValidationError('Failed to delete task');
+        throw new ValidationError('Failed to delete task');
       }
 
       this.logger.info(`Deleted task ${taskId}`);
@@ -241,31 +242,41 @@ export class TaskwerkAPI {
     
     const conditions = [];
     const values = [];
+    let joins = '';
 
     // Build WHERE conditions
     if (options.status) {
-      conditions.push('status = ?');
+      conditions.push('tasks.status = ?');
       values.push(options.status);
     }
 
     if (options.priority) {
-      conditions.push('priority = ?');
+      conditions.push('tasks.priority = ?');
       values.push(options.priority);
     }
 
     if (options.assignee) {
-      conditions.push('assignee = ?');
+      conditions.push('tasks.assignee = ?');
       values.push(options.assignee);
     }
 
     if (options.parent_id) {
-      conditions.push('parent_id = ?');
+      conditions.push('tasks.parent_id = ?');
       values.push(options.parent_id);
     }
 
     if (options.category) {
-      conditions.push('category = ?');
+      conditions.push('tasks.category = ?');
       values.push(options.category);
+    }
+
+    // Handle tag filtering
+    if (options.tags && options.tags.length > 0) {
+      // Join with task_tags table and filter by tags
+      joins = 'INNER JOIN task_tags ON tasks.id = task_tags.task_id';
+      const tagPlaceholders = options.tags.map(() => '?').join(', ');
+      conditions.push(`task_tags.tag IN (${tagPlaceholders})`);
+      values.push(...options.tags);
     }
 
     // Build ORDER BY
@@ -277,10 +288,13 @@ export class TaskwerkAPI {
     const offset = options.offset ? `OFFSET ${parseInt(options.offset)}` : '';
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const sql = `
-      SELECT * FROM tasks 
+    
+    // Build the SQL query
+    let sql = `
+      SELECT DISTINCT tasks.* FROM tasks 
+      ${joins}
       ${whereClause}
-      ORDER BY ${orderBy} ${orderDir}
+      ORDER BY tasks.${orderBy} ${orderDir}
       ${limit} ${offset}
     `;
 
@@ -413,9 +427,15 @@ export class TaskwerkAPI {
     const builder = this.query();
     
     if (searchTerm) {
-      builder.andWhere('name', 'LIKE', `%${searchTerm}%`)
-             .orWhere('description', 'LIKE', `%${searchTerm}%`)
-             .orWhere('content', 'LIKE', `%${searchTerm}%`);
+      // Group the OR conditions together
+      const searchConditions = [
+        'name LIKE ?',
+        'description LIKE ?', 
+        'content LIKE ?'
+      ].join(' OR ');
+      
+      builder.whereConditions.push(`(${searchConditions})`);
+      builder.whereValues.push(`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`);
     }
 
     // Apply filters

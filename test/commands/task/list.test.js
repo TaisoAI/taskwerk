@@ -33,15 +33,13 @@ describe('task list command', () => {
     expect(optionNames).toContain('--all');
   });
 
-  it('should output not implemented message when executed', () => {
+  it('should list tasks when executed', () => {
     const command = taskListCommand();
     command.parse(['list'], { from: 'user' });
 
-    expectNotImplemented(
-      testSetup.consoleLogSpy,
-      testSetup.processExitSpy,
-      'task list',
-      'List all tasks with filters'
+    // Check for task list header
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('📋 Tasks')
     );
   });
 });

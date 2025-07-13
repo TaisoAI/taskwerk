@@ -84,16 +84,13 @@ export class QueryBuilder {
       return this.where(field, operator, value);
     }
 
-    // Mark the previous condition for OR grouping
-    const lastCondition = this.whereConditions[this.whereConditions.length - 1];
-    this.whereConditions[this.whereConditions.length - 1] = `(${lastCondition})`;
-
+    // Add OR condition with special prefix
     if (operator === 'IN' && Array.isArray(value)) {
       const placeholders = value.map(() => '?').join(', ');
-      this.whereConditions.push(`OR (${field} ${operator} (${placeholders}))`);
+      this.whereConditions.push(`OR ${field} ${operator} (${placeholders})`);
       this.whereValues.push(...value);
     } else {
-      this.whereConditions.push(`OR (${field} ${operator} ?)`);
+      this.whereConditions.push(`OR ${field} ${operator} ?`);
       this.whereValues.push(value);
     }
     
@@ -252,8 +249,32 @@ export class QueryBuilder {
 
     // Add WHERE
     if (this.whereConditions.length > 0) {
-      // Handle mixed AND/OR conditions
-      const whereClause = this.whereConditions.join(' AND ');
+      // Build WHERE clause with proper OR/AND handling
+      let whereClause = '';
+      let needsParentheses = false;
+      
+      for (let i = 0; i < this.whereConditions.length; i++) {
+        const condition = this.whereConditions[i];
+        
+        if (i === 0) {
+          // First condition - check if we need parentheses for OR grouping
+          if (i + 1 < this.whereConditions.length && 
+              this.whereConditions[i + 1].toString().startsWith('OR ')) {
+            whereClause = `(${condition})`;
+            needsParentheses = true;
+          } else {
+            whereClause = condition;
+          }
+        } else if (condition.toString().startsWith('OR ')) {
+          // OR condition - remove OR prefix and wrap in parentheses
+          const cleanCondition = condition.substring(3);
+          whereClause += ` OR (${cleanCondition})`;
+        } else {
+          // AND condition
+          whereClause += ` AND ${condition}`;
+        }
+      }
+      
       sql += ` WHERE ${whereClause}`;
     }
 

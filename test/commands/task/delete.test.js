@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskDeleteCommand } from '../../../src/commands/task/delete.js';
 import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
+import { createTestTask } from '../../helpers/database-test-helper.js';
 
 describe('task delete command', () => {
   let testSetup;
 
   beforeEach(() => {
-    testSetup = setupCommandTest();
+    testSetup = setupCommandTest(true); // Enable database
   });
 
   afterEach(() => {
@@ -19,15 +20,16 @@ describe('task delete command', () => {
     expect(command.description()).toBe('Delete a task');
   });
 
-  it('should output not implemented message when executed', () => {
+  it('should handle task deletion with valid task ID', async () => {
+    // Create a test task first
+    const task = createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to delete' });
+    
     const command = taskDeleteCommand();
-    command.parse(['123'], { from: 'user' });
+    await command.parseAsync(['TASK-123', '--force'], { from: 'user' });
 
-    expectNotImplemented(
-      testSetup.consoleLogSpy,
-      testSetup.processExitSpy,
-      'task delete',
-      'Delete task 123'
+    // Should successfully delete the task
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('✅ Deleted task TASK-123')
     );
   });
 });

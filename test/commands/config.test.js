@@ -24,34 +24,34 @@ describe('config command', () => {
     command.parse(['--list'], { from: 'user' });
 
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      'Not implemented: config - List all configuration values'
+      expect.stringContaining('⚙️  Taskwerk Configuration')
     );
   });
 
   it('should handle get config', () => {
     const command = configCommand();
-    command.parse(['user.name'], { from: 'user' });
+    command.parse(['general.defaultPriority'], { from: 'user' });
 
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      'Not implemented: config - Get configuration value for user.name'
+      expect.stringContaining('general.defaultPriority:')
     );
   });
 
   it('should handle set config', () => {
     const command = configCommand();
-    command.parse(['user.name', 'John Doe'], { from: 'user' });
+    command.parse(['general.defaultPriority', 'high'], { from: 'user' });
 
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      'Not implemented: config - Set configuration user.name=John Doe'
+      expect.stringContaining('✅ Set general.defaultPriority')
     );
   });
 
   it('should handle unset config', () => {
     const command = configCommand();
-    command.parse(['user.name', '--unset'], { from: 'user' });
+    command.parse(['general.defaultPriority', '--unset'], { from: 'user' });
 
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      'Not implemented: config - Unset configuration user.name'
+      expect.stringContaining('✅ Unset general.defaultPriority')
     );
   });
 });

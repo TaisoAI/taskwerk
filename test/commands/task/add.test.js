@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskAddCommand } from '../../../src/commands/task/add.js';
 import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
+import { createTestTask } from '../../helpers/database-test-helper.js';
 
 describe('task add command', () => {
   let testSetup;
 
   beforeEach(() => {
-    testSetup = setupCommandTest();
+    testSetup = setupCommandTest(true); // Enable database
   });
 
   afterEach(() => {
@@ -45,21 +46,27 @@ describe('task add command', () => {
     expect(priorityOption.defaultValue).toBe('medium');
   });
 
-  it('should output not implemented message when executed', () => {
+  it('should create a task when executed', async () => {
     const command = taskAddCommand();
-    command.parse(['Test task'], { from: 'user' });
-
-    expectNotImplemented(
-      testSetup.consoleLogSpy,
-      testSetup.processExitSpy,
-      'task add',
-      'Add new task "Test task"'
+    
+    // Parse returns a promise for async commands
+    await command.parseAsync(['Test task'], { from: 'user' });
+    
+    // Check for success message
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('✅ Created task')
     );
   });
 
-  it('should handle all options', () => {
+  it('should handle all options', async () => {
+    // Create parent task first
+    const parent = createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Parent task' });
+    
     const command = taskAddCommand();
-    command.parse(
+    
+    // Note: parent '123' is invalid, should be 'TASK-123'
+    // This test should fail with validation error
+    await command.parseAsync(
       [
         'Test task',
         '--priority',
@@ -69,7 +76,7 @@ describe('task add command', () => {
         '--estimate',
         '4',
         '--parent',
-        '123',
+        'TASK-123',
         '--tags',
         'urgent',
         'backend',
@@ -79,11 +86,9 @@ describe('task add command', () => {
       { from: 'user' }
     );
 
-    expectNotImplemented(
-      testSetup.consoleLogSpy,
-      testSetup.processExitSpy,
-      'task add',
-      'Add new task "Test task"'
+    // Should create task with valid parent ID
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('✅ Created task')
     );
   });
 });

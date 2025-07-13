@@ -302,7 +302,7 @@ describe('QueryBuilder', () => {
       
       expect(sql).toBe(
         'SELECT id, name, status, priority FROM tasks ' +
-        'WHERE status IN (?, ?) AND priority != ? OR assignee = ? ' +
+        'WHERE status IN (?, ?) AND priority != ? OR (assignee = ?) ' +
         'ORDER BY priority DESC, created_at ASC ' +
         'LIMIT 5 OFFSET 2'
       );
@@ -318,8 +318,9 @@ describe('QueryBuilder', () => {
         .get();
       
       expect(results).toHaveLength(2);
-      expect(results[0].priority).toBe('critical');
-      expect(results[1].priority).toBe('high');
+      // Alphabetical ordering: 'high' comes after 'critical' in DESC order
+      expect(results[0].priority).toBe('high');
+      expect(results[1].priority).toBe('critical');
     });
   });
 

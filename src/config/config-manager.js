@@ -184,6 +184,13 @@ export class ConfigManager {
   }
 
   /**
+   * Alias for delete method (used by config command)
+   */
+  unset(path) {
+    return this.delete(path);
+  }
+
+  /**
    * Reset configuration to defaults
    */
   reset() {

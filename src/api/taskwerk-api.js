@@ -750,4 +750,23 @@ export class TaskwerkAPI {
       throw error;
     }
   }
+
+  /**
+   * Get tasks that this task depends on
+   * @param {string} taskId - Task ID
+   * @returns {Array} Array of tasks that this task depends on
+   */
+  getTaskDependencies(taskId) {
+    const db = this.getDatabase();
+    
+    const dependencies = db.prepare(`
+      SELECT t.id, t.name, t.status, t.priority
+      FROM tasks t
+      INNER JOIN task_dependencies td ON t.id = td.depends_on_id
+      WHERE td.task_id = ?
+      ORDER BY t.id
+    `).all(taskId);
+    
+    return dependencies;
+  }
 }

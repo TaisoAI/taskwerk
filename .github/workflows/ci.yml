@@ -105,25 +105,7 @@ jobs:
       - name: Build project
         run: npm run build
       
-      - name: Create .npmrc
-        run: |
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "ERROR: NPM_TOKEN secret is empty!"
-            exit 1
-          fi
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          echo "npmrc file created successfully"
-          # Check if the token starts with npm_ (without revealing it)
-          if [[ "${{ secrets.NPM_TOKEN }}" == npm_* ]]; then
-            echo "Token format looks correct (starts with npm_)"
-          else
-            echo "WARNING: Token doesn't start with npm_"
-          fi
-      
-      - name: Check npm authentication
-        run: |
-          npm whoami --registry https://registry.npmjs.org/ || (echo "Failed to authenticate"; cat ~/.npm/_logs/*.log 2>/dev/null || true; exit 1)
-          npm view taskwerk --registry https://registry.npmjs.org/
-      
       - name: Publish to npm
-        run: npm publish --registry https://registry.npmjs.org/ || (echo "Publish failed"; cat ~/.npm/_logs/*.log 2>/dev/null || true; exit 1)
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

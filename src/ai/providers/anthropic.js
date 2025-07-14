@@ -4,13 +4,16 @@ export class AnthropicProvider extends BaseProvider {
   constructor(config = {}) {
     super(config);
     this.baseUrl = 'https://api.anthropic.com/v1';
-    this.models = [
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', description: 'Most capable model, best for complex tasks' },
+    this.fallbackModels = [
+      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet (Latest)', description: 'Latest and most capable model' },
+      { id: 'claude-3-5-sonnet-20240620', name: 'Claude 3.5 Sonnet', description: 'Highly capable model' },
+      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', description: 'Most capable model for complex reasoning' },
       { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', description: 'Balanced performance and speed' },
-      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', description: 'Fastest model, best for simple tasks' },
-      { id: 'claude-2.1', name: 'Claude 2.1', description: 'Previous generation model' },
-      { id: 'claude-2.0', name: 'Claude 2.0', description: 'Legacy model' }
+      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', description: 'Fastest model for simple tasks' }
     ];
+    this.cachedModels = null;
+    this.cacheExpiry = null;
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
   }
 
   isConfigured() {
@@ -55,11 +58,55 @@ export class AnthropicProvider extends BaseProvider {
   }
 
   async listModels() {
-    // Only return models if provider is configured
     if (!this.isConfigured()) {
       return [];
     }
-    return this.models;
+
+    // Check cache first
+    if (this.cachedModels && this.cacheExpiry && Date.now() < this.cacheExpiry) {
+      return this.cachedModels;
+    }
+
+    try {
+      // Anthropic doesn't have a public models API, but we can try to detect available models
+      // by making test requests with very small token limits
+      const availableModels = [];
+      
+      for (const model of this.fallbackModels) {
+        try {
+          const response = await fetch(`${this.baseUrl}/messages`, {
+            method: 'POST',
+            headers: {
+              'anthropic-version': '2023-06-01',
+              'x-api-key': this.config.api_key,
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: model.id,
+              messages: [{ role: 'user', content: 'Hi' }],
+              max_tokens: 1
+            })
+          });
+
+          if (response.ok || response.status === 400) {
+            // 400 might be due to too few tokens, which means model exists
+            availableModels.push(model);
+          }
+        } catch (error) {
+          // Skip models that error
+          continue;
+        }
+      }
+
+      // Cache results
+      this.cachedModels = availableModels.length > 0 ? availableModels : this.fallbackModels;
+      this.cacheExpiry = Date.now() + this.cacheTimeout;
+      
+      return this.cachedModels;
+    } catch (error) {
+      // Fall back to static list on error
+      return this.fallbackModels;
+    }
   }
 
   async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk, tools }) {

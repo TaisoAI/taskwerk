@@ -4,13 +4,9 @@ export class OpenAIProvider extends BaseProvider {
   constructor(config = {}) {
     super(config);
     this.baseUrl = config.base_url || 'https://api.openai.com/v1';
-    this.models = [
-      { id: 'gpt-4-turbo-preview', name: 'GPT-4 Turbo', description: 'Latest GPT-4 Turbo model' },
-      { id: 'gpt-4', name: 'GPT-4', description: 'Most capable GPT-4 model' },
-      { id: 'gpt-4-32k', name: 'GPT-4 32K', description: 'GPT-4 with larger context window' },
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', description: 'Fast and efficient model' },
-      { id: 'gpt-3.5-turbo-16k', name: 'GPT-3.5 Turbo 16K', description: 'GPT-3.5 with larger context' }
-    ];
+    this.cachedModels = null;
+    this.cacheExpiry = null;
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
   }
 
   isConfigured() {
@@ -57,7 +53,12 @@ export class OpenAIProvider extends BaseProvider {
 
   async listModels() {
     if (!this.isConfigured()) {
-      return this.models;
+      return [];
+    }
+
+    // Check cache first
+    if (this.cachedModels && this.cacheExpiry && Date.now() < this.cacheExpiry) {
+      return this.cachedModels;
     }
 
     try {
@@ -75,21 +76,78 @@ export class OpenAIProvider extends BaseProvider {
 
       if (response.ok) {
         const data = await response.json();
-        const chatModels = data.data
-          .filter(model => model.id.includes('gpt'))
-          .map(model => ({
-            id: model.id,
-            name: model.id,
-            description: `Created: ${new Date(model.created * 1000).toLocaleDateString()}`
-          }));
         
-        return chatModels.length > 0 ? chatModels : this.models;
+        // Filter for chat completion models and sort by capability
+        const chatModels = data.data
+          .filter(model => {
+            const id = model.id.toLowerCase();
+            return (
+              (id.includes('gpt-4') || id.includes('gpt-3.5') || id.includes('o1')) &&
+              !id.includes('instruct') &&
+              !id.includes('edit') &&
+              !id.includes('search') &&
+              !id.includes('similarity') &&
+              !id.includes('ada') &&
+              !id.includes('babbage') &&
+              !id.includes('curie') &&
+              !id.includes('davinci')
+            );
+          })
+          .map(model => {
+            // Generate better descriptions based on model name
+            let description = `OpenAI model`;
+            const id = model.id.toLowerCase();
+            
+            if (id.includes('o1-preview')) {
+              description = 'Latest reasoning model (preview)';
+            } else if (id.includes('o1-mini')) {
+              description = 'Fast reasoning model';
+            } else if (id.includes('gpt-4o')) {
+              description = 'Latest multimodal GPT-4 model';
+            } else if (id.includes('gpt-4-turbo')) {
+              description = 'Latest GPT-4 with enhanced capabilities';
+            } else if (id.includes('gpt-4-32k')) {
+              description = 'GPT-4 with 32K context window';
+            } else if (id.includes('gpt-4')) {
+              description = 'Most capable GPT-4 model';
+            } else if (id.includes('gpt-3.5-turbo-16k')) {
+              description = 'GPT-3.5 with 16K context window';
+            } else if (id.includes('gpt-3.5-turbo')) {
+              description = 'Fast and efficient model';
+            }
+
+            return {
+              id: model.id,
+              name: model.id,
+              description
+            };
+          })
+          .sort((a, b) => {
+            // Sort by preference: o1 > gpt-4o > gpt-4-turbo > gpt-4 > gpt-3.5
+            const getScore = (id) => {
+              if (id.includes('o1-preview')) return 100;
+              if (id.includes('o1-mini')) return 90;
+              if (id.includes('gpt-4o')) return 80;
+              if (id.includes('gpt-4-turbo')) return 70;
+              if (id.includes('gpt-4')) return 60;
+              if (id.includes('gpt-3.5')) return 50;
+              return 0;
+            };
+            return getScore(b.id) - getScore(a.id);
+          });
+        
+        // Cache results
+        this.cachedModels = chatModels;
+        this.cacheExpiry = Date.now() + this.cacheTimeout;
+        
+        return chatModels;
       }
     } catch (error) {
-      // Fall back to default models
+      // Return empty array on error since we don't have fallback models
+      return [];
     }
 
-    return this.models;
+    return [];
   }
 
   async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk }) {

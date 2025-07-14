@@ -62,26 +62,51 @@ async function listProviders(llmManager) {
 
 async function chooseProviderAndModel(llmManager) {
   // First, discover all available models
-  console.log('🔍 Discovering available models...\n');
+  console.log('🔍 Discovering available models...');
   const modelsByProvider = await llmManager.discoverModels();
 
   // Filter to only configured providers with models
   const availableProviders = [];
   for (const [provider, models] of modelsByProvider) {
     if (models.length > 0) {
-      availableProviders.push({ provider, models });
+      const firstModel = models[0];
+      
+      // Check for special status models
+      if (firstModel.id === 'no-models' || firstModel.id === 'connection-error') {
+        availableProviders.push({ 
+          provider, 
+          models, 
+          disabled: true, 
+          status: firstModel.description 
+        });
+      } else {
+        availableProviders.push({ provider, models, disabled: false });
+      }
     }
   }
 
-  if (availableProviders.length === 0) {
-    console.log('❌ No configured providers found.');
+  const workingProviders = availableProviders.filter(p => !p.disabled);
+  console.log(`Found models from ${workingProviders.length} providers\n`);
+
+  if (workingProviders.length === 0) {
+    console.log('❌ No working providers found.');
+    
+    // Show status of problematic providers
+    const problemProviders = availableProviders.filter(p => p.disabled);
+    if (problemProviders.length > 0) {
+      console.log('\n⚠️  Provider issues:');
+      for (const p of problemProviders) {
+        console.log(`   ${p.provider}: ${p.status}`);
+      }
+    }
+    
     console.log('\n💡 Configure a provider first:');
     console.log('   taskwerk aiconfig --set <provider>.api_key=<your-key>');
     return;
   }
 
   // Choose provider
-  const providerChoices = availableProviders.map(p => ({
+  const providerChoices = workingProviders.map(p => ({
     name: `${p.provider} (${p.models.length} models)`,
     value: p.provider
   }));
@@ -96,7 +121,7 @@ async function chooseProviderAndModel(llmManager) {
   ]);
 
   // Choose model
-  const providerData = availableProviders.find(p => p.provider === selectedProvider);
+  const providerData = workingProviders.find(p => p.provider === selectedProvider);
   const modelChoices = providerData.models.map(m => ({
     name: `${m.name}${m.description ? ` - ${m.description}` : ''}`,
     value: m.id

@@ -38,14 +38,69 @@ export class OllamaProvider extends BaseProvider {
       
       if (response.ok) {
         const data = await response.json();
-        return data.models.map(model => ({
-          id: model.name,
-          name: model.name,
-          description: `Size: ${this.formatSize(model.size)}, Modified: ${new Date(model.modified_at).toLocaleDateString()}`
-        }));
+        
+        if (!data.models || data.models.length === 0) {
+          return [{
+            id: 'no-models',
+            name: 'No models available',
+            description: 'Run "ollama pull <model>" to download models'
+          }];
+        }
+        
+        return data.models
+          .map(model => {
+            // Parse model name to get base name and tag
+            const [baseName, tag = 'latest'] = model.name.split(':');
+            const displayName = tag === 'latest' ? baseName : model.name;
+            
+            // Determine model family for better descriptions
+            let description = `Size: ${this.formatSize(model.size)}`;
+            
+            if (baseName.includes('llama')) {
+              description += ` • Llama family model`;
+            } else if (baseName.includes('gemma')) {
+              description += ` • Google Gemma model`;
+            } else if (baseName.includes('mistral')) {
+              description += ` • Mistral model`;
+            } else if (baseName.includes('phi')) {
+              description += ` • Microsoft Phi model`;
+            } else if (baseName.includes('qwen')) {
+              description += ` • Alibaba Qwen model`;
+            } else if (baseName.includes('codellama')) {
+              description += ` • Code-specialized Llama`;
+            }
+            
+            description += ` • Modified: ${new Date(model.modified_at).toLocaleDateString()}`;
+            
+            return {
+              id: model.name,
+              name: displayName,
+              description
+            };
+          })
+          .sort((a, b) => {
+            // Sort by model family preference and size
+            const getScore = (name) => {
+              const lower = name.toLowerCase();
+              if (lower.includes('llama3.2')) return 100;
+              if (lower.includes('llama3.1')) return 95;
+              if (lower.includes('llama3')) return 90;
+              if (lower.includes('gemma2')) return 85;
+              if (lower.includes('qwen2.5')) return 80;
+              if (lower.includes('mistral')) return 75;
+              if (lower.includes('phi3')) return 70;
+              if (lower.includes('codellama')) return 65;
+              return 50;
+            };
+            return getScore(b.name) - getScore(a.name);
+          });
       }
     } catch (error) {
-      // Return empty array if can't connect
+      return [{
+        id: 'connection-error',
+        name: 'Connection Error',
+        description: `Cannot connect to Ollama at ${this.baseUrl}. Is Ollama running?`
+      }];
     }
 
     return [];

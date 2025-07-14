@@ -1,4 +1,5 @@
 [![npm version](https://img.shields.io/npm/v/taskwerk.svg)](https://www.npmjs.com/package/taskwerk)
+[![CI](https://github.com/TaisoAI/taskwerk/actions/workflows/ci.yml/badge.svg)](https://github.com/TaisoAI/taskwerk/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -11,447 +12,406 @@
    ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
 ```
 
-A lightweight CLI task manager optimized for human-AI collaboration workflows. 
+> A powerful task management CLI that brings AI agents and developers together to ship great software faster.
 
-## Taskwerk Overview
+## 🚀 What is Taskwerk?
 
-Taskwerk is a lightweight task tracker that can be used inside software repos to break up and track tasks and is focused on agentic coding. It includes task creation, git integration, and agentic-llm support to help get code written quickly and accurately without creating large numbers of subtasks that would as would be in a traditional issue tracking system.
+Taskwerk is not just another task manager. It's a productivity powerhouse that seamlessly integrates AI capabilities into your development workflow. Whether you're managing complex projects, tracking bugs, or planning sprints, Taskwerk provides the tools you need while speaking the language you already know - the command line.
 
-- **Structured yet Human-Readable**: YAML frontmatter for metadata, markdown for content
-- **Advanced Task Management**: Dependencies, subtasks, timeline tracking, and assignees
-- **Git-Integrated**: Intelligent commit messages and branch management
-- **Zero Vendor Lock-In**: Plain text files that work without the CLI
-- **AI-Optimized**: Built for human-AI collaboration workflows
-- **Backward Compatible**: Automatically migrates older task formats
+### Why Taskwerk?
 
-## Documentation (v3 Architecture - In Development)
+- **AI-Native**: Built from the ground up with AI integration in mind. Ask questions, get intelligent suggestions, and let AI agents help manage your tasks.
+- **Developer-First**: Designed for developers who live in the terminal. No bloated GUIs, just pure command-line efficiency.
+- **Git-Friendly**: Tasks are stored in SQLite with markdown export/import, making collaboration and version control seamless.
+- **Extensible**: Add custom AI tools, integrate with your workflow, and extend functionality as needed.
+- **Fast**: Instant task operations with SQLite backend and optimized Node.js implementation.
 
-**Note:** Taskwerk is evolving to v3 architecture (0.3.x releases). The documentation below reflects the current v2 release, but new v3 documentation is available:
+## 🎯 Quick Start
 
-### For Users
-- **[Product Overview & User Guide](dev/v3-taskwerk-prd.md)** - Start here! Learn what Taskwerk v3 is, why it exists, and how to use it effectively with AI assistants.
-- **[CLI Reference](dev/v3-cli-reference.md)** - Complete v3 command reference with examples and workflows.
-
-### For Developers  
-- **[Implementation Guide](dev/v3-implementation-guide.md)** - Technical architecture, database schema, API design, and development setup for v3.
-
-The v3 architecture introduces:
-- Subcommand structure for better organization
-- SQLite database for robust task management
-- Three AI interaction modes (ask, agent, raw)
-- Enhanced notes system with dual storage approach
-
-## Quick Start
+### Installation
 
 ```bash
-# Initialize Taskwerk in your project
+# Install globally via npm
+npm install -g taskwerk
+
+# Or use npx (no installation required)
 npx taskwerk init
-
-# Add your first task with enhanced metadata
-npx taskwerk add "Fix login validation bug" --priority high --category bugs --assignee @john
-
-# Start working on it
-npx taskwerk start TASK-001
-
-# Complete when done
-npx taskwerk complete TASK-001 --note "Fixed session timeout issue"
 ```
 
-That's it! Taskwerk creates structured YAML frontmatter files with markdown content for powerful task tracking.
+### Your First 5 Minutes with Taskwerk
 
-## Installation
-
-### No Installation Required
 ```bash
-npx taskwerk init          # Use directly with npx
+# 1. Initialize taskwerk in your project
+taskwerk init
+
+# 2. Add your first task
+taskwerk add "Set up development environment" -p high
+
+# 3. View your tasks
+taskwerk list
+
+# 4. Add more tasks with details
+taskwerk add "Write unit tests for auth module" -p medium --tags backend,testing
+taskwerk add "Review PR #42" -p high --due tomorrow
+
+# 5. Use AI to help manage tasks
+taskwerk ask "What should I work on first?"
+taskwerk agent "Break down the auth module task into subtasks"
 ```
 
-### Global Installation
+### Real-World Example
+
+Let's say you're starting a new feature:
+
 ```bash
-npm install -g taskwerk  
-taskwerk --help
+# Create a parent task for the feature
+taskwerk add "Implement user authentication" -p high --tags feature,backend
+
+# Use AI to help plan
+taskwerk agent "Create subtasks for implementing user authentication with JWT"
+
+# The agent creates subtasks for you:
+# ✅ Created task TASK-123: Design authentication API endpoints
+# ✅ Created task TASK-124: Implement JWT token generation  
+# ✅ Created task TASK-125: Add password hashing with bcrypt
+# ✅ Created task TASK-126: Create login/logout endpoints
+# ✅ Created task TASK-127: Add authentication middleware
+# ✅ Created task TASK-128: Write tests for auth flow
+
+# Check your tasks by tag
+taskwerk list --tag auth
+
+# Get AI insights
+taskwerk ask "Show me the auth tasks ordered by dependency"
+
+# Start working on a task
+taskwerk update TASK-124 --status in-progress
+
+# Add notes as you work
+taskwerk update TASK-124 --note "Using RS256 algorithm for better security"
+
+# Complete a task
+taskwerk update TASK-124 --status done
 ```
 
-### Project Integration
+## 🤖 AI Integration
+
+Taskwerk features deep AI integration with support for multiple providers:
+
+### Supported AI Providers
+
+- **Anthropic Claude** (Claude 3.5 Sonnet, Claude 3 Opus)
+- **OpenAI** (GPT-4, GPT-4 Turbo, GPT-3.5)
+- **Ollama** (Local models - Llama 3, Mistral, Gemma)
+- **LM Studio** (Local model server)
+- **Grok** (X.AI models)
+- **Mistral** (Mistral Large, Mixtral)
+
+### AI Commands
+
+#### `taskwerk aiconfig`
+Configure your AI providers and models:
+
 ```bash
-# Add to package.json scripts
-{
-  "scripts": {
-    "task": "npx taskwerk"
-  }
-}
+# Interactive configuration
+taskwerk aiconfig --choose
 
-npm run task list
+# Set provider directly
+taskwerk aiconfig --provider openai --model gpt-4-turbo
+
+# Configure API keys
+taskwerk aiconfig --set anthropic.api_key=your-key-here
+taskwerk aiconfig --set openai.api_key=your-key-here
+
+# List available models
+taskwerk aiconfig --list-models
+
+# Test connections
+taskwerk aiconfig --test
 ```
 
-## Core Workflow
+#### `taskwerk ask`
+Get intelligent insights about your tasks and projects:
 
-### 1. Enhanced Task Management
 ```bash
-# Add tasks with rich metadata
-taskwerk add "Fix authentication bug" --priority high --category bugs --assignee @alice
-taskwerk add "Implement user dashboard" --category features --estimated 4h
+# Ask about priorities
+taskwerk ask "What are my high priority tasks?"
 
-# View and filter tasks
-taskwerk list                    # All active tasks
-taskwerk list --priority high   # Filter by priority
-taskwerk list --assignee @alice # Filter by assignee
-taskwerk status                  # Current session info
+# Get project insights  
+taskwerk ask "Analyze my backend tasks and suggest an order"
 
-# Work with tasks
-taskwerk start TASK-001          # Begin work (validates dependencies)
-taskwerk complete TASK-001       # Mark done with timeline tracking
-taskwerk pause TASK-001          # Pause work temporarily
-taskwerk block TASK-001 --reason "Waiting for API docs"
-taskwerk search "auth"           # Search across all task fields
+# Include file context
+taskwerk ask "How do these tasks relate to the roadmap?" -f ROADMAP.md
+
+# Include current tasks
+taskwerk ask "What's the status of the auth feature?" -t
 ```
 
-### 2. Dependencies & Subtasks
+#### `taskwerk agent`
+Let AI actively help manage and organize your tasks:
+
 ```bash
-# Manage task dependencies
-taskwerk add-dependency TASK-002 TASK-001  # TASK-002 depends on TASK-001
-taskwerk ready-tasks                       # Show tasks ready to work on
+# Break down complex tasks
+taskwerk agent "Split the database migration task into smaller steps"
 
-# Work with subtasks
-taskwerk add-subtask TASK-001 "Write unit tests"
-taskwerk add-subtask TASK-001 "Update documentation"
-taskwerk list-subtasks TASK-001           # Show all subtasks
+# Organize your backlog
+taskwerk agent "Group related tasks and add appropriate tags"
+
+# Generate task lists from requirements
+taskwerk agent "Create tasks from the requirements in spec.md" -f spec.md
+
+# Plan your day
+taskwerk agent "Create a prioritized task list for today based on deadlines"
 ```
 
-### 3. Git Integration (Optional)
+#### `taskwerk llm`
+Direct access to language models for general purpose use:
+
 ```bash
-# Create feature branch for task
-taskwerk branch TASK-001         # Creates: feature/task-001-fix-auth-bug
+# Quick questions
+taskwerk llm "Explain the difference between JWT and OAuth"
 
-# Make your code changes...
-git add src/auth.js
+# Code generation
+taskwerk llm "Write a Python function to validate email addresses"
 
-# Generate intelligent commit message from completed tasks
-taskwerk commit                  # Shows preview with task context
-taskwerk commit --auto          # Actually commits with Co-Authored-By tags
+# Pipe input/output
+cat error.log | taskwerk llm "What's causing this error?"
+taskwerk llm "Generate 10 test cases for a login API" > test-cases.md
 ```
 
-### 4. Advanced Progress Tracking
+### AI Tools System
+
+Taskwerk includes a powerful tools system that allows AI to interact with your tasks and files:
+
 ```bash
-taskwerk stats                   # Enhanced project overview with v2 metrics
-taskwerk recent                  # Recently completed with timeline details
-taskwerk context TASK-001       # Complete task details and dependency tree
-taskwerk timeline TASK-001      # Show full task timeline
+# List available AI tools
+taskwerk aiconfig --list-tools
+
+# Available tools include:
+# - list_tasks: List and filter tasks
+# - add_task: Create new tasks
+# - update_task: Modify existing tasks  
+# - read_file: Read file contents
+# - write_file: Write files (agent mode only)
+# - list_files: Browse directory contents
+# - search_code: Search for patterns in code
 ```
 
-## File Structure
+## 📋 Core Features
 
-taskwerk creates these files in your project:
+### Task Management
 
-```
-tasks/
-├── tasks.md              # Active tasks (hand-editable)
-├── tasks_completed.md    # Completed tasks archive
-├── tasks-how-to.md       # Quick reference
-└── taskwerk-rules.md     # Project workflow rules
-.taskrc.json              # Configuration (optional)
-```
-
-## Task Format
-
-Taskwerk v2.0 uses YAML frontmatter for structured metadata with markdown content for rich descriptions:
-
-```markdown
----
-id: TASK-001
-description: Fix authentication timeout on mobile Safari
-status: in_progress
-priority: high
-category: bugs
-assignee: @alice
-estimated: 3h
-created: 2025-06-30T10:00:00.000Z
-updated: 2025-06-30T14:30:00.000Z
-dependencies: []
-subtasks:
-  - id: TASK-001.1
-    description: Reproduce issue in Safari
-    status: completed
-    assignee: @alice
-  - id: TASK-001.2
-    description: Implement session refresh logic
-    status: in_progress
-    assignee: @alice
-timeline:
-  - timestamp: 2025-06-30T10:00:00.000Z
-    action: created
-    user: @alice
-  - timestamp: 2025-06-30T10:15:00.000Z
-    action: started
-    user: @alice
-    note: Beginning investigation
-  - timestamp: 2025-06-30T14:30:00.000Z
-    action: subtask_completed
-    user: @alice
-    note: Successfully reproduced the issue
----
-
-# Fix authentication timeout on mobile Safari
-
-## Problem Description
-Users on mobile Safari are experiencing session timeouts after 15 minutes of inactivity, even when actively using the application.
-
-## Root Cause Analysis
-The issue appears to be related to Safari's aggressive tab suspension policies that interfere with our session refresh mechanism.
-
-## Proposed Solution
-1. Implement heartbeat mechanism that works with Safari's background limitations
-2. Add session storage fallback for suspended tabs
-3. Graceful session recovery when tabs become active again
-
-## Acceptance Criteria
-- [ ] Session persists for full 30-minute timeout period
-- [ ] Graceful handling of tab suspension/resumption
-- [ ] No impact on other browsers' performance
-- [ ] Unit tests cover edge cases
-
-## Related Files
-- `src/auth/session-manager.js`
-- `src/utils/heartbeat.js`
-- `tests/auth/safari-session.test.js`
-```
-
-**Task States:**
-- `todo` - Ready to start
-- `in_progress` - Currently being worked on
-- `blocked` - Waiting for dependencies or external factors
-- `completed` - Successfully finished
-- `archived` - Cancelled or no longer relevant
-
-**Enhanced Features:**
-- **Dependencies**: Tasks can depend on other tasks being completed first
-- **Subtasks**: Break large tasks into smaller, manageable pieces
-- **Timeline**: Complete history of all task state changes and actions
-- **Assignees**: Track who's responsible for each task (`@username` format)
-- **Categories**: Organize tasks by type (bugs, features, docs, etc.)
-- **Estimated Time**: Track planned effort (`2h`, `1d`, `1w` format)
-
-## Configuration
-
-Create `.taskrc.json` in your project root:
-
-```json
-{
-  "defaultPriority": "medium",
-  "defaultAssignee": "@me",
-  "autoCreateBranch": true,
-  "validateDependencies": true,
-  "timelineTracking": true,
-  "categories": {
-    "bugs": "Bug Fixes",
-    "features": "Features", 
-    "docs": "Documentation",
-    "refactor": "Code Refactoring",
-    "tests": "Testing"
-  },
-  "estimateFormats": ["1h", "2h", "4h", "1d", "2d", "1w"],
-  "workflowRules": {
-    "requireEstimateForHighPriority": true,
-    "autoCompleteSubtasks": true,
-    "enforceAssigneeFormat": true
-  }
-}
-```
-
-**Configuration Options:**
-- `defaultPriority`: Default priority for new tasks (high/medium/low)
-- `defaultAssignee`: Default assignee for new tasks (@username format)
-- `validateDependencies`: Check dependency completion before allowing task start
-- `timelineTracking`: Enable detailed timeline tracking for all actions
-- `categories`: Predefined categories for task organization
-- `estimateFormats`: Valid time estimate formats
-- `workflowRules`: Enforce team workflow standards
-
-## Common Workflows
-
-### Enhanced Project Management
 ```bash
-# Daily workflow with v2.0 features
-taskwerk add "Implement user settings page" --priority high --assignee @john --estimated 4h
-taskwerk add-subtask TASK-005 "Design settings UI mockup"
-taskwerk add-subtask TASK-005 "Implement backend API"
-taskwerk add-subtask TASK-005 "Add frontend integration"
-taskwerk list --assignee @john
-taskwerk start TASK-005
-# ... do the work ...
-taskwerk complete TASK-005 --note "Added profile, preferences, and notifications"
-taskwerk stats
+# Add tasks with various options
+taskwerk add "Task description" \
+  --priority high \
+  --status in-progress \
+  --tags frontend,urgent \
+  --due "next friday" \
+  --assigned john
+
+# List tasks with filtering
+taskwerk list --status active
+taskwerk list --priority high
+taskwerk list --tag backend
+taskwerk list --assigned me
+taskwerk list --search "auth"
+
+# View task details
+taskwerk show TASK-123
+
+# Update tasks
+taskwerk update TASK-123 --status done
+taskwerk update TASK-123 --add-tag reviewed
+taskwerk update TASK-123 --note "Fixed edge case with empty passwords"
+
+# Delete tasks
+taskwerk delete TASK-123
 ```
 
-### Dependency Management
+### Advanced Task Features
+
+#### Task Dependencies
 ```bash
-# Complex feature with dependencies
-taskwerk add "Set up authentication system" --priority high --assignee @alice
-taskwerk add "Implement user dashboard" --assignee @bob
-taskwerk add-dependency TASK-002 TASK-001  # Dashboard depends on auth
-
-taskwerk ready-tasks                        # Shows only TASK-001 is ready
-taskwerk start TASK-001                     # Alice starts auth work
-taskwerk complete TASK-001                  # Auth system complete
-taskwerk ready-tasks                        # Now shows TASK-002 is ready
-taskwerk start TASK-002                     # Bob can start dashboard
+# Create dependent tasks
+taskwerk add "Deploy to production" --depends-on TASK-100,TASK-101
 ```
 
-### Team Collaboration with Timeline Tracking
+#### Task Notes
 ```bash
-# Enhanced team workflow
-git pull                                    # Get latest tasks
-taskwerk list --priority high --assignee @me
-taskwerk start TASK-007 --note "Beginning investigation"
-taskwerk block TASK-007 --reason "Waiting for API documentation from backend team"
-# ... later when unblocked ...
-taskwerk unblock TASK-007 --note "API docs received"
-taskwerk complete TASK-007 --note "Implemented with Redis caching and error handling"
-taskwerk timeline TASK-007                 # View complete task history
-git push                                    # Share completed work
+# Add detailed notes to tasks
+taskwerk update TASK-123 --note "Remember to update the documentation"
+taskwerk show TASK-123 --notes
 ```
 
-## AI Integration (Optional)
-
-taskwerk supports optional AI assistance for natural language task management:
-
-### Setup
+#### Task Search
 ```bash
-# Interactive setup
-taskwerk llmconfig --choose     # Select from available models
-
-# Or set environment variable
-export OPENAI_API_KEY="your-key"
+# Full-text search across tasks
+taskwerk search "authentication"
+taskwerk search "bug" --status open --priority high
 ```
 
-### Usage
+#### Task Split
 ```bash
-# Natural language commands
-taskwerk ask "what should I work on next?"
-taskwerk ask "add a task for fixing the memory leak"
-taskwerk ask "show me all high priority bugs"
-
-# AI can also work with tasks like:
-taskwerk agent "start working on the authentication task"
+# Split a large task into subtasks
+taskwerk split TASK-123 \
+  "Research payment providers" \
+  "Implement Stripe integration" \
+  "Add payment webhook handlers" \
+  "Write payment tests"
 ```
 
-**Supported Models:**
-- **OpenAI**: GPT-4, GPT-4.1, .. (remote)
-- **Anthropic**: Claude-3.5, Claude-3.7, ... (remote)
-- **Ollama**: Local models (llama3.2, etc.)
-- **LM Studio**: Local model server (similar to ollama)
+### Import/Export
 
-See `taskwerk llmconfig --help` for complete setup guide.
+Taskwerk supports markdown-based import/export for easy sharing and backup:
 
-## Commands Reference
+```bash
+# Export tasks to markdown
+taskwerk export tasks.md
+taskwerk export tasks.md --status active
+taskwerk export tasks.md --tag sprint-42
 
-### Enhanced Task Management
-- `taskwerk add "description" [--priority] [--category] [--assignee] [--estimated]` - Add new task with v2.0 metadata
-- `taskwerk list [--priority] [--category] [--assignee] [--completed] [--archived]` - List and filter tasks
-- `taskwerk start TASK-ID [--note]` - Begin working on task (validates dependencies)
-- `taskwerk complete TASK-ID [--note]` - Mark task completed with timeline tracking
-- `taskwerk pause TASK-ID [--note]` - Return task to todo state with timeline entry
-- `taskwerk block TASK-ID --reason "reason" [--note]` - Block task with reason tracking
-- `taskwerk unblock TASK-ID [--note]` - Unblock task and resume work
-- `taskwerk archive TASK-ID --reason "reason" [--superseded-by] [--note]` - Archive task permanently
-- `taskwerk search "keyword"` - Search across all task fields
+# Import tasks from markdown
+taskwerk import tasks.md
+taskwerk import tasks.md --dry-run  # Preview what will be imported
 
-### Dependencies & Subtasks
-- `taskwerk add-dependency TASK-ID DEPENDENCY-ID` - Add task dependency
-- `taskwerk remove-dependency TASK-ID DEPENDENCY-ID` - Remove task dependency
-- `taskwerk ready-tasks` - Show tasks ready to work on (no blocking dependencies)
-- `taskwerk dependency-tree TASK-ID` - Show complete dependency hierarchy
-- `taskwerk add-subtask TASK-ID "description" [--assignee]` - Add subtask to parent task
-- `taskwerk update-subtask TASK-ID SUBTASK-ID [--status] [--assignee]` - Update subtask
-- `taskwerk list-subtasks TASK-ID` - Show all subtasks for a task
-
-### Information & Context
-- `taskwerk status` - Current session with enhanced v2.0 information
-- `taskwerk context TASK-ID` - Complete task details including dependencies and timeline
-- `taskwerk timeline TASK-ID` - Show full task timeline and history
-- `taskwerk stats` - Enhanced project statistics with v2.0 metrics
-- `taskwerk recent [--limit]` - Recently completed tasks with details
+# Markdown format supports:
+# - Checkboxes for status
+# - Tags with #hashtags
+# - Priorities with !, !!, !!!
+# - Metadata in YAML frontmatter
+```
 
 ### Git Integration
-- `taskwerk branch TASK-ID` - Create/switch to feature branch
-- `taskwerk stage [--auto] [--preview]` - Stage files with task context
-- `taskwerk commit [--auto] [--message]` - Intelligent commits with Co-Authored-By tags
 
-### AI Features (Optional)
-- `taskwerk ask "question"` - Ask questions about tasks and dependencies
-- `taskwerk agent "instruction"` - Have AI perform task operations with v2.0 features
-- `taskwerk llmconfig [--list-models] [--add-key] [--choose]` - Configure AI models
-
-### Configuration & Management
-- `taskwerk init [path]` - Initialize Taskwerk with v2.0 format in project
-- `taskwerk rules [--status] [--validate]` - View/edit workflow rules
-- `taskwerk migrate` - Manually migrate v1 format to v2.0 (auto-migration available)
-- `taskwerk about` - Version and help information
-
-## Development & Contributing
-
-### Setup
 ```bash
-git clone https://github.com/yourusername/taskwerk.git
+# Create git commits with task context
+taskwerk git commit TASK-123  # Commits with task description
+
+# Create branches from tasks
+taskwerk git branch TASK-123   # Creates feature/TASK-123-task-title
+
+# Sync task status with git
+taskwerk git sync             # Updates task status based on branch activity
+```
+
+## 🛠️ Configuration
+
+Taskwerk stores configuration in `~/.taskwerk/config.yml`:
+
+```yaml
+general:
+  defaultPriority: medium
+  defaultStatus: todo
+  taskPrefix: TASK
+  colors: true
+  dateFormat: YYYY-MM-DD
+
+database:
+  path: ~/.taskwerk/tasks.db
+  backupEnabled: true
+  backupCount: 5
+
+ai:
+  defaultProvider: anthropic
+  defaultModel: claude-3-5-sonnet-20241022
+  providers:
+    anthropic:
+      api_key: ${ANTHROPIC_API_KEY}
+    openai:
+      api_key: ${OPENAI_API_KEY}
+```
+
+Environment variables are supported using `${VAR_NAME}` syntax.
+
+## 📚 Advanced Usage
+
+### Custom Workflows
+
+Create custom task templates:
+
+```bash
+# Create a bug report template
+taskwerk add "Bug: $1" --template bug \
+  --priority high \
+  --tags bug,needs-investigation \
+  --assign qa-team
+```
+
+### Aliases and Shortcuts
+
+```bash
+# Both 'taskwerk' and 'twrk' commands are available
+twrk ls          # Short for taskwerk list
+twrk a "Fix bug" # Short for taskwerk add
+```
+
+### Integration with Other Tools
+
+```bash
+# Export for project management tools
+taskwerk export --format json > tasks.json
+
+# Generate reports
+taskwerk list --format json | jq '.[] | select(.priority=="high")'
+
+# Create GitHub issues
+taskwerk list --tag bug --format json | \
+  jq -r '.[] | "gh issue create --title \"" + .description + "\""' | sh
+```
+
+## 🏗️ Architecture
+
+Taskwerk is built with:
+
+- **Node.js 18+** for modern JavaScript features
+- **SQLite** for fast, reliable local storage
+- **Commander.js** for robust CLI parsing  
+- **Chalk** for beautiful terminal output
+- **Inquirer** for interactive prompts
+- **Better-sqlite3** for synchronous database operations
+- **YAML** for human-friendly configuration
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+```bash
+# Clone the repository
+git clone https://github.com/TaisoAI/taskwerk.git
 cd taskwerk
+
+# Install dependencies
 npm install
+
+# Run tests
+npm test
+
+# Run in development
+npm run dev -- list
+
+# Build the project
+npm run build
 ```
 
-### Build & Test
-```bash
-npm test                 # Run all tests
-npm run build           # Lint, format, test, and build
-npm run lint            # Check code style
-npm start               # Run local development version
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-See [BUILD.md](BUILD.md) for detailed build instructions.
+## 📄 License
 
-## Requirements
+MIT © [Taiso.ai](https://www.taiso.ai)
 
-- **Node.js**: 18.0.0 or higher
-- **Git**: For git integration features (optional)
-- **AI Models**: For natural language features (optional)
+## 🙏 Acknowledgments
 
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## What's New in v2.0
-
-Taskwerk v2.0 brings significant enhancements while maintaining backward compatibility:
-
-### 🚀 **YAML Frontmatter Architecture**
-- Structured metadata with human-readable markdown content
-- Rich task schema with validation
-- Automatic migration from older formats
-
-### 🔗 **Advanced Task Relationships** 
-- **Dependencies**: Enforce task order and prerequisites
-- **Subtasks**: Break complex work into manageable pieces
-- **Timeline Tracking**: Complete audit trail of all changes
-
-### 👥 **Enhanced Team Collaboration**
-- **Assignee System**: Track responsibility with @username format
-- **Categories & Estimates**: Better organization and planning
-- **Blocking/Unblocking**: Handle external dependencies gracefully
-
-### 🤖 **AI-Optimized Workflows**
-- Enhanced integration with AI coding assistants
-- Intelligent commit messages with task context
-- Natural language task operations
-
-## Philosophy
-
-Taskwerk believes task management should be:
-- **Structured yet Human**: YAML + Markdown for the best of both worlds
-- **Relationship-Aware**: Tasks don't exist in isolation
-- **Timeline-Conscious**: History matters for context and learning
-- **AI-Collaborative**: Built for human-AI development workflows
-- **Zero Lock-In**: Plain text files that work everywhere
-
-Whether you're working solo, with a team, or with AI assistants, Taskwerk v2.0 provides the structured context and intelligent task management you need for modern software development.
+Built with ❤️ by developers, for developers. Special thanks to all contributors and the open source community.
 
 ---
 
-*Structured task management for human-AI collaboration*
+**Ready to supercharge your productivity?**
+
+```bash
+npm install -g taskwerk
+taskwerk init
+taskwerk ask "What should I build today?"
+```
+
+Join us in making task management intelligent, efficient, and actually enjoyable. 🚀

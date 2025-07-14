@@ -12,19 +12,19 @@
    ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
 ```
 
-> A powerful task management CLI that brings AI agents and developers together to ship great software faster.
+A task management CLI with AI integration for development workflows.
 
-## 🚀 What is Taskwerk?
+## What is Taskwerk?
 
-Taskwerk is not just another task manager. It's a productivity powerhouse that seamlessly integrates AI capabilities into your development workflow. Whether you're managing complex projects, tracking bugs, or planning sprints, Taskwerk provides the tools you need while speaking the language you already know - the command line.
+Taskwerk is a command-line task manager that integrates with AI models (Claude, GPT, Mistral, Llama) to help manage development tasks. It stores tasks in SQLite and supports markdown import/export.
 
-### Why Taskwerk?
+### Features
 
-- **AI-Native**: Built from the ground up with AI integration in mind. Ask questions, get intelligent suggestions, and let AI agents help manage your tasks.
-- **Developer-First**: Designed for developers who live in the terminal. No bloated GUIs, just pure command-line efficiency.
-- **Git-Friendly**: Tasks are stored in SQLite with markdown export/import, making collaboration and version control seamless.
-- **Extensible**: Add custom AI tools, integrate with your workflow, and extend functionality as needed.
-- **Fast**: Instant task operations with SQLite backend and optimized Node.js implementation.
+- **Task Management**: Create, update, list, and track tasks with priority, status, and tags
+- **AI Integration**: Ask questions about your tasks or let AI agents help complete them
+- **Local Storage**: SQLite database keeps your data on your machine
+- **Markdown Support**: Import and export tasks as markdown for sharing or backup
+- **Git Integration**: Branch-aware task tracking
 
 ## 🎯 Quick Start
 
@@ -181,7 +181,7 @@ taskwerk llm "Generate 10 test cases for a login API" > test-cases.md
 
 ### AI Tools System
 
-Taskwerk includes a powerful tools system that allows AI to interact with your tasks and files:
+Taskwerk includes tools that allow AI to interact with your tasks and files:
 
 ```bash
 # List available AI tools

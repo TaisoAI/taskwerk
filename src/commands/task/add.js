@@ -57,10 +57,10 @@ export function taskAddCommand() {
         console.log(`  Name: ${task.name}`);
         console.log(`  Status: ${task.status}`);
         console.log(`  Priority: ${task.priority}`);
-        if (task.assignee) console.log(`  Assignee: ${task.assignee}`);
-        if (task.parent_id) console.log(`  Parent: ${task.parent_id}`);
-        if (task.estimate) console.log(`  Estimate: ${task.estimate} hours`);
-        if (task.description) console.log(`  Description: ${task.description}`);
+        if (task.assignee) {console.log(`  Assignee: ${task.assignee}`);}
+        if (task.parent_id) {console.log(`  Parent: ${task.parent_id}`);}
+        if (task.estimate) {console.log(`  Estimate: ${task.estimate} hours`);}
+        if (task.description) {console.log(`  Description: ${task.description}`);}
         
       } catch (error) {
         logger.error('Failed to create task', error);

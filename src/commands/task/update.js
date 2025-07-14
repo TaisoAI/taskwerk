@@ -29,10 +29,10 @@ export function taskUpdateCommand() {
         // Build updates object
         const updates = {};
         
-        if (options.name) updates.name = options.name;
-        if (options.priority) updates.priority = options.priority;
-        if (options.assignee) updates.assignee = options.assignee;
-        if (options.status) updates.status = options.status;
+        if (options.name) {updates.name = options.name;}
+        if (options.priority) {updates.priority = options.priority;}
+        if (options.assignee) {updates.assignee = options.assignee;}
+        if (options.status) {updates.status = options.status;}
         
         if (options.estimate) {
           const estimateNum = parseInt(options.estimate);

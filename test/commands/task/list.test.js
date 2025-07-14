@@ -42,7 +42,7 @@ describe('task list command', () => {
     const calls = testSetup.consoleLogSpy.mock.calls.flat();
     const hasTasksHeader = calls.some(call => call.includes('📋 Tasks'));
     const hasNoTasksMessage = calls.some(call => call.includes('📝 No tasks found'));
-    
+
     expect(hasTasksHeader || hasNoTasksMessage).toBe(true);
   });
 });

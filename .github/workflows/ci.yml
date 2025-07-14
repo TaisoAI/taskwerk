@@ -107,7 +107,12 @@ jobs:
       
       - name: Create .npmrc
         run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "ERROR: NPM_TOKEN secret is empty!"
+            exit 1
+          fi
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "Token length: ${#NPM_TOKEN}"
       
       - name: Check npm authentication
         run: |

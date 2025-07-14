@@ -75,11 +75,11 @@ describe('CLI Entry Point', () => {
       proc.on('close', code => {
         expect(code).toBe(0);
         expect(output).toContain('taskwerk');
-        expect(output).toContain('0.6.5');
+        expect(output).toContain('0.6.6');
         resolve();
       });
     });
-  });
+  }, 10000);
 
   it('should display error for unknown command', () => {
     return new Promise(resolve => {

@@ -36,7 +36,7 @@ describe('task list command', () => {
 
   it('should list tasks when executed', async () => {
     const command = taskListCommand();
-    
+
     try {
       await command.parseAsync(['list'], { from: 'user' });
     } catch (error) {
@@ -49,16 +49,16 @@ describe('task list command', () => {
 
     // Check that console.log was called at least once
     expect(testSetup.consoleLogSpy).toHaveBeenCalled();
-    
+
     // Check for either task list header or no tasks message
     const calls = testSetup.consoleLogSpy.mock.calls;
     const allOutput = calls.map(call => call.join(' ')).join('\n');
-    
-    const hasExpectedOutput = 
-      allOutput.includes('📋 Tasks') || 
+
+    const hasExpectedOutput =
+      allOutput.includes('📋 Tasks') ||
       allOutput.includes('📝 No tasks found') ||
       allOutput.includes('No tasks found');
-    
+
     expect(hasExpectedOutput).toBe(true);
   });
 });

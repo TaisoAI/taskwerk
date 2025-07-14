@@ -10,7 +10,10 @@ export function aiconfigCommand() {
     .description('Configure AI/LLM settings')
     .option('--set <key=value>', 'Set a configuration value (e.g., provider.api_key)')
     .option('--list-providers', 'List available AI providers')
+    .option('--list-models [provider]', 'List available models for provider')
     .option('--choose', 'Interactively choose provider and model')
+    .option('--provider <name>', 'Set the current provider (non-interactive)')
+    .option('--model <name>', 'Set the current model (non-interactive)')
     .option('--test', 'Test connection to configured providers')
     .option('--show', 'Show current AI configuration')
     .action(async (options) => {
@@ -21,8 +24,18 @@ export function aiconfigCommand() {
         // Handle different options
         if (options.listProviders) {
           await listProviders(llmManager);
+        } else if (options.listModels !== undefined) {
+          await listModels(llmManager, options.listModels);
         } else if (options.choose) {
           await chooseProviderAndModel(llmManager);
+        } else if (options.provider && options.model) {
+          await setProviderAndModel(llmManager, options.provider, options.model);
+        } else if (options.provider) {
+          console.error('❌ --model is required when setting --provider');
+          process.exit(1);
+        } else if (options.model) {
+          console.error('❌ --provider is required when setting --model');
+          process.exit(1);
         } else if (options.test) {
           await testProviders(llmManager);
         } else if (options.set) {
@@ -60,6 +73,88 @@ async function listProviders(llmManager) {
   console.log('\n   Example: taskwerk aiconfig --set anthropic.api_key=sk-ant-...');
 }
 
+async function listModels(llmManager, providerName) {
+  if (providerName && providerName !== true) {
+    // List models for specific provider
+    console.log(`🔍 Discovering models from ${providerName}...`);
+    
+    try {
+      const provider = llmManager.getProvider(providerName);
+      const models = await provider.listModels();
+      
+      if (models.length === 0) {
+        console.log(`❌ No models available for ${providerName}`);
+        return;
+      }
+      
+      console.log(`\n📋 Available models for ${providerName}:`);
+      for (const model of models) {
+        console.log(`   ${model.id}`);
+        if (model.description) {
+          console.log(`      ${model.description}`);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Failed to list models for ${providerName}: ${error.message}`);
+    }
+  } else {
+    // List models for all providers
+    console.log('🔍 Discovering models from all providers...');
+    
+    const modelsByProvider = await llmManager.discoverModels();
+    
+    for (const [provider, models] of modelsByProvider) {
+      console.log(`\n📋 ${provider}:`);
+      
+      if (models.length === 0) {
+        console.log('   No models available');
+        continue;
+      }
+      
+      const firstModel = models[0];
+      if (firstModel.id === 'no-models' || firstModel.id === 'connection-error') {
+        console.log(`   ${firstModel.description}`);
+        continue;
+      }
+      
+      for (const model of models) {
+        console.log(`   ${model.id}`);
+      }
+    }
+  }
+}
+
+async function setProviderAndModel(llmManager, providerName, modelName) {
+  try {
+    // Verify provider exists
+    const provider = llmManager.getProvider(providerName);
+    
+    // Verify model is available
+    const models = await provider.listModels();
+    const modelExists = models.some(m => m.id === modelName);
+    
+    if (!modelExists) {
+      console.error(`❌ Model '${modelName}' not found for provider '${providerName}'`);
+      console.log('\n💡 Available models:');
+      for (const model of models) {
+        console.log(`   ${model.id}`);
+      }
+      process.exit(1);
+    }
+    
+    // Set the configuration
+    llmManager.setCurrentProvider(providerName, modelName);
+    
+    console.log(`✅ Configuration updated:`);
+    console.log(`   Provider: ${providerName}`);
+    console.log(`   Model: ${modelName}`);
+    
+  } catch (error) {
+    console.error(`❌ Failed to set provider/model: ${error.message}`);
+    process.exit(1);
+  }
+}
+
 async function chooseProviderAndModel(llmManager) {
   // First, discover all available models
   console.log('🔍 Discovering available models...');
@@ -82,6 +177,14 @@ async function chooseProviderAndModel(llmManager) {
       } else {
         availableProviders.push({ provider, models, disabled: false });
       }
+    } else {
+      // Show unconfigured providers too
+      availableProviders.push({
+        provider,
+        models: [],
+        disabled: true,
+        status: 'Not configured'
+      });
     }
   }
 

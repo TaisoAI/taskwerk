@@ -2,6 +2,8 @@ import { AnthropicProvider } from './providers/anthropic.js';
 import { OpenAIProvider } from './providers/openai.js';
 import { OllamaProvider } from './providers/ollama.js';
 import { LMStudioProvider } from './providers/lmstudio.js';
+import { GrokProvider } from './providers/grok.js';
+import { MistralProvider } from './providers/mistral.js';
 import { ConfigManager } from '../config/config-manager.js';
 import { Logger } from '../logging/logger.js';
 
@@ -17,6 +19,8 @@ export class LLMManager {
     // Register available providers
     this.registerProvider('anthropic', AnthropicProvider);
     this.registerProvider('openai', OpenAIProvider);
+    this.registerProvider('grok', GrokProvider);
+    this.registerProvider('mistral', MistralProvider);
     this.registerProvider('ollama', OllamaProvider);
     this.registerProvider('lmstudio', LMStudioProvider);
     // More providers can be added here

@@ -122,8 +122,8 @@ jobs:
       
       - name: Check npm authentication
         run: |
-          npm whoami --registry https://registry.npmjs.org/
+          npm whoami --registry https://registry.npmjs.org/ || (echo "Failed to authenticate"; cat ~/.npm/_logs/*.log 2>/dev/null || true; exit 1)
           npm view taskwerk --registry https://registry.npmjs.org/
       
       - name: Publish to npm
-        run: npm publish --registry https://registry.npmjs.org/
+        run: npm publish --registry https://registry.npmjs.org/ || (echo "Publish failed"; cat ~/.npm/_logs/*.log 2>/dev/null || true; exit 1)

@@ -96,8 +96,29 @@ async function run() {
     
     console.log(chalk.blue(`\n📝 Preparing release v${newVersion}...\n`));
 
-    // Run tests
-    console.log(chalk.gray('Running tests...'));
+    // Run all checks
+    console.log(chalk.gray('Running checks...'));
+    
+    // Format check
+    console.log(chalk.gray('  - Checking code formatting...'));
+    try {
+      execSync('npm run format:check', { stdio: 'pipe' });
+    } catch (error) {
+      console.log(chalk.yellow('⚠️  Code needs formatting. Running formatter...'));
+      execSync('npm run format', { stdio: 'inherit' });
+    }
+    
+    // Lint
+    console.log(chalk.gray('  - Running linter...'));
+    try {
+      execSync('npm run lint', { stdio: 'pipe' });
+    } catch (error) {
+      console.log(chalk.red('❌ Linting failed. Fix errors before releasing.'));
+      process.exit(1);
+    }
+    
+    // Tests
+    console.log(chalk.gray('  - Running tests...'));
     try {
       execSync('npm test', { stdio: 'inherit' });
     } catch (error) {

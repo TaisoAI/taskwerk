@@ -28,9 +28,12 @@
     "lint:fix": "eslint src/ test/ --fix",
     "format": "prettier --write src/ test/",
     "format:check": "prettier --check src/ test/",
+    "check": "npm run format:check && npm run lint",
+    "check:fix": "npm run format && npm run lint:fix",
     "dev": "node src/cli/index.js",
-    "prebuild": "node scripts/update-version.js",
+    "prebuild": "npm run format && npm run lint && node scripts/update-version.js",
     "build": "node scripts/build.js",
+    "build:quick": "node scripts/build.js",
     "build:exe": "node scripts/build-executables.js",
     "make-release": "node scripts/make-release.js",
     "make-release-dry-run": "echo 'Dry run for release process - checks tests and build'"

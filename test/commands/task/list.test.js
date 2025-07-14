@@ -34,9 +34,9 @@ describe('task list command', () => {
     expect(optionNames).toContain('--all');
   });
 
-  it('should list tasks when executed', () => {
+  it('should list tasks when executed', async () => {
     const command = taskListCommand();
-    command.parse(['list'], { from: 'user' });
+    await command.parseAsync(['list'], { from: 'user' });
 
     // Check for task list header
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📋 Tasks'));

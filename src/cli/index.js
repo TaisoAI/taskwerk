@@ -8,6 +8,7 @@ import { configCommand } from '../commands/config.js';
 import { exportCommand } from '../commands/export.js';
 import { importCommand } from '../commands/import.js';
 import { gitCommand } from '../commands/git/index.js';
+import { aiconfigCommand } from '../commands/aiconfig.js';
 import { ErrorHandler } from '../errors/index.js';
 
 const require = createRequire(import.meta.url);
@@ -41,5 +42,6 @@ program.addCommand(configCommand());
 program.addCommand(exportCommand());
 program.addCommand(importCommand());
 program.addCommand(gitCommand());
+program.addCommand(aiconfigCommand());
 
 program.parse(process.argv);

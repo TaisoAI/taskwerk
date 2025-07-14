@@ -18,15 +18,20 @@ async function getVersion() {
     {
       type: 'list',
       name: 'versionType',
-      message: `Current version is ${chalk.yellow(currentVersion)}. How should we bump it?`,
+      message: `Current version is ${chalk.yellow(currentVersion)}. What would you like to do?`,
       choices: [
-        { name: 'Patch (bug fixes)', value: 'patch' },
-        { name: 'Minor (new features)', value: 'minor' },
-        { name: 'Major (breaking changes)', value: 'major' },
+        { name: `Release current version (${currentVersion})`, value: 'current' },
+        { name: 'Patch bump (bug fixes)', value: 'patch' },
+        { name: 'Minor bump (new features)', value: 'minor' },
+        { name: 'Major bump (breaking changes)', value: 'major' },
         { name: 'Custom version', value: 'custom' }
       ]
     }
   ]);
+
+  if (versionType === 'current') {
+    return currentVersion;
+  }
 
   if (versionType === 'custom') {
     const { customVersion } = await inquirer.prompt([
@@ -104,10 +109,13 @@ async function run() {
     console.log(chalk.gray('\nBuilding project...'));
     execSync('npm run build', { stdio: 'inherit' });
 
-    // Update package.json version
-    packageJson.version = newVersion;
-    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-    console.log(chalk.green(`✅ Updated package.json to v${newVersion}`));
+    // Update package.json version only if it changed
+    const versionChanged = packageJson.version !== newVersion;
+    if (versionChanged) {
+      packageJson.version = newVersion;
+      writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+      console.log(chalk.green(`✅ Updated package.json to v${newVersion}`));
+    }
 
     // Get release notes
     console.log(chalk.blue('\n📋 Generate release notes:\n'));
@@ -156,10 +164,12 @@ async function run() {
       process.exit(0);
     }
 
-    // Commit version bump
-    execSync('git add package.json');
-    execSync(`git commit -m "chore: bump version to ${newVersion}"`);
-    console.log(chalk.green('✅ Committed version bump'));
+    // Commit version bump only if version changed
+    if (versionChanged) {
+      execSync('git add package.json');
+      execSync(`git commit -m "chore: bump version to ${newVersion}"`);
+      console.log(chalk.green('✅ Committed version bump'));
+    }
 
     // Create and push tag
     const tagName = `v${newVersion}`;

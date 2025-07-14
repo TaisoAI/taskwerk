@@ -31,7 +31,7 @@
     "check": "npm run format:check && npm run lint",
     "check:fix": "npm run format && npm run lint:fix",
     "dev": "node src/cli/index.js",
-    "prebuild": "npm run format && npm run lint && node scripts/update-version.js",
+    "prebuild": "npm run lint && node scripts/update-version.js",
     "build": "node scripts/build.js",
     "build:quick": "node scripts/build.js",
     "build:exe": "node scripts/build-executables.js",

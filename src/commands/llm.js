@@ -16,7 +16,7 @@ export function llmCommand() {
     .option('--model <name>', 'Override model for this request')
     .option('-s, --system <prompt>', 'System prompt')
     .option('--temperature <num>', 'Override temperature (0-2)', parseFloat)
-    .option('--max-tokens <num>', 'Override max tokens', parseInt)
+    .option('--max-tokens <num>', 'Override max tokens (default: 8192)', parseInt)
     .option('--context-tasks', 'Include current tasks as context')
     .option('--no-stream', 'Disable streaming output')
     .option('--raw', 'Output raw response without formatting')
@@ -62,7 +62,7 @@ export function llmCommand() {
         const completionParams = {
           messages,
           temperature: options.temperature,
-          maxTokens: options.maxTokens,
+          maxTokens: options.maxTokens || 8192,  // Default to 8192 tokens
           stream: options.stream,
           onChunk: options.stream ? (chunk) => process.stdout.write(chunk) : undefined
         };

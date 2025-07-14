@@ -62,7 +62,7 @@ export class AnthropicProvider extends BaseProvider {
     return this.models;
   }
 
-  async complete({ model, messages, temperature = 0.7, maxTokens = 2000, stream = false, onChunk }) {
+  async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk }) {
     if (!this.isConfigured()) {
       throw new Error('Anthropic provider not configured');
     }

@@ -35,7 +35,9 @@ describe('aiconfig command', () => {
     await command.parseAsync([], { from: 'user' });
 
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith('🤖 AI Configuration');
-    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Current Provider:'));
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Current Provider:')
+    );
   });
 
   it('should list providers', async () => {
@@ -50,19 +52,21 @@ describe('aiconfig command', () => {
 
   it('should handle invalid set format', async () => {
     const command = aiconfigCommand();
-    
+
     // Mock process.exit
     const originalExit = process.exit;
-    process.exit = () => { throw new Error('Process exit called'); };
-    
+    process.exit = () => {
+      throw new Error('Process exit called');
+    };
+
     try {
       await command.parseAsync(['--set', 'invalid-format'], { from: 'user' });
     } catch (error) {
       expect(error.message).toBe('Process exit called');
     }
-    
+
     process.exit = originalExit;
-    
+
     expect(testSetup.consoleErrorSpy).toHaveBeenCalledWith(
       '❌ Configuration failed:',
       expect.stringContaining('Invalid configuration format')
@@ -73,10 +77,8 @@ describe('aiconfig command', () => {
     const command = aiconfigCommand();
     await command.parseAsync(['--list-providers'], { from: 'user' });
 
-    const output = testSetup.consoleLogSpy.mock.calls
-      .map(call => call.join(' '))
-      .join('\n');
-    
+    const output = testSetup.consoleLogSpy.mock.calls.map(call => call.join(' ')).join('\n');
+
     expect(output).toContain('To configure a provider');
     expect(output).toContain('taskwerk aiconfig --set');
   });

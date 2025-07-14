@@ -44,7 +44,7 @@ export class StructuredLogger {
   log(level, message, data = {}) {
     const entry = this.createEntry(level, message, data);
     const jsonMessage = JSON.stringify(entry);
-    
+
     // Use the base logger to output the JSON
     this.baseLogger.log(level, jsonMessage);
   }
@@ -90,7 +90,7 @@ export class StructuredLogger {
   async logOperation(operationName, operation, metadata = {}) {
     const startTime = Date.now();
     const operationId = Math.random().toString(36).substring(7);
-    
+
     this.info(`${operationName} started`, {
       operation: operationName,
       operationId,
@@ -100,7 +100,7 @@ export class StructuredLogger {
     try {
       const result = await operation();
       const duration = Date.now() - startTime;
-      
+
       this.info(`${operationName} completed`, {
         operation: operationName,
         operationId,
@@ -108,11 +108,11 @@ export class StructuredLogger {
         success: true,
         ...metadata,
       });
-      
+
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.error(`${operationName} failed`, {
         operation: operationName,
         operationId,
@@ -122,7 +122,7 @@ export class StructuredLogger {
         stack: error.stack,
         ...metadata,
       });
-      
+
       throw error;
     }
   }

@@ -13,14 +13,18 @@ export class LMStudioProvider extends BaseProvider {
 
   getRequiredConfig() {
     return [
-      { key: 'base_url', description: 'LMStudio API URL (default: http://localhost:1234/v1)', required: false }
+      {
+        key: 'base_url',
+        description: 'LMStudio API URL (default: http://localhost:1234/v1)',
+        required: false,
+      },
     ];
   }
 
   async testConnection() {
     try {
       const response = await fetch(`${this.baseUrl}/models`);
-      
+
       if (response.ok) {
         const data = await response.json();
         const modelCount = data.data ? data.data.length : 0;
@@ -29,29 +33,34 @@ export class LMStudioProvider extends BaseProvider {
         return { success: false, message: 'LMStudio server not responding' };
       }
     } catch (error) {
-      return { success: false, message: `Cannot connect to LMStudio at ${this.baseUrl}. Is LMStudio running?` };
+      return {
+        success: false,
+        message: `Cannot connect to LMStudio at ${this.baseUrl}. Is LMStudio running?`,
+      };
     }
   }
 
   async listModels() {
     try {
       const response = await fetch(`${this.baseUrl}/models`);
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         if (!data.data || data.data.length === 0) {
-          return [{
-            id: 'no-models',
-            name: 'No models loaded',
-            description: 'Load a model in LMStudio first'
-          }];
+          return [
+            {
+              id: 'no-models',
+              name: 'No models loaded',
+              description: 'Load a model in LMStudio first',
+            },
+          ];
         }
-        
+
         return data.data.map(model => {
           let description = 'LMStudio model';
           const id = model.id.toLowerCase();
-          
+
           // Determine model family
           if (id.includes('llama')) {
             description = 'Llama family model';
@@ -70,38 +79,47 @@ export class LMStudioProvider extends BaseProvider {
           } else if (id.includes('deepseek')) {
             description = 'DeepSeek model';
           }
-          
+
           return {
             id: model.id,
             name: model.id,
-            description
+            description,
           };
         });
       }
     } catch (error) {
-      return [{
-        id: 'connection-error',
-        name: 'Connection Error',
-        description: `Cannot connect to LMStudio at ${this.baseUrl}. Is LMStudio running?`
-      }];
+      return [
+        {
+          id: 'connection-error',
+          name: 'Connection Error',
+          description: `Cannot connect to LMStudio at ${this.baseUrl}. Is LMStudio running?`,
+        },
+      ];
     }
 
     return [];
   }
 
-  async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk }) {
+  async complete({
+    model,
+    messages,
+    temperature = 0.7,
+    maxTokens = 8192,
+    stream = false,
+    onChunk,
+  }) {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model,
         messages,
         temperature,
         max_tokens: maxTokens,
-        stream
-      })
+        stream,
+      }),
     });
 
     if (!response.ok) {
@@ -117,8 +135,8 @@ export class LMStudioProvider extends BaseProvider {
       content: data.choices[0].message.content,
       usage: {
         prompt_tokens: data.usage?.prompt_tokens || 0,
-        completion_tokens: data.usage?.completion_tokens || 0
-      }
+        completion_tokens: data.usage?.completion_tokens || 0,
+      },
     };
   }
 
@@ -152,7 +170,7 @@ export class LMStudioProvider extends BaseProvider {
           try {
             const parsed = JSON.parse(data);
             const delta = parsed.choices[0].delta;
-            
+
             if (delta.content) {
               fullContent += delta.content;
               onChunk(delta.content);
@@ -161,7 +179,7 @@ export class LMStudioProvider extends BaseProvider {
             if (parsed.usage) {
               usage = {
                 prompt_tokens: parsed.usage.prompt_tokens,
-                completion_tokens: parsed.usage.completion_tokens
+                completion_tokens: parsed.usage.completion_tokens,
               };
             }
           } catch (e) {

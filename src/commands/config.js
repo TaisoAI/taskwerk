@@ -15,22 +15,22 @@ export function configCommand() {
     .option('--format <format>', 'Output format (text, json)', 'text')
     .action(async (key, value, options) => {
       const logger = new Logger('config');
-      
+
       try {
         const configManager = new ConfigManager();
-        
+
         if (options.list) {
           // List all configuration
           const config = configManager.load();
-          
+
           if (options.format === 'json') {
             console.log(JSON.stringify(config, null, 2));
             return;
           }
-          
+
           console.log('⚙️  Taskwerk Configuration');
           console.log('═'.repeat(50));
-          
+
           const printSection = (obj, prefix = '') => {
             for (const [k, v] of Object.entries(obj)) {
               const fullKey = prefix ? `${prefix}.${k}` : k;
@@ -42,35 +42,31 @@ export function configCommand() {
               }
             }
           };
-          
+
           printSection(config);
           console.log('═'.repeat(50));
-          
         } else if (key && value !== undefined) {
           // Set configuration value
           configManager.set(key, value);
           console.log(`✅ Set ${key} = ${JSON.stringify(value)}`);
-          
         } else if (key && options.unset) {
           // Unset configuration value
           configManager.unset(key);
           console.log(`✅ Unset ${key}`);
-          
         } else if (key) {
           // Get configuration value
           const configValue = configManager.get(key);
-          
+
           if (configValue === undefined) {
             console.log(`❌ Configuration key '${key}' not found`);
             process.exit(1);
           }
-          
+
           if (options.format === 'json') {
             console.log(JSON.stringify(configValue, null, 2));
           } else {
             console.log(`${key}: ${JSON.stringify(configValue)}`);
           }
-          
         } else {
           // Show config help
           console.log('⚙️  Configuration Management');
@@ -93,7 +89,6 @@ export function configCommand() {
           console.log('  developer.logConsole       - Enable console logging (true/false)');
           console.log('  developer.logFile          - Enable file logging (true/false)');
         }
-        
       } catch (error) {
         logger.error('Failed to manage configuration', error);
         console.error('❌ Failed to manage configuration:', error.message);

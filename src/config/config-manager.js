@@ -52,13 +52,13 @@ export class ConfigManager {
 
       // Merge with defaults
       this.config = this.mergeWithDefaults(parsedConfig);
-      
+
       // Merge environment variables (they take precedence)
       this.config = mergeEnvConfig(this.config);
-      
+
       // Validate configuration
       this.validate();
-      
+
       return this.config;
     } catch (error) {
       if (error instanceof ConfigurationError) {

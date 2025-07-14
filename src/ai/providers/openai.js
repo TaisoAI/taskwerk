@@ -16,8 +16,12 @@ export class OpenAIProvider extends BaseProvider {
   getRequiredConfig() {
     return [
       { key: 'api_key', description: 'OpenAI API key (starts with sk-)', required: true },
-      { key: 'base_url', description: 'API base URL (optional, for custom endpoints)', required: false },
-      { key: 'organization', description: 'OpenAI organization ID (optional)', required: false }
+      {
+        key: 'base_url',
+        description: 'API base URL (optional, for custom endpoints)',
+        required: false,
+      },
+      { key: 'organization', description: 'OpenAI organization ID (optional)', required: false },
     ];
   }
 
@@ -29,7 +33,7 @@ export class OpenAIProvider extends BaseProvider {
     try {
       const headers = {
         'Authorization': `Bearer ${this.config.api_key}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       };
 
       if (this.config.organization) {
@@ -37,7 +41,7 @@ export class OpenAIProvider extends BaseProvider {
       }
 
       const response = await fetch(`${this.baseUrl}/models`, {
-        headers
+        headers,
       });
 
       if (response.ok) {
@@ -63,7 +67,7 @@ export class OpenAIProvider extends BaseProvider {
 
     try {
       const headers = {
-        'Authorization': `Bearer ${this.config.api_key}`
+        Authorization: `Bearer ${this.config.api_key}`,
       };
 
       if (this.config.organization) {
@@ -71,12 +75,12 @@ export class OpenAIProvider extends BaseProvider {
       }
 
       const response = await fetch(`${this.baseUrl}/models`, {
-        headers
+        headers,
       });
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Filter for chat completion models and sort by capability
         const chatModels = data.data
           .filter(model => {
@@ -97,7 +101,7 @@ export class OpenAIProvider extends BaseProvider {
             // Generate better descriptions based on model name
             let description = `OpenAI model`;
             const id = model.id.toLowerCase();
-            
+
             if (id.includes('o1-preview')) {
               description = 'Latest reasoning model (preview)';
             } else if (id.includes('o1-mini')) {
@@ -119,27 +123,39 @@ export class OpenAIProvider extends BaseProvider {
             return {
               id: model.id,
               name: model.id,
-              description
+              description,
             };
           })
           .sort((a, b) => {
             // Sort by preference: o1 > gpt-4o > gpt-4-turbo > gpt-4 > gpt-3.5
-            const getScore = (id) => {
-              if (id.includes('o1-preview')) {return 100;}
-              if (id.includes('o1-mini')) {return 90;}
-              if (id.includes('gpt-4o')) {return 80;}
-              if (id.includes('gpt-4-turbo')) {return 70;}
-              if (id.includes('gpt-4')) {return 60;}
-              if (id.includes('gpt-3.5')) {return 50;}
+            const getScore = id => {
+              if (id.includes('o1-preview')) {
+                return 100;
+              }
+              if (id.includes('o1-mini')) {
+                return 90;
+              }
+              if (id.includes('gpt-4o')) {
+                return 80;
+              }
+              if (id.includes('gpt-4-turbo')) {
+                return 70;
+              }
+              if (id.includes('gpt-4')) {
+                return 60;
+              }
+              if (id.includes('gpt-3.5')) {
+                return 50;
+              }
               return 0;
             };
             return getScore(b.id) - getScore(a.id);
           });
-        
+
         // Cache results
         this.cachedModels = chatModels;
         this.cacheExpiry = Date.now() + this.cacheTimeout;
-        
+
         return chatModels;
       }
     } catch (error) {
@@ -150,14 +166,21 @@ export class OpenAIProvider extends BaseProvider {
     return [];
   }
 
-  async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk }) {
+  async complete({
+    model,
+    messages,
+    temperature = 0.7,
+    maxTokens = 8192,
+    stream = false,
+    onChunk,
+  }) {
     if (!this.isConfigured()) {
       throw new Error('OpenAI provider not configured');
     }
 
     const headers = {
       'Authorization': `Bearer ${this.config.api_key}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
 
     if (this.config.organization) {
@@ -172,8 +195,8 @@ export class OpenAIProvider extends BaseProvider {
         messages,
         temperature,
         max_tokens: maxTokens,
-        stream
-      })
+        stream,
+      }),
     });
 
     if (!response.ok) {
@@ -190,8 +213,8 @@ export class OpenAIProvider extends BaseProvider {
       content: data.choices[0].message.content,
       usage: {
         prompt_tokens: data.usage.prompt_tokens,
-        completion_tokens: data.usage.completion_tokens
-      }
+        completion_tokens: data.usage.completion_tokens,
+      },
     };
   }
 
@@ -225,7 +248,7 @@ export class OpenAIProvider extends BaseProvider {
           try {
             const parsed = JSON.parse(data);
             const delta = parsed.choices[0].delta;
-            
+
             if (delta.content) {
               fullContent += delta.content;
               onChunk(delta.content);
@@ -234,7 +257,7 @@ export class OpenAIProvider extends BaseProvider {
             if (parsed.usage) {
               usage = {
                 prompt_tokens: parsed.usage.prompt_tokens,
-                completion_tokens: parsed.usage.completion_tokens
+                completion_tokens: parsed.usage.completion_tokens,
               };
             }
           } catch (e) {

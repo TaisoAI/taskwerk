@@ -18,7 +18,7 @@ export function aiconfigCommand() {
     .option('--test', 'Test connection to configured providers')
     .option('--show', 'Show current AI configuration')
     .option('--list-tools', 'List available AI tools')
-    .action(async (options) => {
+    .action(async options => {
       const logger = new Logger('aiconfig');
       const llmManager = new LLMManager();
 
@@ -65,7 +65,7 @@ async function listProviders(llmManager) {
   console.log('─'.repeat(50));
 
   const providers = llmManager.listProviders();
-  
+
   for (const provider of providers) {
     const status = provider.configured ? '✅ Configured' : '❌ Not configured';
     const enabled = provider.enabled ? '' : ' (disabled)';
@@ -81,16 +81,16 @@ async function listModels(llmManager, providerName) {
   if (providerName && providerName !== true) {
     // List models for specific provider
     console.log(`🔍 Discovering models from ${providerName}...`);
-    
+
     try {
       const provider = llmManager.getProvider(providerName);
       const models = await provider.listModels();
-      
+
       if (models.length === 0) {
         console.log(`❌ No models available for ${providerName}`);
         return;
       }
-      
+
       console.log(`\n📋 Available models for ${providerName}:`);
       for (const model of models) {
         console.log(`   ${model.id}`);
@@ -104,23 +104,23 @@ async function listModels(llmManager, providerName) {
   } else {
     // List models for all providers
     console.log('🔍 Discovering models from all providers...');
-    
+
     const modelsByProvider = await llmManager.discoverModels();
-    
+
     for (const [provider, models] of modelsByProvider) {
       console.log(`\n📋 ${provider}:`);
-      
+
       if (models.length === 0) {
         console.log('   No models available');
         continue;
       }
-      
+
       const firstModel = models[0];
       if (firstModel.id === 'no-models' || firstModel.id === 'connection-error') {
         console.log(`   ${firstModel.description}`);
         continue;
       }
-      
+
       for (const model of models) {
         console.log(`   ${model.id}`);
       }
@@ -132,11 +132,11 @@ async function setProviderAndModel(llmManager, providerName, modelName) {
   try {
     // Verify provider exists
     const provider = llmManager.getProvider(providerName);
-    
+
     // Verify model is available
     const models = await provider.listModels();
     const modelExists = models.some(m => m.id === modelName);
-    
+
     if (!modelExists) {
       console.error(`❌ Model '${modelName}' not found for provider '${providerName}'`);
       console.log('\n💡 Available models:');
@@ -145,14 +145,13 @@ async function setProviderAndModel(llmManager, providerName, modelName) {
       }
       process.exit(1);
     }
-    
+
     // Set the configuration
     llmManager.setCurrentProvider(providerName, modelName);
-    
+
     console.log(`✅ Configuration updated:`);
     console.log(`   Provider: ${providerName}`);
     console.log(`   Model: ${modelName}`);
-    
   } catch (error) {
     console.error(`❌ Failed to set provider/model: ${error.message}`);
     process.exit(1);
@@ -169,14 +168,14 @@ async function chooseProviderAndModel(llmManager) {
   for (const [provider, models] of modelsByProvider) {
     if (models.length > 0) {
       const firstModel = models[0];
-      
+
       // Check for special status models
       if (firstModel.id === 'no-models' || firstModel.id === 'connection-error') {
-        availableProviders.push({ 
-          provider, 
-          models, 
-          disabled: true, 
-          status: firstModel.description 
+        availableProviders.push({
+          provider,
+          models,
+          disabled: true,
+          status: firstModel.description,
         });
       } else {
         availableProviders.push({ provider, models, disabled: false });
@@ -187,7 +186,7 @@ async function chooseProviderAndModel(llmManager) {
         provider,
         models: [],
         disabled: true,
-        status: 'Not configured'
+        status: 'Not configured',
       });
     }
   }
@@ -197,7 +196,7 @@ async function chooseProviderAndModel(llmManager) {
 
   if (workingProviders.length === 0) {
     console.log('❌ No working providers found.');
-    
+
     // Show status of problematic providers
     const problemProviders = availableProviders.filter(p => p.disabled);
     if (problemProviders.length > 0) {
@@ -206,7 +205,7 @@ async function chooseProviderAndModel(llmManager) {
         console.log(`   ${p.provider}: ${p.status}`);
       }
     }
-    
+
     console.log('\n💡 Configure a provider first:');
     console.log('   taskwerk aiconfig --set <provider>.api_key=<your-key>');
     return;
@@ -215,7 +214,7 @@ async function chooseProviderAndModel(llmManager) {
   // Choose provider
   const providerChoices = workingProviders.map(p => ({
     name: `${p.provider} (${p.models.length} models)`,
-    value: p.provider
+    value: p.provider,
   }));
 
   const { selectedProvider } = await inquirer.prompt([
@@ -223,15 +222,15 @@ async function chooseProviderAndModel(llmManager) {
       type: 'list',
       name: 'selectedProvider',
       message: 'Select AI provider:',
-      choices: providerChoices
-    }
+      choices: providerChoices,
+    },
   ]);
 
   // Choose model
   const providerData = workingProviders.find(p => p.provider === selectedProvider);
   const modelChoices = providerData.models.map(m => ({
     name: `${m.name}${m.description ? ` - ${m.description}` : ''}`,
-    value: m.id
+    value: m.id,
   }));
 
   const { selectedModel } = await inquirer.prompt([
@@ -240,8 +239,8 @@ async function chooseProviderAndModel(llmManager) {
       name: 'selectedModel',
       message: 'Select model:',
       choices: modelChoices,
-      pageSize: 10
-    }
+      pageSize: 10,
+    },
   ]);
 
   // Save selection
@@ -307,7 +306,7 @@ async function showConfig(llmManager) {
       const status = provider.configured ? '✅' : '❌';
       const enabled = provider.enabled ? '' : ' (disabled)';
       console.log(`  ${provider.name}: ${status}${enabled}`);
-      
+
       if (provider.configured && Object.keys(provider.config).length > 0) {
         for (const [key, value] of Object.entries(provider.config)) {
           if (key !== 'enabled') {
@@ -334,21 +333,23 @@ async function showConfig(llmManager) {
 async function listTools() {
   console.log('🔧 Available AI Tools');
   console.log('─'.repeat(50));
-  
+
   // Create tool executor instances for each mode to see what tools are available
   const modes = ['ask', 'agent'];
-  
+
   for (const mode of modes) {
     const toolExecutor = new ToolExecutor({ mode, workDir: process.cwd() });
     const allTools = toolExecutor.registry.getAll();
-    
+
     console.log(`\n📋 ${mode.toUpperCase()} mode tools:`);
-    
+
     for (const [name, tool] of allTools) {
-      const hasPermission = mode === 'ask' ? 
-        !tool.permissions || tool.permissions.every(p => ['read_files', 'modify_tasks'].includes(p)) :
-        true;
-      
+      const hasPermission =
+        mode === 'ask'
+          ? !tool.permissions ||
+            tool.permissions.every(p => ['read_files', 'modify_tasks'].includes(p))
+          : true;
+
       if (hasPermission) {
         console.log(`  ${name}:`);
         console.log(`    ${tool.description}`);
@@ -358,15 +359,17 @@ async function listTools() {
       }
     }
   }
-  
+
   console.log('\n📂 Tool Categories:');
   console.log('  filesystem/  - File system operations (read, write, list)');
   console.log('  taskwerk/    - Task management operations (add, update, list)');
   console.log('  mcp/         - MCP server tools (when available)');
   console.log('  web/         - Web tools like search (future)');
-  
+
   console.log('\n💡 To add new tools:');
-  console.log('  1. Create a new tool class extending BaseTool in src/ai/tools/<category>/<tool-name>.js');
+  console.log(
+    '  1. Create a new tool class extending BaseTool in src/ai/tools/<category>/<tool-name>.js'
+  );
   console.log('  2. Register it in src/ai/tool-executor.js initializeTools() method');
   console.log('  3. Define required permissions in the tool class');
   console.log('\n  Example tool structure:');

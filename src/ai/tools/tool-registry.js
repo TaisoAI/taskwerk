@@ -51,24 +51,24 @@ export class ToolRegistry {
    */
   getSpecs(permissions = []) {
     const specs = [];
-    
+
     for (const [name, tool] of this.tools) {
       // Check if tool's required permissions are allowed
       const toolPermissions = tool.permissions || [];
       const hasPermission = toolPermissions.every(p => permissions.includes(p));
-      
+
       if (hasPermission) {
         specs.push({
           type: 'function',
           function: {
             name: name,
             description: tool.description,
-            parameters: tool.getParameters()
-          }
+            parameters: tool.getParameters(),
+          },
         });
       }
     }
-    
+
     return specs;
   }
 
@@ -81,34 +81,34 @@ export class ToolRegistry {
    */
   async execute(name, params, context) {
     const tool = this.get(name);
-    
+
     // Check permissions
     const requiredPermission = tool.requiresPermission(params);
     if (requiredPermission && context.mode !== 'yolo') {
       if (!context.confirmPermission) {
         throw new Error('Permission confirmation callback required');
       }
-      
+
       const granted = await context.confirmPermission(name, requiredPermission, params);
       if (!granted) {
         return {
           success: false,
-          error: 'Permission denied by user'
+          error: 'Permission denied by user',
         };
       }
     }
-    
+
     try {
       const result = await tool.execute(params, context);
       return {
         success: true,
-        result: result
+        result: result,
       };
     } catch (error) {
       this.logger.error(`Tool ${name} execution failed:`, error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

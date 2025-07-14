@@ -162,8 +162,9 @@ describe('Validation', () => {
         validator.required('field1', '');
         validator.required('field2', null);
 
-        expect(() => validator.throwIfErrors())
-          .toThrow(/Validation failed.*field1.*is required.*field2.*is required/);
+        expect(() => validator.throwIfErrors()).toThrow(
+          /Validation failed.*field1.*is required.*field2.*is required/
+        );
       });
 
       it('should not throw when no errors', () => {
@@ -188,11 +189,11 @@ describe('Validation', () => {
           content: 'Some content',
           category: 'feature',
           metadata: { custom: 'field' },
-          context: { branch: 'main' }
+          context: { branch: 'main' },
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(true);
         expect(result.errors).toHaveLength(0);
       });
@@ -201,7 +202,7 @@ describe('Validation', () => {
         const taskData = {};
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors).toHaveLength(1);
         expect(result.errors[0].field).toBe('name');
@@ -211,11 +212,11 @@ describe('Validation', () => {
       it('should validate task ID format', () => {
         const taskData = {
           id: 'invalid-id',
-          name: 'Test task'
+          name: 'Test task',
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.field === 'id')).toBe(true);
       });
@@ -223,11 +224,11 @@ describe('Validation', () => {
       it('should validate status values', () => {
         const taskData = {
           name: 'Test task',
-          status: 'invalid-status'
+          status: 'invalid-status',
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.field === 'status')).toBe(true);
       });
@@ -235,11 +236,11 @@ describe('Validation', () => {
       it('should validate priority values', () => {
         const taskData = {
           name: 'Test task',
-          priority: 'invalid-priority'
+          priority: 'invalid-priority',
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.field === 'priority')).toBe(true);
       });
@@ -247,11 +248,11 @@ describe('Validation', () => {
       it('should validate progress range', () => {
         const taskData = {
           name: 'Test task',
-          progress: 150
+          progress: 150,
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.field === 'progress')).toBe(true);
       });
@@ -261,11 +262,11 @@ describe('Validation', () => {
           name: 'x'.repeat(300), // Too long
           description: 'x'.repeat(1100), // Too long
           assignee: '', // Too short
-          category: 'x'.repeat(60) // Too long
+          category: 'x'.repeat(60), // Too long
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.length).toBeGreaterThan(0);
       });
@@ -273,11 +274,11 @@ describe('Validation', () => {
       it('should validate JSON metadata', () => {
         const taskData = {
           name: 'Test task',
-          metadata: '{invalid json}'
+          metadata: '{invalid json}',
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.field === 'metadata')).toBe(true);
       });
@@ -285,11 +286,11 @@ describe('Validation', () => {
       it('should accept object metadata', () => {
         const taskData = {
           name: 'Test task',
-          metadata: { valid: 'object' }
+          metadata: { valid: 'object' },
         };
 
         const result = TaskValidator.validateCreate(taskData);
-        
+
         expect(result.isValid).toBe(true);
       });
     });
@@ -300,11 +301,11 @@ describe('Validation', () => {
           name: 'Updated task',
           status: 'in-progress',
           priority: 'high',
-          progress: 50
+          progress: 50,
         };
 
         const result = TaskValidator.validateUpdate(updateData);
-        
+
         expect(result.isValid).toBe(true);
         expect(result.errors).toHaveLength(0);
       });
@@ -312,11 +313,11 @@ describe('Validation', () => {
       it('should prevent updating task ID', () => {
         const updateData = {
           id: 'NEW-ID',
-          name: 'Updated task'
+          name: 'Updated task',
         };
 
         const result = TaskValidator.validateUpdate(updateData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.field === 'id')).toBe(true);
         expect(result.errors.find(e => e.field === 'id').message).toBe('cannot be updated');
@@ -324,11 +325,11 @@ describe('Validation', () => {
 
       it('should validate name when provided', () => {
         const updateData = {
-          name: '' // Empty name not allowed
+          name: '', // Empty name not allowed
         };
 
         const result = TaskValidator.validateUpdate(updateData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.field === 'name')).toBe(true);
       });
@@ -340,11 +341,11 @@ describe('Validation', () => {
           estimate: null,
           due_date: null,
           content: null,
-          category: null
+          category: null,
         };
 
         const result = TaskValidator.validateUpdate(updateData);
-        
+
         expect(result.isValid).toBe(true);
       });
 
@@ -352,11 +353,11 @@ describe('Validation', () => {
         const updateData = {
           status: 'invalid-status',
           priority: 'invalid-priority',
-          progress: 150
+          progress: 150,
         };
 
         const result = TaskValidator.validateUpdate(updateData);
-        
+
         expect(result.isValid).toBe(false);
         expect(result.errors.length).toBe(3);
       });

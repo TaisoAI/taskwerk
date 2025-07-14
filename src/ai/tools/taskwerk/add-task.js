@@ -6,7 +6,7 @@ export class AddTaskTool extends BaseTool {
     super({
       ...config,
       description: 'Create a new task',
-      permissions: [ToolPermissions.MODIFY_TASKS]
+      permissions: [ToolPermissions.MODIFY_TASKS],
     });
     this.api = new TaskwerkAPI();
   }
@@ -17,38 +17,38 @@ export class AddTaskTool extends BaseTool {
       properties: {
         name: {
           type: 'string',
-          description: 'Task name/description'
+          description: 'Task name/description',
         },
         priority: {
           type: 'string',
           enum: ['high', 'medium', 'low'],
           description: 'Task priority',
-          default: 'medium'
+          default: 'medium',
         },
         assignee: {
           type: 'string',
-          description: 'Person assigned to the task'
+          description: 'Person assigned to the task',
         },
         category: {
           type: 'string',
-          description: 'Task category'
+          description: 'Task category',
         },
         tags: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Task tags'
+          description: 'Task tags',
         },
         parent_id: {
           type: 'string',
-          description: 'Parent task ID for subtasks'
+          description: 'Parent task ID for subtasks',
         },
         notes: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Initial notes for the task'
-        }
+          description: 'Initial notes for the task',
+        },
       },
-      required: ['name']
+      required: ['name'],
     };
   }
 
@@ -58,7 +58,7 @@ export class AddTaskTool extends BaseTool {
       priority: params.priority || 'medium',
       assignee: params.assignee,
       category: params.category,
-      parent_id: params.parent_id
+      parent_id: params.parent_id,
     });
 
     // Add tags if provided
@@ -78,7 +78,7 @@ export class AddTaskTool extends BaseTool {
       name: task.name,
       status: task.status,
       priority: task.priority,
-      created: true
+      created: true,
     };
   }
 

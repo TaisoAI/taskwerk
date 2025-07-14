@@ -9,7 +9,7 @@ const cliPath = join(__dirname, '../../bin/taskwerk.js');
 
 describe('aiconfig command integration', () => {
   it('should show help for aiconfig command', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'aiconfig', '--help']);
       let output = '';
 
@@ -31,7 +31,7 @@ describe('aiconfig command integration', () => {
   });
 
   it('should list providers', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'aiconfig', '--list-providers']);
       let output = '';
 
@@ -51,7 +51,7 @@ describe('aiconfig command integration', () => {
   });
 
   it('should show current configuration', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'aiconfig', '--show']);
       let output = '';
 

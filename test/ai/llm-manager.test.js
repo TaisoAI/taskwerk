@@ -25,7 +25,7 @@ describe('LLMManager', () => {
   afterEach(async () => {
     // Restore HOME
     process.env.HOME = originalHome;
-    
+
     // Clean up temp directory
     await fs.rm(tempDir, { recursive: true, force: true });
   });
@@ -33,23 +33,23 @@ describe('LLMManager', () => {
   describe('Provider Management', () => {
     it.skip('should list available providers', () => {
       const providers = llmManager.listProviders();
-      
+
       expect(providers).toContainEqual({
         name: 'anthropic',
         configured: false,
-        enabled: true
+        enabled: true,
       });
-      
+
       expect(providers).toContainEqual({
         name: 'openai',
         configured: false,
-        enabled: true
+        enabled: true,
       });
-      
+
       expect(providers).toContainEqual({
         name: 'ollama',
         configured: true, // Ollama doesn't require API key
-        enabled: true
+        enabled: true,
       });
     });
 
@@ -67,7 +67,7 @@ describe('LLMManager', () => {
   describe('Configuration', () => {
     it('should configure provider API key', () => {
       llmManager.configureProvider('anthropic', 'api_key', 'sk-ant-test');
-      
+
       const provider = llmManager.getProvider('anthropic');
       expect(provider.isConfigured()).toBe(true);
       expect(provider.config.api_key).toBe('sk-ant-test');
@@ -75,18 +75,20 @@ describe('LLMManager', () => {
 
     it('should set current provider and model', () => {
       llmManager.setCurrentProvider('anthropic', 'claude-3-opus-20240229');
-      
+
       expect(llmManager.getCurrentProvider().name).toBe('anthropic');
       expect(llmManager.getCurrentModel()).toBe('claude-3-opus-20240229');
     });
 
     it.skip('should throw error when no provider configured', () => {
-      expect(() => llmManager.getCurrentProvider()).toThrow('No AI provider configured. Run "taskwerk aiconfig --choose" to select one.');
+      expect(() => llmManager.getCurrentProvider()).toThrow(
+        'No AI provider configured. Run "taskwerk aiconfig --choose" to select one.'
+      );
     });
 
     it('should mask sensitive data in config', () => {
       llmManager.configureProvider('openai', 'api_key', 'sk-1234567890abcdef');
-      
+
       const config = llmManager.getProviderConfig('openai');
       expect(config.api_key).toBe('sk-12345...cdef');
     });
@@ -96,16 +98,16 @@ describe('LLMManager', () => {
     it.skip('should return models only for configured providers', async () => {
       // Configure only OpenAI
       llmManager.configureProvider('openai', 'api_key', 'sk-test-key');
-      
+
       const models = await llmManager.discoverModels();
-      
+
       // Anthropic should have no models (not configured)
       expect(models.has('anthropic')).toBe(false);
-      
+
       // OpenAI should have models (configured)
       expect(models.has('openai')).toBe(true);
       expect(models.get('openai').length).toBeGreaterThan(0);
-      
+
       // Ollama might have models if running locally
       const ollamaModels = models.get('ollama');
       expect(ollamaModels).toBeDefined();
@@ -117,13 +119,13 @@ describe('LLMManager', () => {
     it('should return complete configuration summary', () => {
       llmManager.configureProvider('anthropic', 'api_key', 'sk-ant-test');
       llmManager.setCurrentProvider('anthropic', 'claude-3-opus-20240229');
-      
+
       const summary = llmManager.getConfigSummary();
-      
+
       expect(summary.current_provider).toBe('anthropic');
       expect(summary.current_model).toBe('claude-3-opus-20240229');
       expect(summary.providers).toHaveLength(6); // anthropic, openai, grok, mistral, ollama, lmstudio
-      
+
       const anthropicProvider = summary.providers.find(p => p.name === 'anthropic');
       expect(anthropicProvider.configured).toBe(true);
       expect(anthropicProvider.config.api_key).toContain('...');

@@ -29,7 +29,7 @@ export class TaskwerkAPI {
    */
   async createTask(taskData) {
     const db = this.getDatabase();
-    
+
     // Validate input data
     const validation = TaskValidator.validateCreate(taskData);
     if (!validation.isValid) {
@@ -65,7 +65,7 @@ export class TaskwerkAPI {
       content: taskData.content || null,
       category: taskData.category || null,
       metadata: taskData.metadata ? JSON.stringify(taskData.metadata) : '{}',
-      context: taskData.context ? JSON.stringify(taskData.context) : '{}'
+      context: taskData.context ? JSON.stringify(taskData.context) : '{}',
     };
 
     try {
@@ -81,11 +81,26 @@ export class TaskwerkAPI {
       `);
 
       const result = stmt.run(
-        task.id, task.name, task.description, task.status, task.priority,
-        task.assignee, task.created_by, task.updated_by, task.estimate,
-        task.actual, task.estimated, task.actual_time, task.progress,
-        task.parent_id, task.branch_name, task.due_date, task.content,
-        task.category, task.metadata, task.context
+        task.id,
+        task.name,
+        task.description,
+        task.status,
+        task.priority,
+        task.assignee,
+        task.created_by,
+        task.updated_by,
+        task.estimate,
+        task.actual,
+        task.estimated,
+        task.actual_time,
+        task.progress,
+        task.parent_id,
+        task.branch_name,
+        task.due_date,
+        task.content,
+        task.category,
+        task.metadata,
+        task.context
       );
 
       if (result.changes === 0) {
@@ -111,10 +126,10 @@ export class TaskwerkAPI {
    */
   getTask(taskId) {
     const db = this.getDatabase();
-    
+
     const stmt = db.prepare('SELECT * FROM tasks WHERE id = ?');
     const task = stmt.get(taskId);
-    
+
     if (!task) {
       throw new TaskNotFoundError(`Task ${taskId} not found`);
     }
@@ -141,17 +156,17 @@ export class TaskwerkAPI {
    */
   async updateTask(taskId, updates, updatedBy = 'system') {
     const db = this.getDatabase();
-    
+
     // Validate update data
     const validation = TaskValidator.validateUpdate(updates);
     if (!validation.isValid) {
       const messages = validation.errors.map(err => `${err.field}: ${err.message}`);
       throw new ValidationError(`Validation failed: ${messages.join(', ')}`);
     }
-    
+
     // Check if task exists
     const currentTask = this.getTask(taskId);
-    
+
     // Track changes for timeline
     const changes = {};
     const updateFields = [];
@@ -159,8 +174,10 @@ export class TaskwerkAPI {
 
     // Build dynamic update query
     for (const [field, value] of Object.entries(updates)) {
-      if (field === 'id') {continue;} // Cannot update ID
-      
+      if (field === 'id') {
+        continue;
+      } // Cannot update ID
+
       if (field === 'metadata' || field === 'context') {
         const jsonValue = typeof value === 'string' ? value : JSON.stringify(value);
         updateFields.push(`${field} = ?`);
@@ -212,7 +229,7 @@ export class TaskwerkAPI {
    */
   async deleteTask(taskId, _deletedBy = 'system') {
     const db = this.getDatabase();
-    
+
     // Check if task exists
     this.getTask(taskId);
 
@@ -239,7 +256,7 @@ export class TaskwerkAPI {
    */
   listTasks(options = {}) {
     const db = this.getDatabase();
-    
+
     const conditions = [];
     const values = [];
     let joins = '';
@@ -288,7 +305,7 @@ export class TaskwerkAPI {
     const offset = options.offset ? `OFFSET ${parseInt(options.offset)}` : '';
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    
+
     // Build the SQL query
     const sql = `
       SELECT DISTINCT tasks.* FROM tasks 
@@ -330,20 +347,14 @@ export class TaskwerkAPI {
    */
   async addTimelineEvent(taskId, action, user, note = null, changes = null) {
     const db = this.getDatabase();
-    
+
     try {
       const stmt = db.prepare(`
         INSERT INTO task_timeline (task_id, action, user, note, changes)
         VALUES (?, ?, ?, ?, ?)
       `);
 
-      stmt.run(
-        taskId,
-        action,
-        user,
-        note,
-        changes ? JSON.stringify(changes) : null
-      );
+      stmt.run(taskId, action, user, note, changes ? JSON.stringify(changes) : null);
     } catch (error) {
       this.logger.error(`Failed to add timeline event for task ${taskId}: ${error.message}`);
       // Don't throw - timeline is not critical
@@ -357,7 +368,7 @@ export class TaskwerkAPI {
    */
   getTaskTimeline(taskId) {
     const db = this.getDatabase();
-    
+
     const stmt = db.prepare(`
       SELECT * FROM task_timeline 
       WHERE task_id = ? 
@@ -365,12 +376,14 @@ export class TaskwerkAPI {
     `);
 
     const events = stmt.all(taskId);
-    
+
     return events.map(event => {
       try {
         event.changes = event.changes ? JSON.parse(event.changes) : null;
       } catch (error) {
-        this.logger.warn(`Failed to parse changes for timeline event ${event.id}: ${error.message}`);
+        this.logger.warn(
+          `Failed to parse changes for timeline event ${event.id}: ${error.message}`
+        );
         event.changes = null;
       }
       return event;
@@ -384,7 +397,7 @@ export class TaskwerkAPI {
    */
   transaction(operations) {
     const db = this.getDatabase();
-    
+
     try {
       // For sync operations, use SQLite transaction
       if (operations.constructor.name !== 'AsyncFunction') {
@@ -392,7 +405,7 @@ export class TaskwerkAPI {
           return operations(this);
         });
       }
-      
+
       // For async operations, handle manually
       db.prepare('BEGIN').run();
       try {
@@ -425,15 +438,11 @@ export class TaskwerkAPI {
    */
   searchTasks(searchTerm, options = {}) {
     const builder = this.query();
-    
+
     if (searchTerm) {
       // Group the OR conditions together
-      const searchConditions = [
-        'name LIKE ?',
-        'description LIKE ?', 
-        'content LIKE ?'
-      ].join(' OR ');
-      
+      const searchConditions = ['name LIKE ?', 'description LIKE ?', 'content LIKE ?'].join(' OR ');
+
       builder.whereConditions.push(`(${searchConditions})`);
       builder.whereValues.push(`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`);
     }
@@ -486,7 +495,7 @@ export class TaskwerkAPI {
     }
 
     const results = builder.get();
-    
+
     // Parse JSON fields
     return results.map(task => {
       try {
@@ -511,15 +520,15 @@ export class TaskwerkAPI {
     const builder = this.query()
       .where('status', '=', status)
       .orderBy(options.order_by || 'created_at', options.order_dir || 'DESC');
-    
+
     if (options.limit) {
       builder.limit(options.limit);
     }
-    
+
     if (options.offset) {
       builder.offset(options.offset);
     }
-    
+
     return builder.get();
   }
 
@@ -533,15 +542,15 @@ export class TaskwerkAPI {
     const builder = this.query()
       .where('assignee', '=', assignee)
       .orderBy(options.order_by || 'created_at', options.order_dir || 'DESC');
-    
+
     if (options.limit) {
       builder.limit(options.limit);
     }
-    
+
     if (options.offset) {
       builder.offset(options.offset);
     }
-    
+
     return builder.get();
   }
 
@@ -565,16 +574,16 @@ export class TaskwerkAPI {
    */
   getOverdueTasks(options = {}) {
     const now = new Date().toISOString();
-    
+
     const builder = this.query()
       .where('due_date', '<', now)
       .andWhere('status', 'NOT IN', ['done', 'completed', 'cancelled'])
       .orderBy('due_date', 'ASC');
-    
+
     if (options.limit) {
       builder.limit(options.limit);
     }
-    
+
     return builder.get();
   }
 
@@ -584,28 +593,36 @@ export class TaskwerkAPI {
    */
   getTaskStats() {
     const db = this.getDatabase();
-    
+
     const stats = {};
-    
+
     // Status counts
-    const statusCounts = db.prepare(`
+    const statusCounts = db
+      .prepare(
+        `
       SELECT status, COUNT(*) as count 
       FROM tasks 
       GROUP BY status
-    `).all();
-    
+    `
+      )
+      .all();
+
     stats.by_status = {};
     statusCounts.forEach(row => {
       stats.by_status[row.status] = row.count;
     });
 
     // Priority counts
-    const priorityCounts = db.prepare(`
+    const priorityCounts = db
+      .prepare(
+        `
       SELECT priority, COUNT(*) as count 
       FROM tasks 
       GROUP BY priority
-    `).all();
-    
+    `
+      )
+      .all();
+
     stats.by_priority = {};
     priorityCounts.forEach(row => {
       stats.by_priority[row.priority] = row.count;
@@ -613,21 +630,33 @@ export class TaskwerkAPI {
 
     // Total counts
     stats.total = db.prepare('SELECT COUNT(*) as count FROM tasks').get().count;
-    stats.completed = db.prepare(`
+    stats.completed = db
+      .prepare(
+        `
       SELECT COUNT(*) as count FROM tasks 
       WHERE status IN ('done', 'completed')
-    `).get().count;
-    
-    stats.in_progress = db.prepare(`
+    `
+      )
+      .get().count;
+
+    stats.in_progress = db
+      .prepare(
+        `
       SELECT COUNT(*) as count FROM tasks 
       WHERE status IN ('in-progress', 'in_progress')
-    `).get().count;
+    `
+      )
+      .get().count;
 
-    stats.overdue = db.prepare(`
+    stats.overdue = db
+      .prepare(
+        `
       SELECT COUNT(*) as count FROM tasks 
       WHERE due_date < datetime('now') 
       AND status NOT IN ('done', 'completed', 'cancelled')
-    `).get().count;
+    `
+      )
+      .get().count;
 
     return stats;
   }
@@ -641,20 +670,20 @@ export class TaskwerkAPI {
    */
   async addTaskTags(taskId, tags, user = 'system') {
     const db = this.getDatabase();
-    
+
     // Verify task exists
     this.getTask(taskId);
 
     try {
       const stmt = db.prepare('INSERT OR IGNORE INTO task_tags (task_id, tag) VALUES (?, ?)');
-      
+
       for (const tag of tags) {
         stmt.run(taskId, tag.trim());
       }
 
       this.logger.info(`Added ${tags.length} tags to task ${taskId}`);
       await this.addTimelineEvent(taskId, 'tags_added', user, `Added tags: ${tags.join(', ')}`);
-      
+
       return true;
     } catch (error) {
       this.logger.error(`Failed to add tags to task ${taskId}: ${error.message}`);
@@ -671,17 +700,17 @@ export class TaskwerkAPI {
    */
   async removeTaskTags(taskId, tags, user = 'system') {
     const db = this.getDatabase();
-    
+
     try {
       const stmt = db.prepare('DELETE FROM task_tags WHERE task_id = ? AND tag = ?');
-      
+
       for (const tag of tags) {
         stmt.run(taskId, tag.trim());
       }
 
       this.logger.info(`Removed ${tags.length} tags from task ${taskId}`);
       await this.addTimelineEvent(taskId, 'tags_removed', user, `Removed tags: ${tags.join(', ')}`);
-      
+
       return true;
     } catch (error) {
       this.logger.error(`Failed to remove tags from task ${taskId}: ${error.message}`);
@@ -696,7 +725,7 @@ export class TaskwerkAPI {
    */
   getTaskTags(taskId) {
     const db = this.getDatabase();
-    
+
     const tags = db.prepare('SELECT tag FROM task_tags WHERE task_id = ? ORDER BY tag').all(taskId);
     return tags.map(row => row.tag);
   }
@@ -708,14 +737,18 @@ export class TaskwerkAPI {
    */
   getTaskNotes(taskId) {
     const db = this.getDatabase();
-    
-    const notes = db.prepare(`
+
+    const notes = db
+      .prepare(
+        `
       SELECT id, note, content, user, created_at, updated_at 
       FROM task_notes 
       WHERE task_id = ? 
       ORDER BY created_at DESC
-    `).all(taskId);
-    
+    `
+      )
+      .all(taskId);
+
     return notes;
   }
 
@@ -729,7 +762,7 @@ export class TaskwerkAPI {
    */
   async addTaskNote(taskId, note, user = 'system', content = null) {
     const db = this.getDatabase();
-    
+
     // Verify task exists
     this.getTask(taskId);
 
@@ -738,12 +771,12 @@ export class TaskwerkAPI {
         INSERT INTO task_notes (task_id, note, content, user) 
         VALUES (?, ?, ?, ?)
       `);
-      
+
       stmt.run(taskId, note, content, user);
 
       this.logger.info(`Added note to task ${taskId}`);
       await this.addTimelineEvent(taskId, 'note_added', user, `Added note: ${note}`);
-      
+
       return true;
     } catch (error) {
       this.logger.error(`Failed to add note to task ${taskId}: ${error.message}`);
@@ -758,15 +791,19 @@ export class TaskwerkAPI {
    */
   getTaskDependencies(taskId) {
     const db = this.getDatabase();
-    
-    const dependencies = db.prepare(`
+
+    const dependencies = db
+      .prepare(
+        `
       SELECT t.id, t.name, t.status, t.priority
       FROM tasks t
       INNER JOIN task_dependencies td ON t.id = td.depends_on_id
       WHERE td.task_id = ?
       ORDER BY t.id
-    `).all(taskId);
-    
+    `
+      )
+      .all(taskId);
+
     return dependencies;
   }
 }

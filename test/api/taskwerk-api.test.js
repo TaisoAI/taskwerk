@@ -5,7 +5,11 @@ import { join } from 'path';
 import { TaskwerkDatabase } from '../../src/db/database.js';
 import { applySchema } from '../../src/db/schema.js';
 import { TaskwerkAPI } from '../../src/api/taskwerk-api.js';
-import { TaskNotFoundError, TaskValidationError, TaskConflictError } from '../../src/errors/task-errors.js';
+import {
+  TaskNotFoundError,
+  TaskValidationError,
+  TaskConflictError,
+} from '../../src/errors/task-errors.js';
 
 describe('TaskwerkAPI', () => {
   let tempDir;
@@ -15,11 +19,11 @@ describe('TaskwerkAPI', () => {
   beforeEach(async () => {
     tempDir = mkdtempSync(join(tmpdir(), 'taskwerk-api-test-'));
     const dbPath = join(tempDir, 'test.db');
-    
+
     const database = new TaskwerkDatabase(dbPath);
     db = database.connect();
     applySchema(db);
-    
+
     api = new TaskwerkAPI(database);
   });
 
@@ -33,11 +37,11 @@ describe('TaskwerkAPI', () => {
   describe('Task Creation', () => {
     it('should create a task with minimal data', async () => {
       const taskData = {
-        name: 'Test task'
+        name: 'Test task',
       };
 
       const task = await api.createTask(taskData);
-      
+
       expect(task.id).toMatch(/^TASK-\d+$/);
       expect(task.name).toBe('Test task');
       expect(task.status).toBe('todo');
@@ -50,11 +54,11 @@ describe('TaskwerkAPI', () => {
     it('should create a task with custom ID', async () => {
       const taskData = {
         id: 'CUSTOM-123',
-        name: 'Custom task'
+        name: 'Custom task',
       };
 
       const task = await api.createTask(taskData);
-      
+
       expect(task.id).toBe('CUSTOM-123');
       expect(task.name).toBe('Custom task');
     });
@@ -73,11 +77,11 @@ describe('TaskwerkAPI', () => {
         content: '# Task Content\\n\\nSome markdown content',
         category: 'feature',
         metadata: { custom: 'field' },
-        context: { branch: 'feature/test' }
+        context: { branch: 'feature/test' },
       };
 
       const task = await api.createTask(taskData);
-      
+
       expect(task.name).toBe('Full task');
       expect(task.description).toBe('Full description');
       expect(task.status).toBe('in-progress');
@@ -96,50 +100,45 @@ describe('TaskwerkAPI', () => {
     it('should validate required fields', async () => {
       const taskData = {};
 
-      await expect(api.createTask(taskData))
-        .rejects.toThrow(TaskValidationError);
+      await expect(api.createTask(taskData)).rejects.toThrow(TaskValidationError);
     });
 
     it('should validate task ID format', async () => {
       const taskData = {
         id: 'invalid-id',
-        name: 'Test task'
+        name: 'Test task',
       };
 
-      await expect(api.createTask(taskData))
-        .rejects.toThrow(TaskValidationError);
+      await expect(api.createTask(taskData)).rejects.toThrow(TaskValidationError);
     });
 
     it('should prevent duplicate task IDs', async () => {
       const taskData = {
         id: 'TASK-100',
-        name: 'First task'
+        name: 'First task',
       };
 
       await api.createTask(taskData);
-      
-      await expect(api.createTask(taskData))
-        .rejects.toThrow(TaskConflictError);
+
+      await expect(api.createTask(taskData)).rejects.toThrow(TaskConflictError);
     });
 
     it('should validate status values', async () => {
       const taskData = {
         name: 'Test task',
-        status: 'invalid-status'
+        status: 'invalid-status',
       };
 
-      await expect(api.createTask(taskData))
-        .rejects.toThrow(TaskValidationError);
+      await expect(api.createTask(taskData)).rejects.toThrow(TaskValidationError);
     });
 
     it('should validate priority values', async () => {
       const taskData = {
         name: 'Test task',
-        priority: 'invalid-priority'
+        priority: 'invalid-priority',
       };
 
-      await expect(api.createTask(taskData))
-        .rejects.toThrow(TaskValidationError);
+      await expect(api.createTask(taskData)).rejects.toThrow(TaskValidationError);
     });
   });
 
@@ -147,32 +146,31 @@ describe('TaskwerkAPI', () => {
     it('should get a task by ID', async () => {
       const taskData = {
         name: 'Get test task',
-        description: 'Description for get test'
+        description: 'Description for get test',
       };
 
       const created = await api.createTask(taskData);
       const retrieved = api.getTask(created.id);
-      
+
       expect(retrieved.id).toBe(created.id);
       expect(retrieved.name).toBe('Get test task');
       expect(retrieved.description).toBe('Description for get test');
     });
 
     it('should throw error for non-existent task', () => {
-      expect(() => api.getTask('TASK-999'))
-        .toThrow(TaskNotFoundError);
+      expect(() => api.getTask('TASK-999')).toThrow(TaskNotFoundError);
     });
 
     it('should parse JSON fields correctly', async () => {
       const taskData = {
         name: 'JSON test task',
         metadata: { key: 'value', number: 42 },
-        context: { env: 'test' }
+        context: { env: 'test' },
       };
 
       const task = await api.createTask(taskData);
       const retrieved = api.getTask(task.id);
-      
+
       expect(retrieved.metadata).toEqual({ key: 'value', number: 42 });
       expect(retrieved.context).toEqual({ env: 'test' });
     });
@@ -185,7 +183,7 @@ describe('TaskwerkAPI', () => {
       const task = await api.createTask({
         name: 'Update test task',
         status: 'todo',
-        priority: 'medium'
+        priority: 'medium',
       });
       taskId = task.id;
     });
@@ -195,11 +193,11 @@ describe('TaskwerkAPI', () => {
         name: 'Updated task name',
         status: 'in-progress',
         priority: 'high',
-        progress: 50
+        progress: 50,
       };
 
       const updated = await api.updateTask(taskId, updates, 'user1');
-      
+
       expect(updated.name).toBe('Updated task name');
       expect(updated.status).toBe('in-progress');
       expect(updated.priority).toBe('high');
@@ -209,37 +207,34 @@ describe('TaskwerkAPI', () => {
 
     it('should validate update data', async () => {
       const updates = {
-        status: 'invalid-status'
+        status: 'invalid-status',
       };
 
-      await expect(api.updateTask(taskId, updates))
-        .rejects.toThrow(TaskValidationError);
+      await expect(api.updateTask(taskId, updates)).rejects.toThrow(TaskValidationError);
     });
 
     it('should prevent updating task ID', async () => {
       const updates = {
-        id: 'NEW-ID'
+        id: 'NEW-ID',
       };
 
-      await expect(api.updateTask(taskId, updates))
-        .rejects.toThrow(TaskValidationError);
+      await expect(api.updateTask(taskId, updates)).rejects.toThrow(TaskValidationError);
     });
 
     it('should throw error for non-existent task', async () => {
       const updates = { name: 'New name' };
 
-      await expect(api.updateTask('TASK-999', updates))
-        .rejects.toThrow(TaskNotFoundError);
+      await expect(api.updateTask('TASK-999', updates)).rejects.toThrow(TaskNotFoundError);
     });
 
     it('should update JSON fields', async () => {
       const updates = {
         metadata: { updated: true, count: 5 },
-        context: { branch: 'feature/update' }
+        context: { branch: 'feature/update' },
       };
 
       const updated = await api.updateTask(taskId, updates);
-      
+
       expect(updated.metadata).toEqual({ updated: true, count: 5 });
       expect(updated.context).toEqual({ branch: 'feature/update' });
     });
@@ -250,22 +245,20 @@ describe('TaskwerkAPI', () => {
 
     beforeEach(async () => {
       const task = await api.createTask({
-        name: 'Delete test task'
+        name: 'Delete test task',
       });
       taskId = task.id;
     });
 
     it('should delete a task', async () => {
       const result = await api.deleteTask(taskId, 'user1');
-      
+
       expect(result).toBe(true);
-      expect(() => api.getTask(taskId))
-        .toThrow(TaskNotFoundError);
+      expect(() => api.getTask(taskId)).toThrow(TaskNotFoundError);
     });
 
     it('should throw error for non-existent task', async () => {
-      await expect(api.deleteTask('TASK-999'))
-        .rejects.toThrow(TaskNotFoundError);
+      await expect(api.deleteTask('TASK-999')).rejects.toThrow(TaskNotFoundError);
     });
   });
 
@@ -277,7 +270,7 @@ describe('TaskwerkAPI', () => {
         status: 'todo',
         priority: 'high',
         assignee: 'user1',
-        category: 'feature'
+        category: 'feature',
       });
 
       await api.createTask({
@@ -285,7 +278,7 @@ describe('TaskwerkAPI', () => {
         status: 'in-progress',
         priority: 'medium',
         assignee: 'user2',
-        category: 'bug'
+        category: 'bug',
       });
 
       await api.createTask({
@@ -293,13 +286,13 @@ describe('TaskwerkAPI', () => {
         status: 'done',
         priority: 'low',
         assignee: 'user1',
-        category: 'feature'
+        category: 'feature',
       });
     });
 
     it('should list all tasks', () => {
       const tasks = api.listTasks();
-      
+
       expect(tasks).toHaveLength(3);
       expect(tasks.map(t => t.name)).toContain('Task 1');
       expect(tasks.map(t => t.name)).toContain('Task 2');
@@ -308,21 +301,21 @@ describe('TaskwerkAPI', () => {
 
     it('should filter by status', () => {
       const tasks = api.listTasks({ status: 'todo' });
-      
+
       expect(tasks).toHaveLength(1);
       expect(tasks[0].name).toBe('Task 1');
     });
 
     it('should filter by priority', () => {
       const tasks = api.listTasks({ priority: 'high' });
-      
+
       expect(tasks).toHaveLength(1);
       expect(tasks[0].name).toBe('Task 1');
     });
 
     it('should filter by assignee', () => {
       const tasks = api.listTasks({ assignee: 'user1' });
-      
+
       expect(tasks).toHaveLength(2);
       expect(tasks.map(t => t.name)).toContain('Task 1');
       expect(tasks.map(t => t.name)).toContain('Task 3');
@@ -330,7 +323,7 @@ describe('TaskwerkAPI', () => {
 
     it('should filter by category', () => {
       const tasks = api.listTasks({ category: 'feature' });
-      
+
       expect(tasks).toHaveLength(2);
       expect(tasks.map(t => t.name)).toContain('Task 1');
       expect(tasks.map(t => t.name)).toContain('Task 3');
@@ -338,16 +331,16 @@ describe('TaskwerkAPI', () => {
 
     it('should apply limit and offset', () => {
       const tasks = api.listTasks({ limit: 2, offset: 1 });
-      
+
       expect(tasks).toHaveLength(2);
     });
 
     it('should order results', () => {
-      const tasks = api.listTasks({ 
-        order_by: 'name', 
-        order_dir: 'ASC' 
+      const tasks = api.listTasks({
+        order_by: 'name',
+        order_dir: 'ASC',
       });
-      
+
       expect(tasks[0].name).toBe('Task 1');
       expect(tasks[1].name).toBe('Task 2');
       expect(tasks[2].name).toBe('Task 3');
@@ -359,14 +352,14 @@ describe('TaskwerkAPI', () => {
 
     beforeEach(async () => {
       const task = await api.createTask({
-        name: 'Timeline test task'
+        name: 'Timeline test task',
       });
       taskId = task.id;
     });
 
     it('should add timeline events on create', () => {
       const timeline = api.getTaskTimeline(taskId);
-      
+
       expect(timeline).toHaveLength(1);
       expect(timeline[0].action).toBe('created');
       expect(timeline[0].note).toBe('Task created');
@@ -374,18 +367,18 @@ describe('TaskwerkAPI', () => {
 
     it('should add timeline events on update', async () => {
       await api.updateTask(taskId, { status: 'in-progress' }, 'user1');
-      
+
       const timeline = api.getTaskTimeline(taskId);
-      
+
       expect(timeline).toHaveLength(2);
-      
+
       // Find the events by action since ordering might vary with same timestamp
       const createdEvent = timeline.find(e => e.action === 'created');
       const updatedEvent = timeline.find(e => e.action === 'updated');
-      
+
       expect(createdEvent).toBeDefined();
       expect(createdEvent.note).toBe('Task created');
-      
+
       expect(updatedEvent).toBeDefined();
       expect(updatedEvent.user).toBe('user1');
       expect(updatedEvent.note).toBe('Task updated');
@@ -393,18 +386,18 @@ describe('TaskwerkAPI', () => {
 
     it('should manually add timeline events', async () => {
       await api.addTimelineEvent(taskId, 'commented', 'user1', 'Added a comment');
-      
+
       const timeline = api.getTaskTimeline(taskId);
-      
+
       expect(timeline).toHaveLength(2);
-      
+
       // Find the events by action since ordering might vary with same timestamp
       const createdEvent = timeline.find(e => e.action === 'created');
       const commentedEvent = timeline.find(e => e.action === 'commented');
-      
+
       expect(createdEvent).toBeDefined();
       expect(createdEvent.note).toBe('Task created');
-      
+
       expect(commentedEvent).toBeDefined();
       expect(commentedEvent.user).toBe('user1');
       expect(commentedEvent.note).toBe('Added a comment');
@@ -418,26 +411,26 @@ describe('TaskwerkAPI', () => {
         name: 'Search task 1',
         description: 'This is a test description',
         status: 'todo',
-        priority: 'high'
+        priority: 'high',
       });
 
       await api.createTask({
         name: 'Different task',
         content: 'Contains search keyword',
         status: 'in-progress',
-        priority: 'medium'
+        priority: 'medium',
       });
 
       await api.createTask({
         name: 'Another task',
         status: 'done',
-        priority: 'low'
+        priority: 'low',
       });
     });
 
     it('should search tasks by text', () => {
       const results = api.searchTasks('search');
-      
+
       expect(results).toHaveLength(2);
       expect(results.map(t => t.name)).toContain('Search task 1');
       expect(results.map(t => t.name)).toContain('Different task');
@@ -445,14 +438,14 @@ describe('TaskwerkAPI', () => {
 
     it('should get tasks by status', () => {
       const results = api.getTasksByStatus('todo');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].name).toBe('Search task 1');
     });
 
     it('should get task statistics', () => {
       const stats = api.getTaskStats();
-      
+
       expect(stats.total).toBe(3);
       expect(stats.by_status.todo).toBe(1);
       expect(stats.by_status['in-progress']).toBe(1);
@@ -468,16 +461,16 @@ describe('TaskwerkAPI', () => {
 
     beforeEach(async () => {
       const task = await api.createTask({
-        name: 'Tag test task'
+        name: 'Tag test task',
       });
       taskId = task.id;
     });
 
     it('should add tags to a task', async () => {
       await api.addTaskTags(taskId, ['bug', 'urgent', 'frontend']);
-      
+
       const tags = api.getTaskTags(taskId);
-      
+
       expect(tags).toHaveLength(3);
       expect(tags).toContain('bug');
       expect(tags).toContain('urgent');
@@ -487,9 +480,9 @@ describe('TaskwerkAPI', () => {
     it('should remove tags from a task', async () => {
       await api.addTaskTags(taskId, ['bug', 'urgent', 'frontend']);
       await api.removeTaskTags(taskId, ['urgent']);
-      
+
       const tags = api.getTaskTags(taskId);
-      
+
       expect(tags).toHaveLength(2);
       expect(tags).toContain('bug');
       expect(tags).toContain('frontend');
@@ -498,9 +491,9 @@ describe('TaskwerkAPI', () => {
 
     it('should handle duplicate tags gracefully', async () => {
       await api.addTaskTags(taskId, ['bug', 'bug', 'urgent']);
-      
+
       const tags = api.getTaskTags(taskId);
-      
+
       expect(tags).toHaveLength(2);
       expect(tags).toContain('bug');
       expect(tags).toContain('urgent');
@@ -509,39 +502,39 @@ describe('TaskwerkAPI', () => {
 
   describe('Transactions', () => {
     it('should execute operations in a transaction', () => {
-      const result = api.transaction((_api) => {
+      const result = api.transaction(_api => {
         // Use direct database operations for sync transaction test
         const stmt1 = db.prepare(`
           INSERT INTO tasks (id, name, status, created_by, updated_by)
           VALUES ('TRANS-1', 'Transaction task 1', 'todo', 'system', 'system')
         `);
         stmt1.run();
-        
+
         const stmt2 = db.prepare(`
           INSERT INTO tasks (id, name, status, created_by, updated_by)
           VALUES ('TRANS-2', 'Transaction task 2', 'todo', 'system', 'system')
         `);
         stmt2.run();
-        
+
         const updateStmt = db.prepare(`
           UPDATE tasks SET status = 'in-progress' WHERE id = 'TRANS-1'
         `);
         updateStmt.run();
-        
+
         return ['TRANS-1', 'TRANS-2'];
       });
 
       expect(result).toHaveLength(2);
       expect(result[0]).toBe('TRANS-1');
       expect(result[1]).toBe('TRANS-2');
-      
+
       const updated = api.getTask('TRANS-1');
       expect(updated.status).toBe('in-progress');
     });
 
     it('should rollback on error', () => {
       expect(() => {
-        api.transaction((_api) => {
+        api.transaction(_api => {
           const stmt = db.prepare(`
             INSERT INTO tasks (id, name, status, created_by, updated_by)
             VALUES ('ERROR-1', 'Transaction task', 'todo', 'system', 'system')

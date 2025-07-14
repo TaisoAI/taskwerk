@@ -100,7 +100,7 @@ describe('Configuration Schema', () => {
 
     it('should not include properties without defaults', () => {
       const config = getDefaultConfig();
-      
+
       // These don't have defaults in the schema
       expect(config.ai.apiKey).toBe('');
       expect(config.ai.baseUrl).toBe('');
@@ -110,14 +110,14 @@ describe('Configuration Schema', () => {
   describe('getSensitiveFields', () => {
     it('should return array of sensitive field paths', () => {
       const sensitive = getSensitiveFields();
-      
+
       expect(Array.isArray(sensitive)).toBe(true);
       expect(sensitive).toContain('ai.apiKey');
     });
 
     it('should only include fields marked as sensitive', () => {
       const sensitive = getSensitiveFields();
-      
+
       // These should not be sensitive
       expect(sensitive).not.toContain('general.defaultPriority');
       expect(sensitive).not.toContain('database.path');

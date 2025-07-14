@@ -7,7 +7,7 @@ describe('StructuredLogger', () => {
 
   beforeEach(() => {
     closeAllLoggers();
-    
+
     // Mock the base logger
     mockBaseLogger = {
       log: vi.fn(),
@@ -30,7 +30,7 @@ describe('StructuredLogger', () => {
     it('should set context', () => {
       const logger = new StructuredLogger();
       logger.setContext({ userId: '123', sessionId: 'abc' });
-      
+
       expect(logger.context).toEqual({
         userId: '123',
         sessionId: 'abc',
@@ -41,7 +41,7 @@ describe('StructuredLogger', () => {
       const logger = new StructuredLogger();
       logger.setContext({ userId: '123' });
       logger.setContext({ sessionId: 'abc' });
-      
+
       expect(logger.context).toEqual({
         userId: '123',
         sessionId: 'abc',
@@ -52,7 +52,7 @@ describe('StructuredLogger', () => {
       const logger = new StructuredLogger();
       logger.setContext({ userId: '123' });
       logger.clearContext();
-      
+
       expect(logger.context).toEqual({});
     });
   });
@@ -61,9 +61,9 @@ describe('StructuredLogger', () => {
     it('should create log entry with all fields', () => {
       const logger = new StructuredLogger('test');
       logger.setContext({ userId: '123' });
-      
+
       const entry = logger.createEntry('INFO', 'Test message', { extra: 'data' });
-      
+
       expect(entry).toHaveProperty('timestamp');
       expect(entry.level).toBe('INFO');
       expect(entry.category).toBe('test');
@@ -75,9 +75,9 @@ describe('StructuredLogger', () => {
     it('should override context with data', () => {
       const logger = new StructuredLogger();
       logger.setContext({ userId: '123' });
-      
+
       const entry = logger.createEntry('INFO', 'Test', { userId: '456' });
-      
+
       expect(entry.userId).toBe('456');
     });
   });
@@ -86,13 +86,13 @@ describe('StructuredLogger', () => {
     it('should have all log level methods', () => {
       const logger = new StructuredLogger();
       logger.baseLogger = mockBaseLogger;
-      
+
       logger.error('error message', { code: 'ERR001' });
       logger.warn('warn message', { threshold: 80 });
       logger.info('info message', { status: 'ok' });
       logger.debug('debug message', { details: 'verbose' });
       logger.trace('trace message', { stack: 'deep' });
-      
+
       expect(mockBaseLogger.log).toHaveBeenCalledTimes(5);
     });
   });
@@ -101,7 +101,7 @@ describe('StructuredLogger', () => {
     it('should log successful operation', async () => {
       const logger = new StructuredLogger();
       logger.baseLogger = mockBaseLogger;
-      
+
       const result = await logger.logOperation(
         'testOperation',
         async () => {
@@ -110,10 +110,10 @@ describe('StructuredLogger', () => {
         },
         { user: 'test' }
       );
-      
+
       expect(result).toBe('success');
       expect(mockBaseLogger.log).toHaveBeenCalledTimes(2);
-      
+
       // Check start log
       const startCall = mockBaseLogger.log.mock.calls[0];
       const startEntry = JSON.parse(startCall[1]);
@@ -121,7 +121,7 @@ describe('StructuredLogger', () => {
       expect(startEntry.operation).toBe('testOperation');
       expect(startEntry.user).toBe('test');
       expect(startEntry.operationId).toBeDefined();
-      
+
       // Check completion log
       const endCall = mockBaseLogger.log.mock.calls[1];
       const endEntry = JSON.parse(endCall[1]);
@@ -133,20 +133,17 @@ describe('StructuredLogger', () => {
     it('should log failed operation', async () => {
       const logger = new StructuredLogger();
       logger.baseLogger = mockBaseLogger;
-      
+
       const error = new Error('Test error');
-      
+
       await expect(
-        logger.logOperation(
-          'failingOperation',
-          async () => {
-            throw error;
-          }
-        )
+        logger.logOperation('failingOperation', async () => {
+          throw error;
+        })
       ).rejects.toThrow('Test error');
-      
+
       expect(mockBaseLogger.log).toHaveBeenCalledTimes(2);
-      
+
       // Check failure log
       const endCall = mockBaseLogger.log.mock.calls[1];
       const endEntry = JSON.parse(endCall[1]);

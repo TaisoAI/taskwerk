@@ -2,7 +2,15 @@ import { ValidationError } from '../errors/base-error.js';
 import { isValidTaskId } from '../db/task-id.js';
 
 export class ValidationRules {
-  static TASK_STATUS = ['todo', 'in-progress', 'in_progress', 'blocked', 'done', 'completed', 'cancelled'];
+  static TASK_STATUS = [
+    'todo',
+    'in-progress',
+    'in_progress',
+    'blocked',
+    'done',
+    'completed',
+    'cancelled',
+  ];
   static TASK_PRIORITY = ['low', 'medium', 'high', 'critical'];
   static TASK_ID_PATTERN = /^[A-Z]+-\d+(\.\d+)?$/;
   static EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -169,7 +177,12 @@ export class Validator {
    * @returns {Validator}
    */
   email(field, value) {
-    return this.pattern(field, value, ValidationRules.EMAIL_PATTERN, 'must be a valid email address');
+    return this.pattern(
+      field,
+      value,
+      ValidationRules.EMAIL_PATTERN,
+      'must be a valid email address'
+    );
   }
 
   /**
@@ -304,7 +317,7 @@ export class TaskValidator {
 
     return {
       isValid: !validator.hasErrors(),
-      errors: validator.getErrors()
+      errors: validator.getErrors(),
     };
   }
 
@@ -391,7 +404,7 @@ export class TaskValidator {
 
     return {
       isValid: !validator.hasErrors(),
-      errors: validator.getErrors()
+      errors: validator.getErrors(),
     };
   }
 }

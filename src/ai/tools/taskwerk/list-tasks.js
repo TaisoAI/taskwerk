@@ -6,7 +6,7 @@ export class ListTasksTool extends BaseTool {
     super({
       ...config,
       description: 'List tasks with optional filters',
-      permissions: []  // Read-only, no permissions needed
+      permissions: [], // Read-only, no permissions needed
     });
     this.api = new TaskwerkAPI();
   }
@@ -19,39 +19,39 @@ export class ListTasksTool extends BaseTool {
           type: 'array',
           items: {
             type: 'string',
-            enum: ['todo', 'in-progress', 'done', 'blocked', 'cancelled']
+            enum: ['todo', 'in-progress', 'done', 'blocked', 'cancelled'],
           },
-          description: 'Filter by status'
+          description: 'Filter by status',
         },
         priority: {
           type: 'array',
           items: {
             type: 'string',
-            enum: ['high', 'medium', 'low']
+            enum: ['high', 'medium', 'low'],
           },
-          description: 'Filter by priority'
+          description: 'Filter by priority',
         },
         assignee: {
           type: 'string',
-          description: 'Filter by assignee'
+          description: 'Filter by assignee',
         },
         category: {
           type: 'string',
-          description: 'Filter by category'
+          description: 'Filter by category',
         },
         tags: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Filter by tags'
+          description: 'Filter by tags',
         },
         limit: {
           type: 'integer',
           description: 'Maximum number of results',
           minimum: 1,
           maximum: 100,
-          default: 20
-        }
-      }
+          default: 20,
+        },
+      },
     };
   }
 
@@ -64,7 +64,7 @@ export class ListTasksTool extends BaseTool {
       tags: params.tags,
       limit: params.limit || 20,
       orderBy: 'created_at',
-      orderDir: 'DESC'
+      orderDir: 'DESC',
     });
 
     return tasks.map(task => ({
@@ -76,7 +76,7 @@ export class ListTasksTool extends BaseTool {
       category: task.category,
       tags: task.tags || [],
       created: task.created_at,
-      updated: task.updated_at
+      updated: task.updated_at,
     }));
   }
 }

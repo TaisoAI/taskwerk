@@ -6,7 +6,7 @@ export class UpdateTaskTool extends BaseTool {
     super({
       ...config,
       description: 'Update an existing task',
-      permissions: [ToolPermissions.MODIFY_TASKS]
+      permissions: [ToolPermissions.MODIFY_TASKS],
     });
     this.api = new TaskwerkAPI();
   }
@@ -17,52 +17,52 @@ export class UpdateTaskTool extends BaseTool {
       properties: {
         id: {
           type: 'string',
-          description: 'Task ID to update'
+          description: 'Task ID to update',
         },
         name: {
           type: 'string',
-          description: 'New task name'
+          description: 'New task name',
         },
         status: {
           type: 'string',
           enum: ['todo', 'in-progress', 'done', 'blocked', 'cancelled'],
-          description: 'New status'
+          description: 'New status',
         },
         priority: {
           type: 'string',
           enum: ['high', 'medium', 'low'],
-          description: 'New priority'
+          description: 'New priority',
         },
         assignee: {
           type: 'string',
-          description: 'New assignee'
+          description: 'New assignee',
         },
         category: {
           type: 'string',
-          description: 'New category'
+          description: 'New category',
         },
         add_tags: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Tags to add'
+          description: 'Tags to add',
         },
         remove_tags: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Tags to remove'
+          description: 'Tags to remove',
         },
         add_note: {
           type: 'string',
-          description: 'Note to add to the task'
-        }
+          description: 'Note to add to the task',
+        },
       },
-      required: ['id']
+      required: ['id'],
     };
   }
 
   async execute(params) {
     const { id, add_tags, remove_tags, add_note, ...updates } = params;
-    
+
     // Update basic fields
     if (Object.keys(updates).length > 0) {
       await this.api.updateTask(id, updates);
@@ -83,22 +83,28 @@ export class UpdateTaskTool extends BaseTool {
 
     // Get updated task
     const task = await this.api.getTask(id);
-    
+
     return {
       id: task.id,
       name: task.name,
       status: task.status,
       priority: task.priority,
-      updated: true
+      updated: true,
     };
   }
 
   requiresPermission(params) {
     const actions = [];
-    if (params.name) {actions.push('rename');}
-    if (params.status) {actions.push(`change status to ${params.status}`);}
-    if (params.priority) {actions.push(`change priority to ${params.priority}`);}
-    
+    if (params.name) {
+      actions.push('rename');
+    }
+    if (params.status) {
+      actions.push(`change status to ${params.status}`);
+    }
+    if (params.priority) {
+      actions.push(`change priority to ${params.priority}`);
+    }
+
     return `Update task ${params.id}: ${actions.join(', ')}`;
   }
 }

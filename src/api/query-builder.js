@@ -93,7 +93,7 @@ export class QueryBuilder {
       this.whereConditions.push(`OR ${field} ${operator} ?`);
       this.whereValues.push(value);
     }
-    
+
     return this;
   }
 
@@ -251,14 +251,16 @@ export class QueryBuilder {
     if (this.whereConditions.length > 0) {
       // Build WHERE clause with proper OR/AND handling
       let whereClause = '';
-      
+
       for (let i = 0; i < this.whereConditions.length; i++) {
         const condition = this.whereConditions[i];
-        
+
         if (i === 0) {
           // First condition - check if we need parentheses for OR grouping
-          if (i + 1 < this.whereConditions.length && 
-              this.whereConditions[i + 1].toString().startsWith('OR ')) {
+          if (
+            i + 1 < this.whereConditions.length &&
+            this.whereConditions[i + 1].toString().startsWith('OR ')
+          ) {
             whereClause = `(${condition})`;
           } else {
             whereClause = condition;
@@ -272,7 +274,7 @@ export class QueryBuilder {
           whereClause += ` AND ${condition}`;
         }
       }
-      
+
       sql += ` WHERE ${whereClause}`;
     }
 
@@ -301,7 +303,7 @@ export class QueryBuilder {
 
     return {
       sql,
-      values: [...this.whereValues, ...this.havingValues]
+      values: [...this.whereValues, ...this.havingValues],
     };
   }
 
@@ -311,7 +313,7 @@ export class QueryBuilder {
    */
   get() {
     const { sql, values } = this.buildQuery();
-    
+
     try {
       const stmt = this.db.prepare(sql);
       const results = stmt.all(...values);
@@ -340,10 +342,10 @@ export class QueryBuilder {
   count() {
     const originalSelect = [...this.selectFields];
     this.select('COUNT(*) as count');
-    
+
     const result = this.first();
     this.selectFields = originalSelect;
-    
+
     return result ? result.count : 0;
   }
 

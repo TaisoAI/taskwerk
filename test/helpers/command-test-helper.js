@@ -7,7 +7,7 @@ export function setupCommandTest(withDatabase = false) {
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {});
-  
+
   let dbSetup = null;
   if (withDatabase) {
     dbSetup = createTestDatabase();

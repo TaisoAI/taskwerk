@@ -18,7 +18,7 @@ export class BaseTool {
       name: this.name,
       description: this.description,
       parameters: this.getParameters(),
-      permissions: this.permissions
+      permissions: this.permissions,
     };
   }
 
@@ -72,5 +72,5 @@ export const ToolPermissions = {
   EXECUTE_COMMANDS: 'execute_commands',
   MODIFY_TASKS: 'modify_tasks',
   NETWORK_ACCESS: 'network_access',
-  MCP_ACCESS: 'mcp_access'
+  MCP_ACCESS: 'mcp_access',
 };

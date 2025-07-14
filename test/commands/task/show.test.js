@@ -23,7 +23,7 @@ describe('task show command', () => {
   it('should handle showing task with valid task ID', () => {
     // Create a test task first
     createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to show' });
-    
+
     const command = taskShowCommand();
     command.parse(['TASK-123'], { from: 'user' });
 
@@ -35,29 +35,40 @@ describe('task show command', () => {
 
   it('should display task notes when present', async () => {
     // Create a test task and add notes using the database directly
-    createTestTask(testSetup.dbSetup.db, { 
-      id: 'TASK-456', 
-      name: 'Task with notes' 
+    createTestTask(testSetup.dbSetup.db, {
+      id: 'TASK-456',
+      name: 'Task with notes',
     });
-    
+
     // Add notes directly to the database
-    testSetup.dbSetup.db.prepare(`
+    testSetup.dbSetup.db
+      .prepare(
+        `
       INSERT INTO task_notes (task_id, note, user) 
       VALUES (?, ?, ?)
-    `).run('TASK-456', 'First note on the task', 'user1');
-    
-    testSetup.dbSetup.db.prepare(`
+    `
+      )
+      .run('TASK-456', 'First note on the task', 'user1');
+
+    testSetup.dbSetup.db
+      .prepare(
+        `
       INSERT INTO task_notes (task_id, note, content, user) 
       VALUES (?, ?, ?, ?)
-    `).run('TASK-456', 'Second note with details', 'Additional content\nwith multiple lines', 'user2');
-    
+    `
+      )
+      .run(
+        'TASK-456',
+        'Second note with details',
+        'Additional content\nwith multiple lines',
+        'user2'
+      );
+
     const command = taskShowCommand();
     command.parse(['TASK-456'], { from: 'user' });
 
     // Should show the notes section
-    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('💬 Notes:')
-    );
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('💬 Notes:'));
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('@user1: First note on the task')
     );

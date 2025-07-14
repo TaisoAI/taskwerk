@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, rmSync, readFileSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { 
-  Logger, 
-  LogLevel, 
-  getLogger, 
+import {
+  Logger,
+  LogLevel,
+  getLogger,
   closeAllLoggers,
-  setGlobalLogLevel 
+  setGlobalLogLevel,
 } from '../../src/logging/logger.js';
 import { resetConfigManager } from '../../src/config/index.js';
 
@@ -21,7 +21,7 @@ describe('Logger', () => {
     tempDir = mkdtempSync(join(tmpdir(), 'taskwerk-logger-test-'));
     resetConfigManager();
     closeAllLoggers();
-    
+
     // Spy on console methods
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -80,7 +80,7 @@ describe('Logger', () => {
     it('should format messages correctly', () => {
       const logger = new Logger('test');
       const message = logger.formatMessage(LogLevel.INFO, 'Test message');
-      
+
       expect(message).toMatch(/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
       expect(message).toContain('[INFO]');
       expect(message).toContain('[test]');
@@ -90,7 +90,7 @@ describe('Logger', () => {
     it('should format messages with arguments', () => {
       const logger = new Logger();
       const message = logger.formatMessage(LogLevel.INFO, 'Hello %s %d', 'world', 123);
-      
+
       expect(message).toContain('Hello world 123');
     });
   });
@@ -129,20 +129,20 @@ describe('Logger', () => {
       logger.config = { logDirectory: tempDir };
       logger.console = false;
       logger.file = true;
-      
+
       logger.initFileLogging();
       logger.initialized = true;
-      
+
       logger.info('test message');
-      
+
       // Give time for write
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       const date = new Date().toISOString().split('T')[0];
       const logFile = join(tempDir, `taskwerk-${date}.log`);
-      
+
       expect(existsSync(logFile)).toBe(true);
-      
+
       const content = readFileSync(logFile, 'utf8');
       expect(content).toContain('test message');
       expect(content).toContain('[INFO]');
@@ -167,12 +167,12 @@ describe('Logger', () => {
     it('should update log level for all loggers', () => {
       const logger1 = getLogger('test1');
       const logger2 = getLogger('test2');
-      
+
       logger1.initialized = true;
       logger2.initialized = true;
-      
+
       setGlobalLogLevel(LogLevel.DEBUG);
-      
+
       expect(logger1.level).toBe(LogLevel.DEBUG);
       expect(logger2.level).toBe(LogLevel.DEBUG);
     });
@@ -180,9 +180,9 @@ describe('Logger', () => {
     it('should accept string log level', () => {
       const logger = getLogger('test');
       logger.initialized = true;
-      
+
       setGlobalLogLevel('warn');
-      
+
       expect(logger.level).toBe(LogLevel.WARN);
     });
   });

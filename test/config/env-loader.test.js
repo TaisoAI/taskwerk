@@ -22,9 +22,9 @@ describe('Environment Variable Loader', () => {
     it('should load simple values from environment', () => {
       process.env.TASKWERK_GENERAL_DEFAULT_PRIORITY = 'high';
       process.env.TASKWERK_OUTPUT_COLOR = 'false';
-      
+
       const config = loadFromEnv();
-      
+
       expect(config.general.defaultPriority).toBe('high');
       expect(config.output.color).toBe(false);
     });
@@ -33,9 +33,9 @@ describe('Environment Variable Loader', () => {
       process.env.TASKWERK_AI_TEMPERATURE = '0.9';
       process.env.TASKWERK_DATABASE_BACKUP_COUNT = '14';
       process.env.TASKWERK_OUTPUT_VERBOSE = 'true';
-      
+
       const config = loadFromEnv();
-      
+
       expect(config.ai.temperature).toBe(0.9);
       expect(config.database.backupCount).toBe(14);
       expect(config.output.verbose).toBe(true);
@@ -44,9 +44,9 @@ describe('Environment Variable Loader', () => {
     it('should handle camelCase conversion', () => {
       process.env.TASKWERK_DATABASE_BACKUP_ENABLED = 'false';
       process.env.TASKWERK_GIT_AUTO_COMMIT = 'true';
-      
+
       const config = loadFromEnv();
-      
+
       expect(config.database.backupEnabled).toBe(false);
       expect(config.git.autoCommit).toBe(true);
     });
@@ -54,9 +54,9 @@ describe('Environment Variable Loader', () => {
     it('should ignore non-TASKWERK variables', () => {
       process.env.OTHER_VAR = 'value';
       process.env.TASKWERK_VALID = 'test';
-      
+
       const config = loadFromEnv();
-      
+
       expect(config.valid).toBe('test');
       expect(config.OTHER_VAR).toBeUndefined();
     });
@@ -64,9 +64,9 @@ describe('Environment Variable Loader', () => {
     it('should handle nested paths', () => {
       process.env.TASKWERK_AI_PROVIDER = 'claude';
       process.env.TASKWERK_EXPORT_DEFAULT_FORMAT = 'csv';
-      
+
       const config = loadFromEnv();
-      
+
       expect(config.ai.provider).toBe('claude');
       expect(config.export.defaultFormat).toBe('csv');
     });
@@ -107,7 +107,7 @@ describe('Environment Variable Loader', () => {
 
     it('should export config as environment variables', () => {
       const result = exportToEnv(testConfig, false);
-      
+
       expect(result).toContain('export TASKWERK_GENERAL_DEFAULT_PRIORITY="high"');
       expect(result).toContain('export TASKWERK_GENERAL_DEFAULT_STATUS="in-progress"');
       expect(result).toContain('export TASKWERK_DATABASE_BACKUP_ENABLED="false"');
@@ -118,7 +118,7 @@ describe('Environment Variable Loader', () => {
 
     it('should include comments when requested', () => {
       const result = exportToEnv(testConfig, true);
-      
+
       expect(result).toContain('# Taskwerk Configuration Environment Variables');
       expect(result).toContain('# Generated on');
     });
@@ -131,7 +131,7 @@ describe('Environment Variable Loader', () => {
           },
         },
       };
-      
+
       const result = exportToEnv(nestedConfig, false);
       // Should flatten section.property but keep deeper nesting as JSON
       expect(result).toContain('export TASKWERK_DEEPLY_NESTED="{\\"value\\":\\"test\\"}"');
@@ -144,7 +144,7 @@ describe('Environment Variable Loader', () => {
           object: { key: 'value' },
         },
       };
-      
+
       const result = exportToEnv(config, false);
       expect(result).toContain('export TASKWERK_TEST_ARRAY="[1,2,3]"');
       expect(result).toContain('export TASKWERK_TEST_OBJECT="{\\"key\\":\\"value\\"}"');
@@ -155,7 +155,7 @@ describe('Environment Variable Loader', () => {
     it('should merge env config with priority', () => {
       process.env.TASKWERK_GENERAL_DEFAULT_PRIORITY = 'critical';
       process.env.TASKWERK_OUTPUT_FORMAT = 'json';
-      
+
       const baseConfig = {
         general: {
           defaultPriority: 'low',
@@ -166,13 +166,13 @@ describe('Environment Variable Loader', () => {
           color: true,
         },
       };
-      
+
       const merged = mergeEnvConfig(baseConfig);
-      
+
       // Env vars should override
       expect(merged.general.defaultPriority).toBe('critical');
       expect(merged.output.format).toBe('json');
-      
+
       // Other values should remain
       expect(merged.general.defaultStatus).toBe('todo');
       expect(merged.output.color).toBe(true);
@@ -180,22 +180,22 @@ describe('Environment Variable Loader', () => {
 
     it('should add new properties from env', () => {
       process.env.TASKWERK_NEWSECTION_VALUE = 'test';
-      
+
       const baseConfig = {
         existing: {
           value: 'original',
         },
       };
-      
+
       const merged = mergeEnvConfig(baseConfig);
-      
+
       expect(merged.existing.value).toBe('original');
       expect(merged.newsection.value).toBe('test');
     });
 
     it('should handle deep merging', () => {
       process.env.TASKWERK_DATABASE_BACKUP_COUNT = '30';
-      
+
       const baseConfig = {
         database: {
           path: '/tmp/test.db',
@@ -203,9 +203,9 @@ describe('Environment Variable Loader', () => {
           backupCount: 7,
         },
       };
-      
+
       const merged = mergeEnvConfig(baseConfig);
-      
+
       expect(merged.database.path).toBe('/tmp/test.db');
       expect(merged.database.backupEnabled).toBe(true);
       expect(merged.database.backupCount).toBe(30);

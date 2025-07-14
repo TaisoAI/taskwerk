@@ -8,7 +8,7 @@ export class WriteFileTool extends BaseTool {
     super({
       ...config,
       description: 'Write or create a file in the working directory',
-      permissions: [ToolPermissions.WRITE_FILES]
+      permissions: [ToolPermissions.WRITE_FILES],
     });
   }
 
@@ -18,32 +18,32 @@ export class WriteFileTool extends BaseTool {
       properties: {
         path: {
           type: 'string',
-          description: 'File path relative to working directory'
+          description: 'File path relative to working directory',
         },
         content: {
           type: 'string',
-          description: 'Content to write to the file'
+          description: 'Content to write to the file',
         },
         encoding: {
           type: 'string',
           description: 'File encoding',
-          default: 'utf-8'
+          default: 'utf-8',
         },
         mode: {
           type: 'string',
           enum: ['overwrite', 'append', 'create'],
           description: 'Write mode',
-          default: 'overwrite'
-        }
+          default: 'overwrite',
+        },
       },
-      required: ['path', 'content']
+      required: ['path', 'content'],
     };
   }
 
   async execute(params, _context) {
     // Resolve path relative to working directory
     const fullPath = resolve(this.workDir, params.path);
-    
+
     // Security check: ensure path is within working directory
     const relativePath = relative(this.workDir, fullPath);
     if (relativePath.startsWith('..')) {
@@ -68,16 +68,16 @@ export class WriteFileTool extends BaseTool {
     } else {
       await writeFile(fullPath, params.content, params.encoding || 'utf-8');
     }
-    
+
     return {
       path: params.path,
       written: params.content.length,
-      mode: params.mode || 'overwrite'
+      mode: params.mode || 'overwrite',
     };
   }
 
   requiresPermission(params) {
-    const action = existsSync(resolve(this.workDir, params.path)) 
+    const action = existsSync(resolve(this.workDir, params.path))
       ? `Overwrite file: ${params.path}`
       : `Create file: ${params.path}`;
     return action;

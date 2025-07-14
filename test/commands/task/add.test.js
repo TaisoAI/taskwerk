@@ -48,10 +48,10 @@ describe('task add command', () => {
 
   it('should create a task when executed', async () => {
     const command = taskAddCommand();
-    
+
     // Parse returns a promise for async commands
     await command.parseAsync(['Test task'], { from: 'user' });
-    
+
     // Check for success message
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('✅ Created task')
@@ -61,9 +61,9 @@ describe('task add command', () => {
   it('should handle all options', async () => {
     // Create parent task first
     createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Parent task' });
-    
+
     const command = taskAddCommand();
-    
+
     // Note: parent '123' is invalid, should be 'TASK-123'
     // This test should fail with validation error
     await command.parseAsync(

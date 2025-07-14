@@ -45,19 +45,21 @@ describe('import command', () => {
 
   it('should handle file not found error', async () => {
     const command = importCommand();
-    
+
     // Mock process.exit to prevent test from exiting
     const originalExit = process.exit;
-    process.exit = () => { throw new Error('Process exit called'); };
-    
+    process.exit = () => {
+      throw new Error('Process exit called');
+    };
+
     try {
       await command.parseAsync(['nonexistent.md'], { from: 'user' });
     } catch (error) {
       expect(error.message).toBe('Process exit called');
     }
-    
+
     process.exit = originalExit;
-    
+
     expect(testSetup.consoleErrorSpy).toHaveBeenCalledWith(
       '❌ Import failed:',
       expect.stringContaining('File not found')
@@ -111,39 +113,45 @@ Basic task without ID.
     await command.parseAsync([markdownFile], { from: 'user' });
 
     // Check for success messages
-    const successMessages = testSetup.consoleLogSpy.mock.calls
-      .filter(call => call[0].includes('✅ Imported:'));
-    
+    const successMessages = testSetup.consoleLogSpy.mock.calls.filter(call =>
+      call[0].includes('✅ Imported:')
+    );
+
     expect(successMessages).toHaveLength(2);
     expect(successMessages[0][0]).toContain('TASK-100');
     expect(successMessages[1][0]).toContain('TASK-001'); // Auto-generated ID
 
     // Check summary
-    const summaryCall = testSetup.consoleLogSpy.mock.calls
-      .find(call => call[0].includes('📊 Import Summary:'));
+    const summaryCall = testSetup.consoleLogSpy.mock.calls.find(call =>
+      call[0].includes('📊 Import Summary:')
+    );
     expect(summaryCall).toBeTruthy();
   });
 
   it('should import JSON tasks successfully', async () => {
     const jsonFile = path.join(tempDir, 'tasks.json');
-    const jsonContent = JSON.stringify([
-      {
-        id: 'JSON-001',
-        name: 'JSON test task',
-        description: 'Test JSON import',
-        status: 'todo',
-        priority: 'medium',
-        assignee: 'json-tester',
-        estimate: 3,
-        category: 'testing'
-      },
-      {
-        id: 'JSON-002',
-        name: 'Another JSON task',
-        status: 'in-progress',
-        priority: 'high'
-      }
-    ], null, 2);
+    const jsonContent = JSON.stringify(
+      [
+        {
+          id: 'JSON-001',
+          name: 'JSON test task',
+          description: 'Test JSON import',
+          status: 'todo',
+          priority: 'medium',
+          assignee: 'json-tester',
+          estimate: 3,
+          category: 'testing',
+        },
+        {
+          id: 'JSON-002',
+          name: 'Another JSON task',
+          status: 'in-progress',
+          priority: 'high',
+        },
+      ],
+      null,
+      2
+    );
 
     await fs.writeFile(jsonFile, jsonContent);
 
@@ -151,9 +159,10 @@ Basic task without ID.
     await command.parseAsync([jsonFile, '--format', 'json'], { from: 'user' });
 
     // Check for success messages
-    const successMessages = testSetup.consoleLogSpy.mock.calls
-      .filter(call => call[0].includes('✅ Imported:'));
-    
+    const successMessages = testSetup.consoleLogSpy.mock.calls.filter(call =>
+      call[0].includes('✅ Imported:')
+    );
+
     expect(successMessages).toHaveLength(2);
     expect(successMessages[0][0]).toContain('JSON-001');
     expect(successMessages[1][0]).toContain('JSON-002');
@@ -171,9 +180,10 @@ CSV-002,"Another CSV task","",in-progress,medium,,2,`;
     await command.parseAsync([csvFile, '--format', 'csv'], { from: 'user' });
 
     // Check for success messages
-    const successMessages = testSetup.consoleLogSpy.mock.calls
-      .filter(call => call[0].includes('✅ Imported:'));
-    
+    const successMessages = testSetup.consoleLogSpy.mock.calls.filter(call =>
+      call[0].includes('✅ Imported:')
+    );
+
     expect(successMessages).toHaveLength(2);
     expect(successMessages[0][0]).toContain('CSV-001');
     expect(successMessages[1][0]).toContain('CSV-002');
@@ -193,12 +203,14 @@ Task for preview testing.`;
     await command.parseAsync([markdownFile, '--dry-run'], { from: 'user' });
 
     // Check for preview output
-    const previewCall = testSetup.consoleLogSpy.mock.calls
-      .find(call => call[0].includes('📋 Import Preview'));
+    const previewCall = testSetup.consoleLogSpy.mock.calls.find(call =>
+      call[0].includes('📋 Import Preview')
+    );
     expect(previewCall).toBeTruthy();
-    
-    const previewDetails = testSetup.consoleLogSpy.mock.calls
-      .find(call => call[0].includes('1. TASK-200: Preview task'));
+
+    const previewDetails = testSetup.consoleLogSpy.mock.calls.find(call =>
+      call[0].includes('1. TASK-200: Preview task')
+    );
     expect(previewDetails).toBeTruthy();
   });
 
@@ -214,19 +226,20 @@ Duplicate test task.`;
     await fs.writeFile(markdownFile, markdownContent);
 
     const command = importCommand();
-    
+
     // Import once
     await command.parseAsync([markdownFile], { from: 'user' });
-    
+
     // Clear console spy
     testSetup.consoleLogSpy.mockClear();
-    
+
     // Import again
     await command.parseAsync([markdownFile], { from: 'user' });
 
     // Check for skip message
-    const skipMessage = testSetup.consoleLogSpy.mock.calls
-      .find(call => call[0].includes('⏭️  Skipped:'));
+    const skipMessage = testSetup.consoleLogSpy.mock.calls.find(call =>
+      call[0].includes('⏭️  Skipped:')
+    );
     expect(skipMessage).toBeTruthy();
     expect(skipMessage[0]).toContain('TASK-300');
   });
@@ -244,9 +257,10 @@ Task for prefix testing.`;
     const command = importCommand();
     await command.parseAsync([markdownFile, '--prefix', 'TEST-'], { from: 'user' });
 
-    // Check for prefixed ID  
-    const successMessage = testSetup.consoleLogSpy.mock.calls
-      .find(call => call[0] && call[0].includes('✅ Imported:'));
+    // Check for prefixed ID
+    const successMessage = testSetup.consoleLogSpy.mock.calls.find(
+      call => call[0] && call[0].includes('✅ Imported:')
+    );
     expect(successMessage).toBeTruthy();
     expect(successMessage[0]).toContain('TEST-400'); // Prefix replaces TASK- with TEST-
   });
@@ -256,19 +270,21 @@ Task for prefix testing.`;
     await fs.writeFile(jsonFile, '{ invalid json }');
 
     const command = importCommand();
-    
+
     // Mock process.exit
     const originalExit = process.exit;
-    process.exit = () => { throw new Error('Process exit called'); };
-    
+    process.exit = () => {
+      throw new Error('Process exit called');
+    };
+
     try {
       await command.parseAsync([jsonFile, '--format', 'json'], { from: 'user' });
     } catch (error) {
       expect(error.message).toBe('Process exit called');
     }
-    
+
     process.exit = originalExit;
-    
+
     expect(testSetup.consoleErrorSpy).toHaveBeenCalledWith(
       '❌ Import failed:',
       expect.stringContaining('Invalid JSON format')
@@ -287,8 +303,9 @@ newline"`;
     await command.parseAsync([csvFile, '--format', 'csv'], { from: 'user' });
 
     // Check for success
-    const successMessage = testSetup.consoleLogSpy.mock.calls
-      .find(call => call[0].includes('✅ Imported:'));
+    const successMessage = testSetup.consoleLogSpy.mock.calls.find(call =>
+      call[0].includes('✅ Imported:')
+    );
     expect(successMessage).toBeTruthy();
     expect(successMessage[0]).toContain('Task with, comma');
   });

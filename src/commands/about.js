@@ -4,10 +4,12 @@ import chalk from 'chalk';
 // These constants are injected during build via global variables
 const packageJson = {
   version: global.__PACKAGE_VERSION__ || '0.6.5.1',
-  description: global.__PACKAGE_DESCRIPTION__ || 'A task management CLI for developers and AI agents working together',
+  description:
+    global.__PACKAGE_DESCRIPTION__ ||
+    'A task management CLI for developers and AI agents working together',
   name: global.__PACKAGE_NAME__ || 'taskwerk',
   author: global.__PACKAGE_AUTHOR__ || 'manu chatterjee <deftio@deftio.com>',
-  license: global.__PACKAGE_LICENSE__ || 'MIT'
+  license: global.__PACKAGE_LICENSE__ || 'MIT',
 };
 
 export function aboutCommand() {

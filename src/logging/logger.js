@@ -51,19 +51,19 @@ export class Logger {
       // Load configuration
       const configManager = getConfigManager();
       this.config = configManager.get('developer', {});
-      
+
       // Set log level
       this.level = this.parseLogLevel(this.config.logLevel || 'info');
-      
+
       // Set output options
       this.console = this.config.logConsole !== false;
       this.file = this.config.logFile !== false;
-      
+
       // Initialize file logging if enabled
       if (this.file) {
         this.initFileLogging();
       }
-      
+
       this.initialized = true;
     } catch (error) {
       // If initialization fails, fall back to console logging
@@ -79,21 +79,21 @@ export class Logger {
   initFileLogging() {
     try {
       const logDir = this.config.logDirectory || DEFAULT_LOG_DIR;
-      
+
       // Ensure log directory exists
       if (!existsSync(logDir)) {
         mkdirSync(logDir, { recursive: true });
       }
-      
+
       // Create log file path with date
       const date = new Date().toISOString().split('T')[0];
       const logFile = join(logDir, `taskwerk-${date}.log`);
-      
+
       // Open write stream
       this.stream = createWriteStream(logFile, { flags: 'a' });
-      
+
       // Handle stream errors
-      this.stream.on('error', (error) => {
+      this.stream.on('error', error => {
         console.error('Log file write error:', error);
         this.file = false;
         this.stream = null;
@@ -110,12 +110,18 @@ export class Logger {
   parseLogLevel(level) {
     const levelStr = level.toUpperCase();
     switch (levelStr) {
-      case 'ERROR': return LogLevel.ERROR;
-      case 'WARN': return LogLevel.WARN;
-      case 'INFO': return LogLevel.INFO;
-      case 'DEBUG': return LogLevel.DEBUG;
-      case 'TRACE': return LogLevel.TRACE;
-      default: return LogLevel.INFO;
+      case 'ERROR':
+        return LogLevel.ERROR;
+      case 'WARN':
+        return LogLevel.WARN;
+      case 'INFO':
+        return LogLevel.INFO;
+      case 'DEBUG':
+        return LogLevel.DEBUG;
+      case 'TRACE':
+        return LogLevel.TRACE;
+      default:
+        return LogLevel.INFO;
     }
   }
 
@@ -126,7 +132,7 @@ export class Logger {
     const timestamp = new Date().toISOString();
     const levelName = LOG_LEVEL_NAMES[level] || 'UNKNOWN';
     const formattedMessage = args.length > 0 ? format(message, ...args) : message;
-    
+
     return `[${timestamp}] [${levelName}] [${this.category}] ${formattedMessage}`;
   }
 
@@ -239,10 +245,8 @@ export function closeAllLoggers() {
  * Set global log level
  */
 export function setGlobalLogLevel(level) {
-  const parsedLevel = typeof level === 'string' 
-    ? new Logger().parseLogLevel(level)
-    : level;
-    
+  const parsedLevel = typeof level === 'string' ? new Logger().parseLogLevel(level) : level;
+
   for (const logger of loggers.values()) {
     logger.level = parsedLevel;
   }

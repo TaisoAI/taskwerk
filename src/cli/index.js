@@ -16,8 +16,10 @@ import { ErrorHandler } from '../errors/index.js';
 // These constants are injected during build via global variables
 const packageJson = {
   version: global.__PACKAGE_VERSION__ || '0.6.5.1',
-  description: global.__PACKAGE_DESCRIPTION__ || 'A task management CLI for developers and AI agents working together',
-  name: global.__PACKAGE_NAME__ || 'taskwerk'
+  description:
+    global.__PACKAGE_DESCRIPTION__ ||
+    'A task management CLI for developers and AI agents working together',
+  name: global.__PACKAGE_NAME__ || 'taskwerk',
 };
 
 const program = new Command();

@@ -21,7 +21,7 @@ export function agentCommand() {
     .action(async (instructionArgs, options) => {
       const logger = new Logger('agent');
       const llmManager = new LLMManager();
-      
+
       try {
         // Get the instruction
         const instruction = instructionArgs.join(' ');
@@ -41,35 +41,39 @@ export function agentCommand() {
           workDir: process.cwd(),
           verbose: options.verbose,
           confirmPermission: async (tool, action, params) => {
-            if (options.yolo) {return true;}
-            
+            if (options.yolo) {
+              return true;
+            }
+
             console.log(chalk.yellow(`\n⚠️  Permission required:`));
             console.log(chalk.yellow(`Tool: ${tool}`));
             console.log(chalk.yellow(`Action: ${action}`));
             if (options.verbose) {
               console.log(chalk.gray(`Parameters: ${JSON.stringify(params, null, 2)}`));
             }
-            
-            const { confirm } = await inquirer.prompt([{
-              type: 'confirm',
-              name: 'confirm',
-              message: 'Allow this action?',
-              default: false
-            }]);
-            
+
+            const { confirm } = await inquirer.prompt([
+              {
+                type: 'confirm',
+                name: 'confirm',
+                message: 'Allow this action?',
+                default: false,
+              },
+            ]);
+
             return confirm;
-          }
+          },
         });
 
         // Build initial context
         let context = '';
-        
+
         if (options.file) {
           const readTool = toolExecutor.registry.get('read_file');
           const result = await readTool.execute({ path: options.file });
           context += `\nFile content (${options.file}):\n${result.content}\n`;
         }
-        
+
         if (options.tasks) {
           const listTool = toolExecutor.registry.get('list_tasks');
           const tasks = await listTool.execute({ limit: 20 });
@@ -117,12 +121,12 @@ Guidelines for execution:
 - Be careful with file operations - check before overwriting
 - Think systematically about task organization and project structure
 
-Remember: You are not just executing commands, you are helping build better productivity systems and workflows.`
+Remember: You are not just executing commands, you are helping build better productivity systems and workflows.`,
           },
           {
             role: 'user',
-            content: instruction
-          }
+            content: instruction,
+          },
         ];
 
         // Agent loop
@@ -133,7 +137,7 @@ Remember: You are not just executing commands, you are helping build better prod
 
         while (!isComplete && iterations < maxIterations) {
           iterations++;
-          
+
           if (options.verbose) {
             console.error(chalk.gray(`\n🤖 Agent iteration ${iterations}/${maxIterations}...`));
           } else if (process.stderr.isTTY && iterations === 1) {
@@ -147,7 +151,7 @@ Remember: You are not just executing commands, you are helping build better prod
             temperature: 0.7,
             maxTokens: 8192,
             tools: toolExecutor.getToolSpecs(),
-            verbose: options.verbose
+            verbose: options.verbose,
           };
 
           // Add provider/model overrides
@@ -160,7 +164,7 @@ Remember: You are not just executing commands, you are helping build better prod
 
           // Get response
           response = await llmManager.complete(completionParams);
-          
+
           // Display agent's message
           if (response.content) {
             if (options.verbose) {
@@ -178,7 +182,7 @@ Remember: You are not just executing commands, you are helping build better prod
           messages.push({
             role: 'assistant',
             content: response.content || '',
-            tool_calls: response.tool_calls
+            tool_calls: response.tool_calls,
           });
 
           // Handle tool calls
@@ -187,16 +191,18 @@ Remember: You are not just executing commands, you are helping build better prod
               console.error(chalk.gray(`\n🔧 Executing ${response.tool_calls.length} tools...`));
             }
 
-            const toolResults = await toolExecutor.executeTools(response.tool_calls, { verbose: options.verbose });
-            
+            const toolResults = await toolExecutor.executeTools(response.tool_calls, {
+              verbose: options.verbose,
+            });
+
             // Add tool results to messages
             for (const result of toolResults) {
               messages.push({
                 role: 'tool',
                 tool_call_id: result.tool_call_id,
-                content: result.content
+                content: result.content,
               });
-              
+
               if (options.verbose) {
                 const data = JSON.parse(result.content);
                 if (data.success) {
@@ -209,15 +215,17 @@ Remember: You are not just executing commands, you are helping build better prod
           } else {
             // No tool calls, agent might be done
             const lastMessage = messages[messages.length - 1].content.toLowerCase();
-            if (lastMessage.includes('complete') || 
-                lastMessage.includes('done') || 
-                lastMessage.includes('finished')) {
+            if (
+              lastMessage.includes('complete') ||
+              lastMessage.includes('done') ||
+              lastMessage.includes('finished')
+            ) {
               isComplete = true;
             } else {
               // Ask if task is complete
               messages.push({
                 role: 'user',
-                content: 'Is the task complete? If not, continue working on it.'
+                content: 'Is the task complete? If not, continue working on it.',
               });
             }
           }
@@ -228,9 +236,10 @@ Remember: You are not just executing commands, you are helping build better prod
         }
 
         if (options.verbose && response.usage) {
-          console.error(chalk.gray(`\n📊 Total conversation tokens: ${messages.length * 1000} (estimate)`));
+          console.error(
+            chalk.gray(`\n📊 Total conversation tokens: ${messages.length * 1000} (estimate)`)
+          );
         }
-
       } catch (error) {
         logger.error('Agent failed:', error);
         console.error('❌ Agent failed:', error.message);

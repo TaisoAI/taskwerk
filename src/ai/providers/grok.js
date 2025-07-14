@@ -16,7 +16,7 @@ export class GrokProvider extends BaseProvider {
   getRequiredConfig() {
     return [
       { key: 'api_key', description: 'Grok API key (from x.ai platform)', required: true },
-      { key: 'base_url', description: 'API base URL (optional)', required: false }
+      { key: 'base_url', description: 'API base URL (optional)', required: false },
     ];
   }
 
@@ -29,8 +29,8 @@ export class GrokProvider extends BaseProvider {
       const response = await fetch(`${this.baseUrl}/models`, {
         headers: {
           'Authorization': `Bearer ${this.config.api_key}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
@@ -58,13 +58,13 @@ export class GrokProvider extends BaseProvider {
       const response = await fetch(`${this.baseUrl}/models`, {
         headers: {
           'Authorization': `Bearer ${this.config.api_key}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
         const data = await response.json();
-        
+
         const models = data.data
           .filter(model => {
             // Filter for Grok models
@@ -74,7 +74,7 @@ export class GrokProvider extends BaseProvider {
           .map(model => {
             let description = 'Grok model by xAI';
             const id = model.id.toLowerCase();
-            
+
             if (id.includes('grok-beta')) {
               description = 'Grok Beta - Latest version';
             } else if (id.includes('grok-vision-beta')) {
@@ -84,23 +84,27 @@ export class GrokProvider extends BaseProvider {
             return {
               id: model.id,
               name: model.id,
-              description
+              description,
             };
           })
           .sort((a, b) => {
             // Sort by preference: vision > beta > others
-            const getScore = (id) => {
-              if (id.includes('vision')) {return 100;}
-              if (id.includes('beta')) {return 90;}
+            const getScore = id => {
+              if (id.includes('vision')) {
+                return 100;
+              }
+              if (id.includes('beta')) {
+                return 90;
+              }
               return 50;
             };
             return getScore(b.id) - getScore(a.id);
           });
-        
+
         // Cache results
         this.cachedModels = models;
         this.cacheExpiry = Date.now() + this.cacheTimeout;
-        
+
         return models;
       }
     } catch (error) {
@@ -110,7 +114,15 @@ export class GrokProvider extends BaseProvider {
     return [];
   }
 
-  async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk, tools }) {
+  async complete({
+    model,
+    messages,
+    temperature = 0.7,
+    maxTokens = 8192,
+    stream = false,
+    onChunk,
+    tools,
+  }) {
     if (!this.isConfigured()) {
       throw new Error('Grok provider not configured');
     }
@@ -120,7 +132,7 @@ export class GrokProvider extends BaseProvider {
       messages,
       temperature,
       max_tokens: maxTokens,
-      stream
+      stream,
     };
 
     // Add tools if provided (Grok uses OpenAI-compatible format)
@@ -132,9 +144,9 @@ export class GrokProvider extends BaseProvider {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${this.config.api_key}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -147,14 +159,14 @@ export class GrokProvider extends BaseProvider {
     }
 
     const data = await response.json();
-    
+
     const result = {
       content: data.choices[0].message.content || '',
       tool_calls: [],
       usage: {
         prompt_tokens: data.usage?.prompt_tokens || 0,
-        completion_tokens: data.usage?.completion_tokens || 0
-      }
+        completion_tokens: data.usage?.completion_tokens || 0,
+      },
     };
 
     // Handle tool calls if present
@@ -195,7 +207,7 @@ export class GrokProvider extends BaseProvider {
           try {
             const parsed = JSON.parse(data);
             const delta = parsed.choices[0].delta;
-            
+
             if (delta.content) {
               fullContent += delta.content;
               onChunk(delta.content);
@@ -204,7 +216,7 @@ export class GrokProvider extends BaseProvider {
             if (parsed.usage) {
               usage = {
                 prompt_tokens: parsed.usage.prompt_tokens,
-                completion_tokens: parsed.usage.completion_tokens
+                completion_tokens: parsed.usage.completion_tokens,
               };
             }
           } catch (e) {

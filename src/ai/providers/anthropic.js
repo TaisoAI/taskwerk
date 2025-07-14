@@ -5,11 +5,31 @@ export class AnthropicProvider extends BaseProvider {
     super(config);
     this.baseUrl = 'https://api.anthropic.com/v1';
     this.fallbackModels = [
-      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet (Latest)', description: 'Latest and most capable model' },
-      { id: 'claude-3-5-sonnet-20240620', name: 'Claude 3.5 Sonnet', description: 'Highly capable model' },
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', description: 'Most capable model for complex reasoning' },
-      { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', description: 'Balanced performance and speed' },
-      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', description: 'Fastest model for simple tasks' }
+      {
+        id: 'claude-3-5-sonnet-20241022',
+        name: 'Claude 3.5 Sonnet (Latest)',
+        description: 'Latest and most capable model',
+      },
+      {
+        id: 'claude-3-5-sonnet-20240620',
+        name: 'Claude 3.5 Sonnet',
+        description: 'Highly capable model',
+      },
+      {
+        id: 'claude-3-opus-20240229',
+        name: 'Claude 3 Opus',
+        description: 'Most capable model for complex reasoning',
+      },
+      {
+        id: 'claude-3-sonnet-20240229',
+        name: 'Claude 3 Sonnet',
+        description: 'Balanced performance and speed',
+      },
+      {
+        id: 'claude-3-haiku-20240307',
+        name: 'Claude 3 Haiku',
+        description: 'Fastest model for simple tasks',
+      },
     ];
     this.cachedModels = null;
     this.cacheExpiry = null;
@@ -22,7 +42,7 @@ export class AnthropicProvider extends BaseProvider {
 
   getRequiredConfig() {
     return [
-      { key: 'api_key', description: 'Anthropic API key (starts with sk-ant-)', required: true }
+      { key: 'api_key', description: 'Anthropic API key (starts with sk-ant-)', required: true },
     ];
   }
 
@@ -37,13 +57,13 @@ export class AnthropicProvider extends BaseProvider {
         headers: {
           'anthropic-version': '2023-06-01',
           'x-api-key': this.config.api_key,
-          'content-type': 'application/json'
+          'content-type': 'application/json',
         },
         body: JSON.stringify({
           model: 'claude-3-haiku-20240307',
           messages: [{ role: 'user', content: 'Hi' }],
-          max_tokens: 10
-        })
+          max_tokens: 10,
+        }),
       });
 
       if (response.ok) {
@@ -71,7 +91,7 @@ export class AnthropicProvider extends BaseProvider {
       // Anthropic doesn't have a public models API, but we can try to detect available models
       // by making test requests with very small token limits
       const availableModels = [];
-      
+
       for (const model of this.fallbackModels) {
         try {
           const response = await fetch(`${this.baseUrl}/messages`, {
@@ -79,13 +99,13 @@ export class AnthropicProvider extends BaseProvider {
             headers: {
               'anthropic-version': '2023-06-01',
               'x-api-key': this.config.api_key,
-              'content-type': 'application/json'
+              'content-type': 'application/json',
             },
             body: JSON.stringify({
               model: model.id,
               messages: [{ role: 'user', content: 'Hi' }],
-              max_tokens: 1
-            })
+              max_tokens: 1,
+            }),
           });
 
           if (response.ok || response.status === 400) {
@@ -101,7 +121,7 @@ export class AnthropicProvider extends BaseProvider {
       // Cache results
       this.cachedModels = availableModels.length > 0 ? availableModels : this.fallbackModels;
       this.cacheExpiry = Date.now() + this.cacheTimeout;
-      
+
       return this.cachedModels;
     } catch (error) {
       // Fall back to static list on error
@@ -109,7 +129,15 @@ export class AnthropicProvider extends BaseProvider {
     }
   }
 
-  async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk, tools }) {
+  async complete({
+    model,
+    messages,
+    temperature = 0.7,
+    maxTokens = 8192,
+    stream = false,
+    onChunk,
+    tools,
+  }) {
     if (!this.isConfigured()) {
       throw new Error('Anthropic provider not configured');
     }
@@ -119,7 +147,7 @@ export class AnthropicProvider extends BaseProvider {
       messages: this.formatMessages(messages),
       temperature,
       max_tokens: maxTokens,
-      stream
+      stream,
     };
 
     // Add tools if provided
@@ -132,9 +160,9 @@ export class AnthropicProvider extends BaseProvider {
       headers: {
         'anthropic-version': '2023-06-01',
         'x-api-key': this.config.api_key,
-        'content-type': 'application/json'
+        'content-type': 'application/json',
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -147,17 +175,17 @@ export class AnthropicProvider extends BaseProvider {
     }
 
     const data = await response.json();
-    
+
     // Handle tool use
     const result = {
       content: '',
       tool_calls: [],
       usage: {
         prompt_tokens: data.usage.input_tokens,
-        completion_tokens: data.usage.output_tokens
-      }
+        completion_tokens: data.usage.output_tokens,
+      },
     };
-    
+
     // Process content blocks
     for (const block of data.content) {
       if (block.type === 'text') {
@@ -168,12 +196,12 @@ export class AnthropicProvider extends BaseProvider {
           type: 'function',
           function: {
             name: block.name,
-            arguments: JSON.stringify(block.input)
-          }
+            arguments: JSON.stringify(block.input),
+          },
         });
       }
     }
-    
+
     return result;
   }
 
@@ -187,18 +215,20 @@ export class AnthropicProvider extends BaseProvider {
         // Convert system messages to user messages with context
         formatted.push({
           role: 'user',
-          content: `System: ${msg.content}`
+          content: `System: ${msg.content}`,
         });
         lastRole = 'user';
       } else if (msg.role === 'tool') {
         // Format tool results
         formatted.push({
           role: 'user',
-          content: [{
-            type: 'tool_result',
-            tool_use_id: msg.tool_call_id,
-            content: msg.content
-          }]
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: msg.tool_call_id,
+              content: msg.content,
+            },
+          ],
         });
         lastRole = 'user';
       } else if (msg.role === 'assistant' && msg.tool_calls) {
@@ -212,12 +242,12 @@ export class AnthropicProvider extends BaseProvider {
             type: 'tool_use',
             id: toolCall.id,
             name: toolCall.function.name,
-            input: JSON.parse(toolCall.function.arguments)
+            input: JSON.parse(toolCall.function.arguments),
           });
         }
         formatted.push({
           role: 'assistant',
-          content
+          content,
         });
         lastRole = 'assistant';
       } else if (msg.role === lastRole && msg.role !== 'assistant') {
@@ -231,7 +261,7 @@ export class AnthropicProvider extends BaseProvider {
       } else {
         formatted.push({
           role: msg.role,
-          content: msg.content
+          content: msg.content,
         });
         lastRole = msg.role;
       }
@@ -279,7 +309,7 @@ export class AnthropicProvider extends BaseProvider {
 
           try {
             const parsed = JSON.parse(data);
-            
+
             if (parsed.type === 'content_block_delta') {
               const chunk = parsed.delta.text;
               fullContent += chunk;
@@ -287,7 +317,7 @@ export class AnthropicProvider extends BaseProvider {
             } else if (parsed.type === 'message_delta' && parsed.usage) {
               usage = {
                 prompt_tokens: parsed.usage.input_tokens,
-                completion_tokens: parsed.usage.output_tokens
+                completion_tokens: parsed.usage.output_tokens,
               };
             }
           } catch (e) {

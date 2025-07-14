@@ -75,7 +75,7 @@ export class ErrorLogger {
       if (global.__PACKAGE_VERSION__) {
         return global.__PACKAGE_VERSION__;
       }
-      
+
       const packagePath = join(
         dirname(import.meta.url).replace('file://', ''),
         '../../../package.json'

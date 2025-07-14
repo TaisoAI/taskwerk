@@ -9,7 +9,7 @@ const cliPath = join(__dirname, '../../bin/taskwerk.js');
 
 describe('CLI Entry Point', () => {
   it('should display version when --version flag is used', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, '--version']);
       let output = '';
 
@@ -39,7 +39,7 @@ describe('CLI Entry Point', () => {
         errorOutput += data.toString();
       });
 
-      proc.on('error', (error) => {
+      proc.on('error', error => {
         reject(error);
       });
 
@@ -64,7 +64,7 @@ describe('CLI Entry Point', () => {
   }, 10000); // Increase test timeout
 
   it('should execute about command', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'about']);
       let output = '';
 
@@ -82,7 +82,7 @@ describe('CLI Entry Point', () => {
   });
 
   it('should display error for unknown command', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'unknown']);
       let error = '';
 

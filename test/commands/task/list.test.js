@@ -39,8 +39,6 @@ describe('task list command', () => {
     command.parse(['list'], { from: 'user' });
 
     // Check for task list header
-    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('📋 Tasks')
-    );
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📋 Tasks'));
   });
 });

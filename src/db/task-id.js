@@ -8,14 +8,18 @@ import { getDatabase } from './database.js';
  */
 export async function generateTaskId(prefix = 'TASK', db = null) {
   const database = db || getDatabase();
-  
+
   // Get the highest existing ID number
-  const result = database.prepare(`
+  const result = database
+    .prepare(
+      `
     SELECT MAX(CAST(SUBSTR(id, LENGTH(?) + 2) AS INTEGER)) as max_id
     FROM tasks
     WHERE id GLOB ? || '-[0-9]*'
-  `).get(prefix, prefix);
-  
+  `
+    )
+    .get(prefix, prefix);
+
   const nextNumber = (result?.max_id || 0) + 1;
   return `${prefix}-${nextNumber}`;
 }
@@ -51,10 +55,10 @@ export function parseTaskId(taskId) {
   if (!match) {
     return null;
   }
-  
+
   return {
     prefix: match[1],
-    number: parseInt(match[2], 10)
+    number: parseInt(match[2], 10),
   };
 }
 
@@ -66,14 +70,18 @@ export function parseTaskId(taskId) {
  */
 export async function generateSubtaskId(parentId, db = null) {
   const database = db || getDatabase();
-  
+
   // Get the highest existing subtask number
-  const result = database.prepare(`
+  const result = database
+    .prepare(
+      `
     SELECT MAX(CAST(SUBSTR(id, LENGTH(?) + 2) AS INTEGER)) as max_id
     FROM tasks
     WHERE parent_id = ? AND id GLOB ? || '.[0-9]*'
-  `).get(parentId, parentId, parentId);
-  
+  `
+    )
+    .get(parentId, parentId, parentId);
+
   const nextNumber = (result?.max_id || 0) + 1;
   return `${parentId}.${nextNumber}`;
 }

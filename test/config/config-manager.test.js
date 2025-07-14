@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { ConfigManager, getConfigManager, resetConfigManager } from '../../src/config/config-manager.js';
+import {
+  ConfigManager,
+  getConfigManager,
+  resetConfigManager,
+} from '../../src/config/config-manager.js';
 import { ConfigurationError } from '../../src/errors/index.js';
 
 describe('ConfigManager', () => {
@@ -38,11 +42,11 @@ describe('ConfigManager', () => {
   describe('load', () => {
     it('should create default config if file does not exist', () => {
       const config = manager.load();
-      
+
       expect(config).toBeDefined();
       expect(config.general.defaultPriority).toBe('medium');
       expect(config.database.backupEnabled).toBe(true);
-      
+
       // Should NOT automatically save the default config
       expect(existsSync(configPath)).toBe(false);
     });
@@ -56,7 +60,7 @@ database:
   backupEnabled: false
 `;
       writeFileSync(configPath, yamlConfig);
-      
+
       const config = manager.load();
       expect(config.general.defaultPriority).toBe('high');
       expect(config.general.defaultStatus).toBe('in-progress');
@@ -66,7 +70,7 @@ database:
     it('should load existing JSON config', () => {
       const jsonPath = join(tempDir, 'config.json');
       const jsonManager = new ConfigManager(jsonPath);
-      
+
       const jsonConfig = {
         general: {
           defaultPriority: 'low',
@@ -75,9 +79,9 @@ database:
           format: 'json',
         },
       };
-      
+
       writeFileSync(jsonPath, JSON.stringify(jsonConfig));
-      
+
       const config = jsonManager.load();
       expect(config.general.defaultPriority).toBe('low');
       expect(config.output.format).toBe('json');
@@ -89,7 +93,7 @@ general:
   defaultPriority: high
 `;
       writeFileSync(configPath, partialConfig);
-      
+
       const config = manager.load();
       expect(config.general.defaultPriority).toBe('high');
       expect(config.general.defaultStatus).toBe('todo'); // From defaults
@@ -102,7 +106,7 @@ general:
   defaultPriority: invalid-priority
 `;
       writeFileSync(configPath, invalidConfig);
-      
+
       expect(() => manager.load()).toThrow(ConfigurationError);
     });
   });
@@ -114,9 +118,9 @@ general:
           defaultPriority: 'high',
         },
       };
-      
+
       manager.save();
-      
+
       const content = readFileSync(configPath, 'utf8');
       expect(content).toContain('general:');
       expect(content).toContain('defaultPriority: high');
@@ -129,9 +133,9 @@ general:
           provider: 'openai',
         },
       };
-      
+
       manager.save();
-      
+
       const content = readFileSync(configPath, 'utf8');
       expect(content).toContain('apiKey: "********"');
       expect(content).toContain('provider: openai');
@@ -140,10 +144,10 @@ general:
     it('should create directory if it does not exist', () => {
       const nestedPath = join(tempDir, 'nested', 'dir', 'config.yml');
       const nestedManager = new ConfigManager(nestedPath);
-      
+
       nestedManager.config = { general: { defaultPriority: 'low' } };
       nestedManager.save();
-      
+
       const content = readFileSync(nestedPath, 'utf8');
       expect(content).toContain('defaultPriority: low');
     });
@@ -184,7 +188,7 @@ general:
     it('should load config if not loaded', () => {
       const newManager = new ConfigManager(configPath);
       expect(newManager.config).toBe(null);
-      
+
       const value = newManager.get('general.defaultPriority');
       expect(value).toBe('medium'); // Default value
       expect(newManager.config).toBeDefined();
@@ -246,11 +250,11 @@ general:
           defaultPriority: 'high',
         },
       };
-      
+
       manager.reset();
-      
+
       expect(manager.config.general.defaultPriority).toBe('medium');
-      
+
       // Should save the reset config
       const content = readFileSync(configPath, 'utf8');
       expect(content).toContain('defaultPriority: medium');
@@ -265,7 +269,7 @@ general:
           defaultStatus: 'todo',
         },
       };
-      
+
       expect(() => manager.validate()).not.toThrow();
     });
 
@@ -275,7 +279,7 @@ general:
           defaultPriority: 'invalid',
         },
       };
-      
+
       expect(() => manager.validate()).toThrow(ConfigurationError);
     });
 
@@ -285,7 +289,7 @@ general:
           backupEnabled: 'not-a-boolean',
         },
       };
-      
+
       expect(() => manager.validate()).toThrow(ConfigurationError);
     });
 
@@ -295,7 +299,7 @@ general:
           temperature: 3.0, // Max is 2.0
         },
       };
-      
+
       expect(() => manager.validate()).toThrow(ConfigurationError);
     });
 
@@ -305,7 +309,7 @@ general:
           taskIdPrefix: 'task', // Should be uppercase
         },
       };
-      
+
       expect(() => manager.validate()).toThrow(ConfigurationError);
     });
   });
@@ -319,7 +323,7 @@ general:
           temperature: 0.7,
         },
       };
-      
+
       const masked = manager.getMasked();
       expect(masked.ai.apiKey).toBe('********');
       expect(masked.ai.provider).toBe('openai');

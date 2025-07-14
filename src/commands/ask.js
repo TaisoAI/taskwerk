@@ -19,7 +19,7 @@ export function askCommand() {
     .action(async (questionArgs, options) => {
       const logger = new Logger('ask');
       const llmManager = new LLMManager();
-      
+
       try {
         // Get the question
         const question = questionArgs.join(' ');
@@ -36,18 +36,18 @@ export function askCommand() {
           confirmPermission: async (_tool, _action, _params) => {
             // In ask mode, we don't need permissions for read-only operations
             return true;
-          }
+          },
         });
 
         // Build context
         let context = '';
-        
+
         if (options.file) {
           const readTool = toolExecutor.registry.get('read_file');
           const result = await readTool.execute({ path: options.file });
           context += `\nFile content (${options.file}):\n${result.content}\n`;
         }
-        
+
         if (options.tasks) {
           const listTool = toolExecutor.registry.get('list_tasks');
           const tasks = await listTool.execute({ limit: 20 });
@@ -83,12 +83,12 @@ Key principles:
 Current working directory: ${process.cwd()}
 ${context ? `\nContext:\n${context}` : ''}
 
-Remember: You can read and analyze, but cannot modify files or tasks. For modifications, suggest the user use 'taskwerk agent' instead.`
+Remember: You can read and analyze, but cannot modify files or tasks. For modifications, suggest the user use 'taskwerk agent' instead.`,
           },
           {
             role: 'user',
-            content: question
-          }
+            content: question,
+          },
         ];
 
         // Prepare completion parameters
@@ -97,7 +97,7 @@ Remember: You can read and analyze, but cannot modify files or tasks. For modifi
           temperature: 0.7,
           maxTokens: 8192,
           tools: options.tools !== false ? toolExecutor.getToolSpecs() : undefined,
-          verbose: options.verbose
+          verbose: options.verbose,
         };
 
         // Add provider/model overrides
@@ -120,32 +120,34 @@ Remember: You can read and analyze, but cannot modify files or tasks. For modifi
 
         // Execute completion
         const response = await llmManager.complete(completionParams);
-        
+
         // Clear thinking timer
         if (thinkingTimer) {
           clearTimeout(thinkingTimer);
         }
-        
+
         // Handle tool calls if present
         if (response.tool_calls && response.tool_calls.length > 0) {
           if (options.verbose) {
             console.error(chalk.gray(`\n🔧 Using ${response.tool_calls.length} tools...`));
           }
 
-          const toolResults = await toolExecutor.executeTools(response.tool_calls, { verbose: options.verbose });
-          
+          const toolResults = await toolExecutor.executeTools(response.tool_calls, {
+            verbose: options.verbose,
+          });
+
           // Add tool results to messages
           messages.push({
             role: 'assistant',
             content: response.content || '',
-            tool_calls: response.tool_calls
+            tool_calls: response.tool_calls,
           });
-          
+
           for (const result of toolResults) {
             messages.push({
               role: 'tool',
               tool_call_id: result.tool_call_id,
-              content: result.content
+              content: result.content,
             });
           }
 
@@ -153,7 +155,7 @@ Remember: You can read and analyze, but cannot modify files or tasks. For modifi
           const finalResponse = await llmManager.complete({
             ...completionParams,
             messages,
-            tools: undefined // No more tools for final response
+            tools: undefined, // No more tools for final response
           });
 
           process.stdout.write(finalResponse.content);
@@ -164,9 +166,12 @@ Remember: You can read and analyze, but cannot modify files or tasks. For modifi
         }
 
         if (options.verbose && response.usage) {
-          console.error(chalk.gray(`\n📊 Tokens used: ${response.usage.prompt_tokens + response.usage.completion_tokens}`));
+          console.error(
+            chalk.gray(
+              `\n📊 Tokens used: ${response.usage.prompt_tokens + response.usage.completion_tokens}`
+            )
+          );
         }
-
       } catch (error) {
         logger.error('Ask failed:', error);
         console.error('❌ Ask failed:', error.message);

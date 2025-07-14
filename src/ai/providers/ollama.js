@@ -13,14 +13,18 @@ export class OllamaProvider extends BaseProvider {
 
   getRequiredConfig() {
     return [
-      { key: 'base_url', description: 'Ollama API URL (default: http://localhost:11434)', required: false }
+      {
+        key: 'base_url',
+        description: 'Ollama API URL (default: http://localhost:11434)',
+        required: false,
+      },
     ];
   }
 
   async testConnection() {
     try {
       const response = await fetch(`${this.baseUrl}/api/version`);
-      
+
       if (response.ok) {
         const data = await response.json();
         return { success: true, message: `Connected to Ollama ${data.version}` };
@@ -28,34 +32,39 @@ export class OllamaProvider extends BaseProvider {
         return { success: false, message: 'Ollama server not responding' };
       }
     } catch (error) {
-      return { success: false, message: `Cannot connect to Ollama at ${this.baseUrl}. Is Ollama running?` };
+      return {
+        success: false,
+        message: `Cannot connect to Ollama at ${this.baseUrl}. Is Ollama running?`,
+      };
     }
   }
 
   async listModels() {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`);
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         if (!data.models || data.models.length === 0) {
-          return [{
-            id: 'no-models',
-            name: 'No models available',
-            description: 'Run "ollama pull <model>" to download models'
-          }];
+          return [
+            {
+              id: 'no-models',
+              name: 'No models available',
+              description: 'Run "ollama pull <model>" to download models',
+            },
+          ];
         }
-        
+
         return data.models
           .map(model => {
             // Parse model name to get base name and tag
             const [baseName, tag = 'latest'] = model.name.split(':');
             const displayName = tag === 'latest' ? baseName : model.name;
-            
+
             // Determine model family for better descriptions
             let description = `Size: ${this.formatSize(model.size)}`;
-            
+
             if (baseName.includes('llama')) {
               description += ` • Llama family model`;
             } else if (baseName.includes('gemma')) {
@@ -69,38 +78,56 @@ export class OllamaProvider extends BaseProvider {
             } else if (baseName.includes('codellama')) {
               description += ` • Code-specialized Llama`;
             }
-            
+
             description += ` • Modified: ${new Date(model.modified_at).toLocaleDateString()}`;
-            
+
             return {
               id: model.name,
               name: displayName,
-              description
+              description,
             };
           })
           .sort((a, b) => {
             // Sort by model family preference and size
-            const getScore = (name) => {
+            const getScore = name => {
               const lower = name.toLowerCase();
-              if (lower.includes('llama3.2')) {return 100;}
-              if (lower.includes('llama3.1')) {return 95;}
-              if (lower.includes('llama3')) {return 90;}
-              if (lower.includes('gemma2')) {return 85;}
-              if (lower.includes('qwen2.5')) {return 80;}
-              if (lower.includes('mistral')) {return 75;}
-              if (lower.includes('phi3')) {return 70;}
-              if (lower.includes('codellama')) {return 65;}
+              if (lower.includes('llama3.2')) {
+                return 100;
+              }
+              if (lower.includes('llama3.1')) {
+                return 95;
+              }
+              if (lower.includes('llama3')) {
+                return 90;
+              }
+              if (lower.includes('gemma2')) {
+                return 85;
+              }
+              if (lower.includes('qwen2.5')) {
+                return 80;
+              }
+              if (lower.includes('mistral')) {
+                return 75;
+              }
+              if (lower.includes('phi3')) {
+                return 70;
+              }
+              if (lower.includes('codellama')) {
+                return 65;
+              }
               return 50;
             };
             return getScore(b.name) - getScore(a.name);
           });
       }
     } catch (error) {
-      return [{
-        id: 'connection-error',
-        name: 'Connection Error',
-        description: `Cannot connect to Ollama at ${this.baseUrl}. Is Ollama running?`
-      }];
+      return [
+        {
+          id: 'connection-error',
+          name: 'Connection Error',
+          description: `Cannot connect to Ollama at ${this.baseUrl}. Is Ollama running?`,
+        },
+      ];
     }
 
     return [];
@@ -110,7 +137,7 @@ export class OllamaProvider extends BaseProvider {
     const response = await fetch(`${this.baseUrl}/api/chat`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model,
@@ -118,9 +145,9 @@ export class OllamaProvider extends BaseProvider {
         stream,
         options: {
           temperature,
-          num_predict: maxTokens
-        }
-      })
+          num_predict: maxTokens,
+        },
+      }),
     });
 
     if (!response.ok) {
@@ -136,8 +163,8 @@ export class OllamaProvider extends BaseProvider {
       content: data.message.content,
       usage: {
         prompt_tokens: data.prompt_eval_count || 0,
-        completion_tokens: data.eval_count || 0
-      }
+        completion_tokens: data.eval_count || 0,
+      },
     };
   }
 
@@ -166,7 +193,7 @@ export class OllamaProvider extends BaseProvider {
         if (line.trim()) {
           try {
             const parsed = JSON.parse(line);
-            
+
             if (parsed.message?.content) {
               const chunk = parsed.message.content;
               fullContent += chunk;
@@ -190,8 +217,8 @@ export class OllamaProvider extends BaseProvider {
       content: fullContent,
       usage: {
         prompt_tokens: promptTokens,
-        completion_tokens: completionTokens
-      }
+        completion_tokens: completionTokens,
+      },
     };
   }
 

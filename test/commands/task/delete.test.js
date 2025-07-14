@@ -23,7 +23,7 @@ describe('task delete command', () => {
   it('should handle task deletion with valid task ID', async () => {
     // Create a test task first
     createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to delete' });
-    
+
     const command = taskDeleteCommand();
     await command.parseAsync(['TASK-123', '--force'], { from: 'user' });
 

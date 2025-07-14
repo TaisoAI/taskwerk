@@ -36,7 +36,7 @@ describe('task update command', () => {
   it('should handle updating task with valid task ID', async () => {
     // Create a test task first
     createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to update' });
-    
+
     const command = taskUpdateCommand();
     await command.parseAsync(['TASK-123', '--status', 'in-progress'], { from: 'user' });
 
@@ -49,7 +49,7 @@ describe('task update command', () => {
   it('should handle adding notes to a task', async () => {
     // Create a test task first
     createTestTask(testSetup.dbSetup.db, { id: 'TASK-789', name: 'Task for notes' });
-    
+
     const command = taskUpdateCommand();
     await command.parseAsync(['TASK-789', '--note', 'This is a test note'], { from: 'user' });
 
@@ -57,14 +57,18 @@ describe('task update command', () => {
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('📝 Added note: This is a test note')
     );
-    
+
     // Verify the note was actually added to the database
-    const notes = testSetup.dbSetup.db.prepare(`
+    const notes = testSetup.dbSetup.db
+      .prepare(
+        `
       SELECT * FROM task_notes 
       WHERE task_id = ? 
       ORDER BY created_at DESC
-    `).all('TASK-789');
-    
+    `
+      )
+      .all('TASK-789');
+
     expect(notes).toHaveLength(1);
     expect(notes[0].note).toBe('This is a test note');
     expect(notes[0].user).toBe('user');

@@ -9,7 +9,7 @@ const cliPath = join(__dirname, '../../bin/taskwerk.js');
 
 describe('llm command integration', () => {
   it('should show help for llm command', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'llm', '--help']);
       let output = '';
 
@@ -33,7 +33,7 @@ describe('llm command integration', () => {
   });
 
   it('should handle missing prompt error', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'llm']);
       let error = '';
 
@@ -53,13 +53,13 @@ describe('llm command integration', () => {
   });
 
   it('should accept piped input', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const echo = spawn('echo', ['Hello from pipe']);
       const llm = spawn('node', [cliPath, 'llm']);
-      
+
       // Pipe echo output to llm input
       echo.stdout.pipe(llm.stdin);
-      
+
       let error = '';
       llm.stderr.on('data', data => {
         error += data.toString();
@@ -79,7 +79,7 @@ describe('llm command integration', () => {
   });
 
   it('should handle command line prompt', () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const proc = spawn('node', [cliPath, 'llm', 'What is 2+2?', '--quiet']);
       let error = '';
 

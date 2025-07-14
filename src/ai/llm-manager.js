@@ -76,14 +76,14 @@ export class LLMManager {
    */
   listProviders() {
     const results = [];
-    
+
     for (const [name, ProviderClass] of this.providers) {
       const config = this.configManager.get(`ai.providers.${name}`, {});
       const provider = new ProviderClass(config);
       results.push({
         name,
         configured: provider.isConfigured(),
-        enabled: config.enabled !== false
+        enabled: config.enabled !== false,
       });
     }
 
@@ -96,7 +96,7 @@ export class LLMManager {
    */
   async testAllProviders() {
     const results = [];
-    
+
     for (const [name, ProviderClass] of this.providers) {
       const config = this.configManager.get(`ai.providers.${name}`, {});
       if (config.enabled === false) {
@@ -108,7 +108,7 @@ export class LLMManager {
         results.push({
           name,
           success: false,
-          message: 'Not configured'
+          message: 'Not configured',
         });
         continue;
       }
@@ -127,7 +127,7 @@ export class LLMManager {
    */
   async discoverModels() {
     const modelsByProvider = new Map();
-    
+
     for (const [name, ProviderClass] of this.providers) {
       const config = this.configManager.get(`ai.providers.${name}`, {});
       if (config.enabled === false) {
@@ -161,9 +161,7 @@ export class LLMManager {
     const { provider: providerName, model, verbose, ...completionParams } = params;
 
     // Get provider (use current if not specified)
-    const provider = providerName 
-      ? this.getProvider(providerName)
-      : this.getCurrentProvider();
+    const provider = providerName ? this.getProvider(providerName) : this.getCurrentProvider();
 
     // Get model (use current if not specified)
     const modelToUse = model || this.getCurrentModel();
@@ -176,12 +174,14 @@ export class LLMManager {
     try {
       const result = await provider.complete({
         model: modelToUse,
-        ...completionParams
+        ...completionParams,
       });
 
       // Log usage if available and in verbose mode
       if (verbose && result.usage) {
-        this.logger.info(`Token usage - Prompt: ${result.usage.prompt_tokens}, Completion: ${result.usage.completion_tokens}`);
+        this.logger.info(
+          `Token usage - Prompt: ${result.usage.prompt_tokens}, Completion: ${result.usage.completion_tokens}`
+        );
       }
 
       return result;
@@ -220,7 +220,7 @@ export class LLMManager {
     }
 
     const configPath = `ai.providers.${providerName}.${key}`;
-    
+
     // Handle special case for enabling/disabling
     if (key === 'enabled') {
       value = value === 'true' || value === true;
@@ -261,15 +261,15 @@ export class LLMManager {
   getConfigSummary() {
     const aiConfig = this.configManager.get('ai', {});
     const providers = this.listProviders();
-    
+
     return {
       current_provider: aiConfig.current_provider || 'none',
       current_model: aiConfig.current_model || 'none',
       providers: providers.map(p => ({
         ...p,
-        config: p.configured ? this.getProviderConfig(p.name) : {}
+        config: p.configured ? this.getProviderConfig(p.name) : {},
       })),
-      defaults: aiConfig.defaults || {}
+      defaults: aiConfig.defaults || {},
     };
   }
 }

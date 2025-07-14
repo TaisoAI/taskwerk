@@ -7,40 +7,40 @@ describe('task list command - search functionality', () => {
 
   beforeEach(async () => {
     testSetup = setupCommandTest(true); // Enable database
-    
+
     // Create test tasks with searchable content
     const { TaskwerkAPI } = await import('../../../src/api/taskwerk-api.js');
     const api = new TaskwerkAPI();
-    
+
     // Task 1: Search in name
-    await api.createTask({ 
-      id: 'TASK-100', 
+    await api.createTask({
+      id: 'TASK-100',
       name: 'Backend API development',
-      created_by: 'test'
+      created_by: 'test',
     });
-    
+
     // Task 2: Search in description
-    await api.createTask({ 
-      id: 'TASK-101', 
+    await api.createTask({
+      id: 'TASK-101',
       name: 'Frontend work',
       description: 'Implement search functionality in the UI',
-      created_by: 'test'
+      created_by: 'test',
     });
-    
+
     // Task 3: Search in content
-    await api.createTask({ 
-      id: 'TASK-102', 
+    await api.createTask({
+      id: 'TASK-102',
       name: 'Documentation',
       content: 'Update docs to explain the new search feature',
-      created_by: 'test'
+      created_by: 'test',
     });
-    
+
     // Task 4: No search match
-    await api.createTask({ 
-      id: 'TASK-103', 
+    await api.createTask({
+      id: 'TASK-103',
       name: 'Database migration',
       description: 'Migrate user data',
-      created_by: 'test'
+      created_by: 'test',
     });
   });
 
@@ -55,9 +55,7 @@ describe('task list command - search functionality', () => {
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('🔍 Search results for "backend"')
     );
-    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('TASK-100')
-    );
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('TASK-100'));
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('Backend API development')
     );
@@ -70,18 +68,14 @@ describe('task list command - search functionality', () => {
     expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('🔍 Search results for "search functionality"')
     );
-    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('TASK-101')
-    );
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('TASK-101'));
   });
 
   it('should search tasks by content', () => {
     const command = taskListCommand();
     command.parse(['--search', 'search feature'], { from: 'user' });
 
-    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('TASK-102')
-    );
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('TASK-102'));
   });
 
   it('should combine search with other filters', () => {
@@ -106,8 +100,6 @@ describe('task list command - search functionality', () => {
     const command = taskListCommand();
     command.parse(['--search', 'BACKEND'], { from: 'user' });
 
-    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('TASK-100')
-    );
+    expect(testSetup.consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('TASK-100'));
   });
 });

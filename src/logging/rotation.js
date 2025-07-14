@@ -19,19 +19,19 @@ export const RotationConfig = {
 export async function rotateLogs(logDir, config = RotationConfig) {
   try {
     logger.debug('Starting log rotation in %s', logDir);
-    
+
     // Get all log files
     const files = await readdir(logDir);
     const logFiles = files.filter(file => config.pattern.test(file));
-    
+
     if (logFiles.length === 0) {
       logger.debug('No log files to rotate');
       return;
     }
-    
+
     // Get file stats and sort by date
     const fileStats = await Promise.all(
-      logFiles.map(async (file) => {
+      logFiles.map(async file => {
         const filePath = join(logDir, file);
         const stats = await stat(filePath);
         return {
@@ -42,20 +42,20 @@ export async function rotateLogs(logDir, config = RotationConfig) {
         };
       })
     );
-    
+
     // Sort by modification time (newest first)
     fileStats.sort((a, b) => b.mtime - a.mtime);
-    
+
     // Remove old files beyond maxFiles
     if (fileStats.length > config.maxFiles) {
       const filesToDelete = fileStats.slice(config.maxFiles);
-      
+
       for (const fileInfo of filesToDelete) {
         logger.info('Deleting old log file: %s', fileInfo.file);
         await unlink(fileInfo.path);
       }
     }
-    
+
     // Check for files that are too large
     for (const fileInfo of fileStats) {
       if (fileInfo.size > config.maxSize) {
@@ -63,7 +63,7 @@ export async function rotateLogs(logDir, config = RotationConfig) {
         // In a real implementation, we might want to compress or archive these
       }
     }
-    
+
     logger.debug('Log rotation completed');
   } catch (error) {
     logger.error('Failed to rotate logs: %s', error.message);
@@ -79,14 +79,14 @@ export function scheduleRotation(logDir, intervalMs = 24 * 60 * 60 * 1000) {
   rotateLogs(logDir).catch(error => {
     logger.error('Initial rotation failed: %s', error.message);
   });
-  
+
   // Schedule periodic rotation
   const intervalId = setInterval(() => {
     rotateLogs(logDir).catch(error => {
       logger.error('Scheduled rotation failed: %s', error.message);
     });
   }, intervalMs);
-  
+
   // Return cleanup function
   return () => clearInterval(intervalId);
 }

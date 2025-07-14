@@ -8,7 +8,7 @@ export class ReadFileTool extends BaseTool {
     super({
       ...config,
       description: 'Read contents of a file in the working directory',
-      permissions: [ToolPermissions.READ_FILES]
+      permissions: [ToolPermissions.READ_FILES],
     });
   }
 
@@ -18,22 +18,22 @@ export class ReadFileTool extends BaseTool {
       properties: {
         path: {
           type: 'string',
-          description: 'File path relative to working directory'
+          description: 'File path relative to working directory',
         },
         encoding: {
           type: 'string',
           description: 'File encoding',
-          default: 'utf-8'
-        }
+          default: 'utf-8',
+        },
       },
-      required: ['path']
+      required: ['path'],
     };
   }
 
   async execute(params, _context) {
     // Resolve path relative to working directory
     const fullPath = resolve(this.workDir, params.path);
-    
+
     // Security check: ensure path is within working directory
     const relativePath = relative(this.workDir, fullPath);
     if (relativePath.startsWith('..')) {
@@ -51,7 +51,7 @@ export class ReadFileTool extends BaseTool {
       return {
         path: params.path,
         content: content,
-        size: content.length
+        size: content.length,
       };
     } catch (error) {
       if (error.code === 'EISDIR') {

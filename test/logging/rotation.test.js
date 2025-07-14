@@ -34,7 +34,7 @@ describe('Log Rotation', () => {
       for (let i = 0; i < files.length; i++) {
         const filePath = join(tempDir, files[i]);
         writeFileSync(filePath, `Log content ${i}`);
-        
+
         // Add small delay to ensure different modification times
         await new Promise(resolve => setTimeout(resolve, 10));
       }
@@ -46,7 +46,7 @@ describe('Log Rotation', () => {
       // Check remaining files
       const remainingFiles = await readdir(tempDir);
       const logFiles = remainingFiles.filter(f => f.endsWith('.log'));
-      
+
       expect(logFiles.length).toBe(3);
     });
 
@@ -73,7 +73,7 @@ describe('Log Rotation', () => {
       writeFileSync(bigFile, bigContent);
 
       await rotateLogs(tempDir);
-      
+
       // File should still exist (we only warn about size)
       expect(existsSync(bigFile)).toBe(true);
     });
@@ -83,7 +83,7 @@ describe('Log Rotation', () => {
     it('should return cleanup function', () => {
       const cleanup = scheduleRotation(tempDir, 1000);
       expect(typeof cleanup).toBe('function');
-      
+
       // Clean up
       cleanup();
     });
@@ -91,12 +91,12 @@ describe('Log Rotation', () => {
     it('should run initial rotation', async () => {
       // Create an old file
       writeFileSync(join(tempDir, 'taskwerk-2024-01-01.log'), 'old log');
-      
+
       const cleanup = scheduleRotation(tempDir, 10000);
-      
+
       // Wait a bit for initial rotation
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Clean up
       cleanup();
     });

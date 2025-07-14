@@ -271,7 +271,7 @@ export function getConfigSchema() {
  */
 export function getDefaultConfig() {
   const config = {};
-  
+
   for (const [section, schema] of Object.entries(CONFIG_SCHEMA)) {
     config[section] = {};
     for (const [key, propSchema] of Object.entries(schema.properties)) {
@@ -280,7 +280,7 @@ export function getDefaultConfig() {
       }
     }
   }
-  
+
   return config;
 }
 
@@ -289,7 +289,7 @@ export function getDefaultConfig() {
  */
 export function getSensitiveFields() {
   const sensitive = [];
-  
+
   for (const [section, schema] of Object.entries(CONFIG_SCHEMA)) {
     for (const [key, propSchema] of Object.entries(schema.properties)) {
       if (propSchema.sensitive) {
@@ -297,6 +297,6 @@ export function getSensitiveFields() {
       }
     }
   }
-  
+
   return sensitive;
 }

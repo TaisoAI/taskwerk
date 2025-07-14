@@ -1,4 +1,4 @@
-import { BaseTool, ToolPermissions } from '../base-tool.js';
+import { BaseTool } from '../base-tool.js';
 import { TaskwerkAPI } from '../../../api/taskwerk-api.js';
 
 export class ListTasksTool extends BaseTool {

@@ -35,26 +35,27 @@ export function taskSplitCommand() {
           const rl = readline.createInterface({ input, output });
           
           let count;
-          while (true) {
+          while (count === undefined) {
             const countStr = await rl.question('How many subtasks do you want to create? (1-10) [2]: ');
             count = countStr ? parseInt(countStr) : 2;
             
             if (isNaN(count) || count < 1 || count > 10) {
               console.log('Please enter a number between 1 and 10');
-              continue;
+              count = undefined;
             }
-            break;
           }
           
           // Get names for each subtask
           for (let i = 1; i <= count; i++) {
-            while (true) {
+            let nameValid = false;
+            while (!nameValid) {
               const name = await rl.question(`Enter name for subtask ${i}: `);
               if (name.trim().length > 0) {
                 subtaskNames.push(name.trim());
-                break;
+                nameValid = true;
+              } else {
+                console.log('Task name cannot be empty');
               }
-              console.log('Task name cannot be empty');
             }
           }
           
@@ -69,7 +70,6 @@ export function taskSplitCommand() {
         
         // Create subtasks
         const createdTasks = [];
-        let subtaskNumber = 1;
         
         for (const name of subtaskNames) {
           const subtaskData = {
@@ -97,8 +97,6 @@ export function taskSplitCommand() {
           
           createdTasks.push(subtask);
           console.log(`✅ Created subtask ${subtask.id}: ${subtask.name}`);
-          
-          subtaskNumber++;
         }
         
         // Update parent task status if it was todo

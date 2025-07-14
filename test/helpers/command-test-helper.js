@@ -1,8 +1,6 @@
 import { vi, expect } from 'vitest';
 import { createTestDatabase } from './database-test-helper.js';
 import { setDatabase, closeDatabase } from '../../src/db/database.js';
-import { homedir } from 'os';
-import { join } from 'path';
 
 export function setupCommandTest(withDatabase = false) {
   const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});

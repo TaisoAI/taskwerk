@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { LLMManager } from '../ai/llm-manager.js';
 import { ToolExecutor } from '../ai/tool-executor.js';
 import { Logger } from '../logging/logger.js';
-import inquirer from 'inquirer';
 import chalk from 'chalk';
 
 export function askCommand() {
@@ -34,7 +33,7 @@ export function askCommand() {
           mode: 'ask',
           workDir: process.cwd(),
           verbose: options.verbose,
-          confirmPermission: async (tool, action, params) => {
+          confirmPermission: async (_tool, _action, _params) => {
             // In ask mode, we don't need permissions for read-only operations
             return true;
           }

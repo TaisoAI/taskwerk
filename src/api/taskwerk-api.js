@@ -1,5 +1,5 @@
 import { getDatabase } from '../db/database.js';
-import { generateTaskId, taskIdExists, isValidTaskId } from '../db/task-id.js';
+import { generateTaskId, taskIdExists } from '../db/task-id.js';
 import { TaskNotFoundError, DuplicateTaskIdError } from '../errors/task-errors.js';
 import { ValidationError } from '../errors/base-error.js';
 import { Logger } from '../logging/logger.js';
@@ -210,7 +210,7 @@ export class TaskwerkAPI {
    * @param {string} deletedBy - User deleting the task
    * @returns {boolean} Success
    */
-  async deleteTask(taskId, deletedBy = 'system') {
+  async deleteTask(taskId, _deletedBy = 'system') {
     const db = this.getDatabase();
     
     // Check if task exists

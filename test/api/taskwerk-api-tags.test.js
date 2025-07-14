@@ -29,7 +29,7 @@ describe('TaskwerkAPI - Tag Filtering', () => {
     });
     await api.addTaskTags(task3.id, ['backend', 'database'], 'test');
     
-    const task4 = await api.createTask({ 
+    await api.createTask({ 
       name: 'Task without tags',
       created_by: 'test'
     });

@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync, chmodSync, mkdirSync } from 'fs';
+import { readFileSync, chmodSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -15,7 +15,7 @@ mkdirSync('dist', { recursive: true });
 
 try {
   // Build everything into a single file
-  const result = await build({
+  await build({
     entryPoints: ['src/cli/index.js'],
     bundle: true,
     platform: 'node',

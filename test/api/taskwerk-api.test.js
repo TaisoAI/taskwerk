@@ -509,7 +509,7 @@ describe('TaskwerkAPI', () => {
 
   describe('Transactions', () => {
     it('should execute operations in a transaction', () => {
-      const result = api.transaction((api) => {
+      const result = api.transaction((_api) => {
         // Use direct database operations for sync transaction test
         const stmt1 = db.prepare(`
           INSERT INTO tasks (id, name, status, created_by, updated_by)
@@ -541,7 +541,7 @@ describe('TaskwerkAPI', () => {
 
     it('should rollback on error', () => {
       expect(() => {
-        api.transaction((api) => {
+        api.transaction((_api) => {
           const stmt = db.prepare(`
             INSERT INTO tasks (id, name, status, created_by, updated_by)
             VALUES ('ERROR-1', 'Transaction task', 'todo', 'system', 'system')

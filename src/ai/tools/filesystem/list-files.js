@@ -38,7 +38,7 @@ export class ListFilesTool extends BaseTool {
     };
   }
 
-  async execute(params, context) {
+  async execute(params, _context) {
     const targetPath = params.path || '.';
     const fullPath = resolve(this.workDir, targetPath);
     

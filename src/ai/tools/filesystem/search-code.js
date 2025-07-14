@@ -46,7 +46,7 @@ export class SearchCodeTool extends BaseTool {
     };
   }
 
-  async execute(params, context) {
+  async execute(params, _context) {
     const { pattern, path = '.', filePattern = '*', caseSensitive = true, maxResults = 20 } = params;
     
     try {
@@ -107,7 +107,7 @@ export class SearchCodeTool extends BaseTool {
     }
   }
 
-  requiresPermission(params) {
+  requiresPermission(_params) {
     // This is a read-only operation
     return null;
   }

@@ -31,7 +31,7 @@ export function configCommand() {
           console.log('⚙️  Taskwerk Configuration');
           console.log('═'.repeat(50));
           
-          function printSection(obj, prefix = '') {
+          const printSection = (obj, prefix = '') => {
             for (const [k, v] of Object.entries(obj)) {
               const fullKey = prefix ? `${prefix}.${k}` : k;
               if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
@@ -41,7 +41,7 @@ export function configCommand() {
                 console.log(`  ${fullKey}: ${JSON.stringify(v)}`);
               }
             }
-          }
+          };
           
           printSection(config);
           console.log('═'.repeat(50));
@@ -58,7 +58,6 @@ export function configCommand() {
           
         } else if (key) {
           // Get configuration value
-          const config = configManager.load();
           const configValue = configManager.get(key);
           
           if (configValue === undefined) {

@@ -64,7 +64,7 @@ describe('llm command', () => {
     const command = llmCommand();
     
     // Mock LLMManager
-    const mockComplete = vi.fn().mockResolvedValue({
+    vi.fn().mockResolvedValue({
       content: 'Test response',
       usage: { prompt_tokens: 10, completion_tokens: 20 }
     });

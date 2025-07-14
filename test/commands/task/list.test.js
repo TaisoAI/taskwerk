@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskListCommand } from '../../../src/commands/task/list.js';
-import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
+import { setupCommandTest } from '../../helpers/command-test-helper.js';
 
 describe('task list command', () => {
   let testSetup;

@@ -125,12 +125,12 @@ export class OpenAIProvider extends BaseProvider {
           .sort((a, b) => {
             // Sort by preference: o1 > gpt-4o > gpt-4-turbo > gpt-4 > gpt-3.5
             const getScore = (id) => {
-              if (id.includes('o1-preview')) return 100;
-              if (id.includes('o1-mini')) return 90;
-              if (id.includes('gpt-4o')) return 80;
-              if (id.includes('gpt-4-turbo')) return 70;
-              if (id.includes('gpt-4')) return 60;
-              if (id.includes('gpt-3.5')) return 50;
+              if (id.includes('o1-preview')) {return 100;}
+              if (id.includes('o1-mini')) {return 90;}
+              if (id.includes('gpt-4o')) {return 80;}
+              if (id.includes('gpt-4-turbo')) {return 70;}
+              if (id.includes('gpt-4')) {return 60;}
+              if (id.includes('gpt-3.5')) {return 50;}
               return 0;
             };
             return getScore(b.id) - getScore(a.id);

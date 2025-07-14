@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskAddCommand } from '../../../src/commands/task/add.js';
-import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
+import { setupCommandTest } from '../../helpers/command-test-helper.js';
 import { createTestTask } from '../../helpers/database-test-helper.js';
 
 describe('task add command', () => {
@@ -60,7 +60,7 @@ describe('task add command', () => {
 
   it('should handle all options', async () => {
     // Create parent task first
-    const parent = createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Parent task' });
+    createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Parent task' });
     
     const command = taskAddCommand();
     

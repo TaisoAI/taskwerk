@@ -82,14 +82,14 @@ export class OllamaProvider extends BaseProvider {
             // Sort by model family preference and size
             const getScore = (name) => {
               const lower = name.toLowerCase();
-              if (lower.includes('llama3.2')) return 100;
-              if (lower.includes('llama3.1')) return 95;
-              if (lower.includes('llama3')) return 90;
-              if (lower.includes('gemma2')) return 85;
-              if (lower.includes('qwen2.5')) return 80;
-              if (lower.includes('mistral')) return 75;
-              if (lower.includes('phi3')) return 70;
-              if (lower.includes('codellama')) return 65;
+              if (lower.includes('llama3.2')) {return 100;}
+              if (lower.includes('llama3.1')) {return 95;}
+              if (lower.includes('llama3')) {return 90;}
+              if (lower.includes('gemma2')) {return 85;}
+              if (lower.includes('qwen2.5')) {return 80;}
+              if (lower.includes('mistral')) {return 75;}
+              if (lower.includes('phi3')) {return 70;}
+              if (lower.includes('codellama')) {return 65;}
               return 50;
             };
             return getScore(b.name) - getScore(a.name);

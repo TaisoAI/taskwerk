@@ -251,7 +251,6 @@ export class QueryBuilder {
     if (this.whereConditions.length > 0) {
       // Build WHERE clause with proper OR/AND handling
       let whereClause = '';
-      let needsParentheses = false;
       
       for (let i = 0; i < this.whereConditions.length; i++) {
         const condition = this.whereConditions[i];
@@ -261,7 +260,6 @@ export class QueryBuilder {
           if (i + 1 < this.whereConditions.length && 
               this.whereConditions[i + 1].toString().startsWith('OR ')) {
             whereClause = `(${condition})`;
-            needsParentheses = true;
           } else {
             whereClause = condition;
           }

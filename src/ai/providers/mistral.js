@@ -100,13 +100,13 @@ export class MistralProvider extends BaseProvider {
           .sort((a, b) => {
             // Sort by preference: large > nemo > medium > mixtral > small > tiny
             const getScore = (id) => {
-              if (id.includes('large')) return 100;
-              if (id.includes('nemo')) return 95;
-              if (id.includes('medium')) return 90;
-              if (id.includes('mixtral')) return 85;
-              if (id.includes('codestral')) return 80;
-              if (id.includes('small')) return 70;
-              if (id.includes('tiny')) return 60;
+              if (id.includes('large')) {return 100;}
+              if (id.includes('nemo')) {return 95;}
+              if (id.includes('medium')) {return 90;}
+              if (id.includes('mixtral')) {return 85;}
+              if (id.includes('codestral')) {return 80;}
+              if (id.includes('small')) {return 70;}
+              if (id.includes('tiny')) {return 60;}
               return 50;
             };
             return getScore(b.id) - getScore(a.id);

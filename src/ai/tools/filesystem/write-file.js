@@ -1,6 +1,6 @@
 import { BaseTool, ToolPermissions } from '../base-tool.js';
 import { writeFile, mkdir, readFile } from 'fs/promises';
-import { join, resolve, relative, dirname } from 'path';
+import { resolve, relative, dirname } from 'path';
 import { existsSync } from 'fs';
 
 export class WriteFileTool extends BaseTool {
@@ -40,7 +40,7 @@ export class WriteFileTool extends BaseTool {
     };
   }
 
-  async execute(params, context) {
+  async execute(params, _context) {
     // Resolve path relative to working directory
     const fullPath = resolve(this.workDir, params.path);
     
@@ -62,22 +62,18 @@ export class WriteFileTool extends BaseTool {
     }
 
     // Write file
-    try {
-      if (params.mode === 'append') {
-        const existing = existsSync(fullPath) ? await readFile(fullPath, 'utf-8') : '';
-        await writeFile(fullPath, existing + params.content, params.encoding || 'utf-8');
-      } else {
-        await writeFile(fullPath, params.content, params.encoding || 'utf-8');
-      }
-      
-      return {
-        path: params.path,
-        written: params.content.length,
-        mode: params.mode || 'overwrite'
-      };
-    } catch (error) {
-      throw error;
+    if (params.mode === 'append') {
+      const existing = existsSync(fullPath) ? await readFile(fullPath, 'utf-8') : '';
+      await writeFile(fullPath, existing + params.content, params.encoding || 'utf-8');
+    } else {
+      await writeFile(fullPath, params.content, params.encoding || 'utf-8');
     }
+    
+    return {
+      path: params.path,
+      written: params.content.length,
+      mode: params.mode || 'overwrite'
+    };
   }
 
   requiresPermission(params) {

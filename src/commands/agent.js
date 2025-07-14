@@ -41,7 +41,7 @@ export function agentCommand() {
           workDir: process.cwd(),
           verbose: options.verbose,
           confirmPermission: async (tool, action, params) => {
-            if (options.yolo) return true;
+            if (options.yolo) {return true;}
             
             console.log(chalk.yellow(`\n⚠️  Permission required:`));
             console.log(chalk.yellow(`Tool: ${tool}`));
@@ -129,6 +129,7 @@ Remember: You are not just executing commands, you are helping build better prod
         let iterations = 0;
         const maxIterations = options.maxIterations || 10;
         let isComplete = false;
+        let response;
 
         while (!isComplete && iterations < maxIterations) {
           iterations++;
@@ -158,7 +159,7 @@ Remember: You are not just executing commands, you are helping build better prod
           }
 
           // Get response
-          const response = await llmManager.complete(completionParams);
+          response = await llmManager.complete(completionParams);
           
           // Display agent's message
           if (response.content) {

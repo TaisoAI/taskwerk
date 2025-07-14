@@ -95,9 +95,9 @@ export class UpdateTaskTool extends BaseTool {
 
   requiresPermission(params) {
     const actions = [];
-    if (params.name) actions.push('rename');
-    if (params.status) actions.push(`change status to ${params.status}`);
-    if (params.priority) actions.push(`change priority to ${params.priority}`);
+    if (params.name) {actions.push('rename');}
+    if (params.status) {actions.push(`change status to ${params.status}`);}
+    if (params.priority) {actions.push(`change priority to ${params.priority}`);}
     
     return `Update task ${params.id}: ${actions.join(', ')}`;
   }

@@ -36,7 +36,7 @@ export class BaseTool {
    * @param {Object} context - Execution context
    * @returns {Promise<Object>} Tool result
    */
-  async execute(params, context = {}) {
+  async execute(params, _context = {}) {
     throw new Error('execute must be implemented by subclass');
   }
 
@@ -45,7 +45,7 @@ export class BaseTool {
    * @param {Object} params - Tool parameters
    * @returns {boolean|string} false if no permission needed, or permission description
    */
-  requiresPermission(params) {
+  requiresPermission(_params) {
     return false;
   }
 

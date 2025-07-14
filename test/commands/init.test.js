@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { initCommand } from '../../src/commands/init.js';
-import { setupCommandTest, expectNotImplemented } from '../helpers/command-test-helper.js';
+import { setupCommandTest } from '../helpers/command-test-helper.js';
 
 describe('init command', () => {
   let testSetup;

@@ -15,7 +15,7 @@ export function initCommand() {
     .option('-f, --force', 'Force initialization, overwrite existing config')
     .option('--git', 'Enable git integration', true)
     .option('--no-git', 'Disable git integration')
-    .action(async (options) => {
+    .action(async (_options) => {
       const logger = new Logger('init');
       
       try {

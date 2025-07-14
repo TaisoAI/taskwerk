@@ -1,6 +1,6 @@
 import { BaseTool, ToolPermissions } from '../base-tool.js';
 import { readFile } from 'fs/promises';
-import { join, resolve, relative } from 'path';
+import { resolve, relative } from 'path';
 import { existsSync } from 'fs';
 
 export class ReadFileTool extends BaseTool {
@@ -30,7 +30,7 @@ export class ReadFileTool extends BaseTool {
     };
   }
 
-  async execute(params, context) {
+  async execute(params, _context) {
     // Resolve path relative to working directory
     const fullPath = resolve(this.workDir, params.path);
     

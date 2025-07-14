@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskShowCommand } from '../../../src/commands/task/show.js';
-import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
+import { setupCommandTest } from '../../helpers/command-test-helper.js';
 import { createTestTask } from '../../helpers/database-test-helper.js';
 
 describe('task show command', () => {
@@ -22,7 +22,7 @@ describe('task show command', () => {
 
   it('should handle showing task with valid task ID', () => {
     // Create a test task first
-    const task = createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to show' });
+    createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to show' });
     
     const command = taskShowCommand();
     command.parse(['TASK-123'], { from: 'user' });
@@ -35,7 +35,7 @@ describe('task show command', () => {
 
   it('should display task notes when present', async () => {
     // Create a test task and add notes using the database directly
-    const task = createTestTask(testSetup.dbSetup.db, { 
+    createTestTask(testSetup.dbSetup.db, { 
       id: 'TASK-456', 
       name: 'Task with notes' 
     });

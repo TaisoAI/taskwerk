@@ -90,8 +90,8 @@ export class GrokProvider extends BaseProvider {
           .sort((a, b) => {
             // Sort by preference: vision > beta > others
             const getScore = (id) => {
-              if (id.includes('vision')) return 100;
-              if (id.includes('beta')) return 90;
+              if (id.includes('vision')) {return 100;}
+              if (id.includes('beta')) {return 90;}
               return 50;
             };
             return getScore(b.id) - getScore(a.id);

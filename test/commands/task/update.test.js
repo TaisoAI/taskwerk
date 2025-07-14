@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { taskUpdateCommand } from '../../../src/commands/task/update.js';
-import { setupCommandTest, expectNotImplemented } from '../../helpers/command-test-helper.js';
+import { setupCommandTest } from '../../helpers/command-test-helper.js';
 import { createTestTask } from '../../helpers/database-test-helper.js';
 
 describe('task update command', () => {
@@ -35,7 +35,7 @@ describe('task update command', () => {
 
   it('should handle updating task with valid task ID', async () => {
     // Create a test task first
-    const task = createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to update' });
+    createTestTask(testSetup.dbSetup.db, { id: 'TASK-123', name: 'Test task to update' });
     
     const command = taskUpdateCommand();
     await command.parseAsync(['TASK-123', '--status', 'in-progress'], { from: 'user' });
@@ -48,7 +48,7 @@ describe('task update command', () => {
 
   it('should handle adding notes to a task', async () => {
     // Create a test task first
-    const task = createTestTask(testSetup.dbSetup.db, { id: 'TASK-789', name: 'Task for notes' });
+    createTestTask(testSetup.dbSetup.db, { id: 'TASK-789', name: 'Task for notes' });
     
     const command = taskUpdateCommand();
     await command.parseAsync(['TASK-789', '--note', 'This is a test note'], { from: 'user' });

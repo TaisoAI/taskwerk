@@ -159,7 +159,7 @@ export class TaskwerkAPI {
 
     // Build dynamic update query
     for (const [field, value] of Object.entries(updates)) {
-      if (field === 'id') continue; // Cannot update ID
+      if (field === 'id') {continue;} // Cannot update ID
       
       if (field === 'metadata' || field === 'context') {
         const jsonValue = typeof value === 'string' ? value : JSON.stringify(value);
@@ -290,7 +290,7 @@ export class TaskwerkAPI {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     
     // Build the SQL query
-    let sql = `
+    const sql = `
       SELECT DISTINCT tasks.* FROM tasks 
       ${joins}
       ${whereClause}

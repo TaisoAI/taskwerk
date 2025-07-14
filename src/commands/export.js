@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { TaskwerkAPI } from '../api/taskwerk-api.js';
 import { Logger } from '../logging/logger.js';
 import fs from 'fs/promises';
-import path from 'path';
 
 export function exportCommand() {
   const exp = new Command('export');
@@ -201,7 +200,7 @@ function formatAsCsv(tasks) {
 }
 
 function escapeCSV(value) {
-  if (typeof value !== 'string') return value;
+  if (typeof value !== 'string') {return value;}
   
   // If value contains comma, newline, or double quote, wrap in quotes
   if (value.includes(',') || value.includes('\n') || value.includes('"')) {

@@ -46,10 +46,10 @@ export function taskListCommand() {
         // Build query options
         const queryOptions = {};
         
-        if (options.status) queryOptions.status = options.status;
-        if (options.priority) queryOptions.priority = options.priority;
-        if (options.assignee) queryOptions.assignee = options.assignee;
-        if (options.tags) queryOptions.tags = options.tags;
+        if (options.status) {queryOptions.status = options.status;}
+        if (options.priority) {queryOptions.priority = options.priority;}
+        if (options.assignee) {queryOptions.assignee = options.assignee;}
+        if (options.tags) {queryOptions.tags = options.tags;}
         
         if (!options.all) {
           queryOptions.limit = parseInt(options.limit) || 50;
@@ -90,11 +90,11 @@ export function taskListCommand() {
         
         // Default table format
         let header = `📋 Tasks`;
-        if (options.search) header = `🔍 Search results for "${options.search}"`;
-        if (options.status) header += ` (status: ${options.status})`;
-        if (options.priority) header += ` (priority: ${options.priority})`;
-        if (options.assignee) header += ` (assignee: ${options.assignee})`;
-        if (options.tags) header += ` (tags: ${options.tags.join(', ')})`;
+        if (options.search) {header = `🔍 Search results for "${options.search}"`;}
+        if (options.status) {header += ` (status: ${options.status})`;}
+        if (options.priority) {header += ` (priority: ${options.priority})`;}
+        if (options.assignee) {header += ` (assignee: ${options.assignee})`;}
+        if (options.tags) {header += ` (tags: ${options.tags.join(', ')})`;}
         
         console.log(header);
         console.log('─'.repeat(50));

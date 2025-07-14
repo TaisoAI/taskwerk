@@ -19,7 +19,7 @@ describe('CLI Entry Point', () => {
 
       proc.on('close', code => {
         expect(code).toBe(0);
-        expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
+        expect(output.trim()).toMatch(/^\d+\.\d+\.\d+(\.\d+)?$/);
         resolve();
       });
     });
@@ -57,7 +57,7 @@ describe('CLI Entry Point', () => {
       proc.on('close', code => {
         expect(code).toBe(0);
         expect(output).toContain('taskwerk');
-        expect(output).toContain('0.6.4');
+        expect(output).toContain('0.6.5');
         resolve();
       });
     });

@@ -109,5 +109,10 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       
+      - name: Check npm authentication
+        run: |
+          npm whoami --registry https://registry.npmjs.org/
+          npm view taskwerk --registry https://registry.npmjs.org/
+      
       - name: Publish to npm
         run: npm publish --registry https://registry.npmjs.org/

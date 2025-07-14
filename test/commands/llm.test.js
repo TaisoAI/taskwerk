@@ -33,6 +33,7 @@ describe('llm command', () => {
     expect(optionNames).toContain('--context-tasks');
     expect(optionNames).toContain('--no-stream');
     expect(optionNames).toContain('--raw');
+    expect(optionNames).toContain('--verbose');
     expect(optionNames).toContain('--quiet');
   });
 

@@ -20,7 +20,8 @@ export function llmCommand() {
     .option('--context-tasks', 'Include current tasks as context')
     .option('--no-stream', 'Disable streaming output')
     .option('--raw', 'Output raw response without formatting')
-    .option('--quiet', 'Suppress all output except the response')
+    .option('--verbose', 'Show metadata (provider, model, token usage)')
+    .option('--quiet', 'Suppress all output except the response (deprecated, inverse of --verbose)')
     .action(async (promptArgs, options) => {
       const logger = new Logger('llm');
       const llmManager = new LLMManager();
@@ -75,12 +76,17 @@ export function llmCommand() {
           completionParams.model = options.model;
         }
 
-        // Show what we're doing (unless quiet)
-        if (!options.quiet) {
+        // Show what we're doing (only if verbose)
+        if (options.verbose || (!options.quiet && options.quiet !== undefined)) {
           const provider = options.provider || llmManager.getConfigSummary().current_provider;
           const model = options.model || llmManager.getConfigSummary().current_model;
-          logger.info(`Using ${provider} with model ${model}`);
+          console.error(`[${new Date().toISOString()}] [INFO] [llm] Using ${provider} with model ${model}`);
         }
+        
+        // Log the LLM request
+        const provider = options.provider || llmManager.getConfigSummary().current_provider;
+        const model = options.model || llmManager.getConfigSummary().current_model;
+        logger.info(`LLM request to ${provider}/${model}`);
 
         // Execute the completion
         const result = await llmManager.complete(completionParams);
@@ -97,8 +103,8 @@ export function llmCommand() {
           console.log();
         }
 
-        // Show usage stats if not quiet
-        if (!options.quiet && result.usage) {
+        // Show usage stats only if verbose
+        if ((options.verbose || (!options.quiet && options.quiet !== undefined)) && result.usage) {
           console.error(`\n📊 Tokens - Prompt: ${result.usage.prompt_tokens}, Response: ${result.usage.completion_tokens}`);
         }
 

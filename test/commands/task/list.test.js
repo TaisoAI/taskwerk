@@ -6,7 +6,7 @@ describe('task list command', () => {
   let testSetup;
 
   beforeEach(() => {
-    testSetup = setupCommandTest();
+    testSetup = setupCommandTest(true); // Need database for list command
   });
 
   afterEach(() => {

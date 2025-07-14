@@ -33,6 +33,7 @@ export function askCommand() {
         const toolExecutor = new ToolExecutor({
           mode: 'ask',
           workDir: process.cwd(),
+          verbose: options.verbose,
           confirmPermission: async (tool, action, params) => {
             // In ask mode, we don't need permissions for read-only operations
             return true;
@@ -58,10 +59,32 @@ export function askCommand() {
         const messages = [
           {
             role: 'system',
-            content: `You are a helpful AI assistant for Taskwerk, a task management system.
-You have access to tools to read files and query tasks. You cannot modify anything.
+            content: `You are an AI assistant for Taskwerk (twrk), a powerful command-line task management and productivity system.
+
+Your role is to help users with:
+- Task management and planning
+- Project organization 
+- Workflow optimization
+- Understanding their current tasks and priorities
+- Suggesting taskwerk commands and features
+- Analyzing task data and progress
+
+You have read-only access to:
+- Files in the current directory
+- Current tasks and their status
+- Task history and metadata
+
+Key principles:
+1. Always think in terms of tasks, projects, and productivity
+2. Suggest relevant taskwerk commands when appropriate
+3. Help break down complex goals into manageable tasks
+4. Focus on actionable insights and recommendations
+5. When answering general questions, try to relate them back to task management or productivity
+
 Current working directory: ${process.cwd()}
-${context ? `\nContext:\n${context}` : ''}`
+${context ? `\nContext:\n${context}` : ''}
+
+Remember: You can read and analyze, but cannot modify files or tasks. For modifications, suggest the user use 'taskwerk agent' instead.`
           },
           {
             role: 'user',
@@ -74,7 +97,8 @@ ${context ? `\nContext:\n${context}` : ''}`
           messages,
           temperature: 0.7,
           maxTokens: 8192,
-          tools: options.tools !== false ? toolExecutor.getToolSpecs() : undefined
+          tools: options.tools !== false ? toolExecutor.getToolSpecs() : undefined,
+          verbose: options.verbose
         };
 
         // Add provider/model overrides
@@ -85,12 +109,23 @@ ${context ? `\nContext:\n${context}` : ''}`
           completionParams.model = options.model;
         }
 
-        if (options.verbose) {
+        // Show thinking indicator for longer operations (only if stderr is a TTY)
+        let thinkingTimer;
+        if (process.stderr.isTTY && !options.verbose) {
+          thinkingTimer = setTimeout(() => {
+            process.stderr.write('🤔 Working on it...\n');
+          }, 2000); // Show after 2 seconds
+        } else if (options.verbose) {
           console.error(chalk.gray('🤔 Thinking...'));
         }
 
         // Execute completion
         const response = await llmManager.complete(completionParams);
+        
+        // Clear thinking timer
+        if (thinkingTimer) {
+          clearTimeout(thinkingTimer);
+        }
         
         // Handle tool calls if present
         if (response.tool_calls && response.tool_calls.length > 0) {
@@ -98,7 +133,7 @@ ${context ? `\nContext:\n${context}` : ''}`
             console.error(chalk.gray(`\n🔧 Using ${response.tool_calls.length} tools...`));
           }
 
-          const toolResults = await toolExecutor.executeTools(response.tool_calls);
+          const toolResults = await toolExecutor.executeTools(response.tool_calls, { verbose: options.verbose });
           
           // Add tool results to messages
           messages.push({
@@ -122,10 +157,11 @@ ${context ? `\nContext:\n${context}` : ''}`
             tools: undefined // No more tools for final response
           });
 
-          console.log(finalResponse.content);
+          process.stdout.write(finalResponse.content);
         } else {
           // No tool calls, just display response
-          console.log(response.content);
+          // Output just the response content
+          process.stdout.write(response.content);
         }
 
         if (options.verbose && response.usage) {

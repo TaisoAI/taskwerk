@@ -65,6 +65,7 @@ export function llmCommand() {
           temperature: options.temperature,
           maxTokens: options.maxTokens || 8192,  // Default to 8192 tokens
           stream: options.stream,
+          verbose: options.verbose,
           onChunk: options.stream ? (chunk) => {
             if (!firstTokenTime) {
               firstTokenTime = Date.now();
@@ -92,10 +93,12 @@ export function llmCommand() {
           console.error(`Max tokens: ${options.maxTokens || 8192}`);
         }
         
-        // Log the LLM request
-        const provider = options.provider || llmManager.getConfigSummary().current_provider;
-        const model = options.model || llmManager.getConfigSummary().current_model;
-        logger.info(`LLM request to ${provider}/${model}`);
+        // Log the LLM request only in verbose mode
+        if (options.verbose) {
+          const provider = options.provider || llmManager.getConfigSummary().current_provider;
+          const model = options.model || llmManager.getConfigSummary().current_model;
+          logger.info(`LLM request to ${provider}/${model}`);
+        }
 
         // Execute the completion
         const result = await llmManager.complete(completionParams);

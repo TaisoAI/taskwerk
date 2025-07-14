@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { LLMManager } from '../ai/llm-manager.js';
+import { ToolExecutor } from '../ai/tool-executor.js';
 import { Logger } from '../logging/logger.js';
 import inquirer from 'inquirer';
 
@@ -16,6 +17,7 @@ export function aiconfigCommand() {
     .option('--model <name>', 'Set the current model (non-interactive)')
     .option('--test', 'Test connection to configured providers')
     .option('--show', 'Show current AI configuration')
+    .option('--list-tools', 'List available AI tools')
     .action(async (options) => {
       const logger = new Logger('aiconfig');
       const llmManager = new LLMManager();
@@ -40,6 +42,8 @@ export function aiconfigCommand() {
           await testProviders(llmManager);
         } else if (options.set) {
           await setConfig(llmManager, options.set);
+        } else if (options.listTools) {
+          await listTools();
         } else if (options.show) {
           await showConfig(llmManager);
         } else {
@@ -325,4 +329,55 @@ async function showConfig(llmManager) {
   console.log('  Configure provider:  taskwerk aiconfig --set <provider>.api_key=<key>');
   console.log('  Choose model:        taskwerk aiconfig --choose');
   console.log('  Test connections:    taskwerk aiconfig --test');
+}
+
+async function listTools() {
+  console.log('🔧 Available AI Tools');
+  console.log('─'.repeat(50));
+  
+  // Create tool executor instances for each mode to see what tools are available
+  const modes = ['ask', 'agent'];
+  
+  for (const mode of modes) {
+    const toolExecutor = new ToolExecutor({ mode, workDir: process.cwd() });
+    const allTools = toolExecutor.registry.getAll();
+    
+    console.log(`\n📋 ${mode.toUpperCase()} mode tools:`);
+    
+    for (const [name, tool] of allTools) {
+      const hasPermission = mode === 'ask' ? 
+        !tool.permissions || tool.permissions.every(p => ['read_files', 'modify_tasks'].includes(p)) :
+        true;
+      
+      if (hasPermission) {
+        console.log(`  ${name}:`);
+        console.log(`    ${tool.description}`);
+        if (tool.permissions && tool.permissions.length > 0) {
+          console.log(`    Permissions: ${tool.permissions.join(', ')}`);
+        }
+      }
+    }
+  }
+  
+  console.log('\n📂 Tool Categories:');
+  console.log('  filesystem/  - File system operations (read, write, list)');
+  console.log('  taskwerk/    - Task management operations (add, update, list)');
+  console.log('  mcp/         - MCP server tools (when available)');
+  console.log('  web/         - Web tools like search (future)');
+  
+  console.log('\n💡 To add new tools:');
+  console.log('  1. Create a new tool class extending BaseTool in src/ai/tools/<category>/<tool-name>.js');
+  console.log('  2. Register it in src/ai/tool-executor.js initializeTools() method');
+  console.log('  3. Define required permissions in the tool class');
+  console.log('\n  Example tool structure:');
+  console.log('    export class MyTool extends BaseTool {');
+  console.log('      constructor(config) {');
+  console.log('        super(config);');
+  console.log('        this.name = "my_tool";');
+  console.log('        this.description = "Does something useful";');
+  console.log('        this.permissions = ["read_files"]; // Optional');
+  console.log('      }');
+  console.log('      getParameters() { /* JSON Schema */ }');
+  console.log('      async execute(params, context) { /* Implementation */ }');
+  console.log('    }');
 }

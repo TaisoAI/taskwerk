@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { createRequire } from 'module';
 import { aboutCommand } from '../commands/about.js';
 import { taskCommand } from '../commands/task/index.js';
 import { initCommand } from '../commands/init.js';
@@ -14,8 +13,12 @@ import { askCommand } from '../commands/ask.js';
 import { agentCommand } from '../commands/agent.js';
 import { ErrorHandler } from '../errors/index.js';
 
-const require = createRequire(import.meta.url);
-const packageJson = require('../../package.json');
+// These constants are injected during build via global variables
+const packageJson = {
+  version: global.__PACKAGE_VERSION__ || '0.6.5.1',
+  description: global.__PACKAGE_DESCRIPTION__ || 'A task management CLI for developers and AI agents working together',
+  name: global.__PACKAGE_NAME__ || 'taskwerk'
+};
 
 const program = new Command();
 

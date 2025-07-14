@@ -19,7 +19,8 @@ export class ToolRegistry {
       this.logger.warn(`Tool ${name} already registered, overwriting`);
     }
     this.tools.set(name, tool);
-    this.logger.info(`Registered tool: ${name}`);
+    // Only log registration in debug mode
+    this.logger.debug(`Registered tool: ${name}`);
   }
 
   /**

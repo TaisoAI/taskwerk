@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, readFileSync, writeFileSync } from 'fs';
+import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { ConfigManager, getConfigManager, resetConfigManager } from '../../src/config/config-manager.js';
@@ -43,9 +43,8 @@ describe('ConfigManager', () => {
       expect(config.general.defaultPriority).toBe('medium');
       expect(config.database.backupEnabled).toBe(true);
       
-      // Should save the default config
-      const savedContent = readFileSync(configPath, 'utf8');
-      expect(savedContent).toContain('defaultPriority: medium');
+      // Should NOT automatically save the default config
+      expect(existsSync(configPath)).toBe(false);
     });
 
     it('should load existing YAML config', () => {

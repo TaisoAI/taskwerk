@@ -19,6 +19,7 @@ export class ToolExecutor {
     this.workDir = config.workDir || process.cwd();
     this.mode = config.mode || 'ask'; // 'ask', 'agent', or 'yolo'
     this.confirmPermission = config.confirmPermission;
+    this.verbose = config.verbose || false;
     
     // Initialize tools
     this.initializeTools();
@@ -41,7 +42,10 @@ export class ToolExecutor {
       this.registry.register('write_file', new WriteFileTool(toolConfig));
     }
     
-    this.logger.info(`Initialized ${this.registry.getAll().size} tools for ${this.mode} mode`);
+    // Only log in verbose mode
+    if (this.verbose) {
+      this.logger.info(`Initialized ${this.registry.getAll().size} tools for ${this.mode} mode`);
+    }
   }
 
   /**
@@ -57,26 +61,30 @@ export class ToolExecutor {
   /**
    * Execute tool calls from LLM response
    * @param {Object[]} toolCalls - Tool calls from LLM
+   * @param {Object} context - Execution context
    * @returns {Promise<Object[]>} Tool results
    */
-  async executeTools(toolCalls) {
+  async executeTools(toolCalls, context = {}) {
     const results = [];
     
     for (const toolCall of toolCalls) {
       const { id, function: func } = toolCall;
       const { name, arguments: args } = func;
       
-      this.logger.info(`Executing tool: ${name}`);
+      if (context.verbose) {
+        this.logger.info(`Executing tool: ${name}`);
+      }
       
       try {
         const params = typeof args === 'string' ? JSON.parse(args) : args;
-        const context = {
+        const executionContext = {
           mode: this.mode,
           confirmPermission: this.confirmPermission,
-          workDir: this.workDir
+          workDir: this.workDir,
+          verbose: context.verbose
         };
         
-        const result = await this.registry.execute(name, params, context);
+        const result = await this.registry.execute(name, params, executionContext);
         
         results.push({
           tool_call_id: id,

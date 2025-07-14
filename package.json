@@ -29,7 +29,8 @@
     "format:check": "prettier --check src/ test/",
     "dev": "node src/cli/index.js",
     "prebuild": "node scripts/update-version.js",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "build:exe": "node scripts/build-executables.js"
   },
   "keywords": [
     "task",

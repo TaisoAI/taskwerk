@@ -158,7 +158,7 @@ export class LLMManager {
    * @returns {Promise<{content: string, usage?: Object}>}
    */
   async complete(params) {
-    const { provider: providerName, model, ...completionParams } = params;
+    const { provider: providerName, model, verbose, ...completionParams } = params;
 
     // Get provider (use current if not specified)
     const provider = providerName 
@@ -168,8 +168,10 @@ export class LLMManager {
     // Get model (use current if not specified)
     const modelToUse = model || this.getCurrentModel();
 
-    // Log the request
-    this.logger.info(`Completing with ${provider.name} using model ${modelToUse}`);
+    // Log the request only in verbose mode
+    if (verbose) {
+      this.logger.info(`Completing with ${provider.name} using model ${modelToUse}`);
+    }
 
     try {
       const result = await provider.complete({
@@ -177,8 +179,8 @@ export class LLMManager {
         ...completionParams
       });
 
-      // Log usage if available
-      if (result.usage) {
+      // Log usage if available and in verbose mode
+      if (verbose && result.usage) {
         this.logger.info(`Token usage - Prompt: ${result.usage.prompt_tokens}, Completion: ${result.usage.completion_tokens}`);
       }
 

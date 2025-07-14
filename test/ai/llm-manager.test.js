@@ -122,7 +122,7 @@ describe('LLMManager', () => {
       
       expect(summary.current_provider).toBe('anthropic');
       expect(summary.current_model).toBe('claude-3-opus-20240229');
-      expect(summary.providers).toHaveLength(3);
+      expect(summary.providers).toHaveLength(6); // anthropic, openai, grok, mistral, ollama, lmstudio
       
       const anthropicProvider = summary.providers.find(p => p.name === 'anthropic');
       expect(anthropicProvider.configured).toBe(true);

@@ -26,15 +26,27 @@ describe('CLI Entry Point', () => {
   });
 
   it('should display help when --help flag is used', () => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const proc = spawn('node', [cliPath, '--help']);
       let output = '';
+      let errorOutput = '';
 
       proc.stdout.on('data', data => {
         output += data.toString();
       });
 
+      proc.stderr.on('data', data => {
+        errorOutput += data.toString();
+      });
+
+      proc.on('error', (error) => {
+        reject(error);
+      });
+
       proc.on('close', code => {
+        if (errorOutput) {
+          console.error('CLI stderr:', errorOutput);
+        }
         expect(code).toBe(0);
         expect(output).toContain('Usage: taskwerk');
         expect(output).toContain('A task management CLI');
@@ -42,8 +54,14 @@ describe('CLI Entry Point', () => {
         expect(output).toContain('about');
         resolve();
       });
+
+      // Add explicit timeout
+      setTimeout(() => {
+        proc.kill();
+        reject(new Error('Test timed out'));
+      }, 4500);
     });
-  });
+  }, 10000); // Increase test timeout
 
   it('should execute about command', () => {
     return new Promise((resolve) => {

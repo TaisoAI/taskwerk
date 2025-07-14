@@ -39,6 +39,7 @@ export function agentCommand() {
         const toolExecutor = new ToolExecutor({
           mode: options.yolo ? 'yolo' : 'agent',
           workDir: process.cwd(),
+          verbose: options.verbose,
           confirmPermission: async (tool, action, params) => {
             if (options.yolo) return true;
             
@@ -79,20 +80,44 @@ export function agentCommand() {
         const messages = [
           {
             role: 'system',
-            content: `You are an AI agent for Taskwerk with the ability to:
+            content: `You are an AI agent for Taskwerk (twrk), a powerful command-line task management and productivity system. You are the active, hands-on assistant that can make changes and execute tasks.
+
+Your capabilities:
 - Read and write files in the working directory
-- Create, update, and list tasks
-- Execute multiple steps to complete complex instructions
+- Create, update, delete, and manage tasks
+- Analyze project structures and workflows
+- Execute multi-step plans to complete complex objectives
+- Implement productivity systems and organize work
+
+Your mission:
+- Help users achieve their goals through better task management
+- Implement productivity workflows and systems
+- Organize and structure projects effectively
+- Automate repetitive task management operations
+- Provide actionable, results-oriented assistance
+
+Core principles:
+1. Think like a productivity expert and project manager
+2. Break complex goals into clear, actionable tasks
+3. Always consider the broader project context and workflow
+4. Use taskwerk's full capabilities (tags, priorities, notes, dependencies)
+5. Create sustainable, maintainable task structures
+6. Verify your work and provide clear status updates
+7. Be proactive in suggesting improvements to workflow and organization
 
 Current working directory: ${process.cwd()}
 ${context ? `\nContext:\n${context}` : ''}
 
-Guidelines:
-1. Break down complex tasks into steps
-2. Use tools to gather information and make changes
-3. Verify your work by reading files or listing tasks after modifications
-4. Be careful with file operations - always check before overwriting
-5. Provide clear status updates on what you're doing`
+Guidelines for execution:
+- Always read and understand the current state before making changes
+- Create meaningful task names with clear, actionable descriptions
+- Use appropriate tags, priorities, and notes for organization
+- Consider dependencies and logical task ordering
+- After making changes, verify results and suggest next steps
+- Be careful with file operations - check before overwriting
+- Think systematically about task organization and project structure
+
+Remember: You are not just executing commands, you are helping build better productivity systems and workflows.`
           },
           {
             role: 'user',
@@ -110,6 +135,9 @@ Guidelines:
           
           if (options.verbose) {
             console.error(chalk.gray(`\n🤖 Agent iteration ${iterations}/${maxIterations}...`));
+          } else if (process.stderr.isTTY && iterations === 1) {
+            // Only show on first iteration for non-verbose mode
+            process.stderr.write('🤖 Working on it...\n');
           }
 
           // Prepare completion parameters
@@ -117,7 +145,8 @@ Guidelines:
             messages,
             temperature: 0.7,
             maxTokens: 8192,
-            tools: toolExecutor.getToolSpecs()
+            tools: toolExecutor.getToolSpecs(),
+            verbose: options.verbose
           };
 
           // Add provider/model overrides
@@ -133,7 +162,15 @@ Guidelines:
           
           // Display agent's message
           if (response.content) {
-            console.log(chalk.cyan('\n🤖 Agent:'), response.content);
+            if (options.verbose) {
+              console.log(chalk.cyan('\n🤖 Agent:'), response.content);
+            } else {
+              // In non-verbose mode, just output the content cleanly
+              process.stdout.write(response.content);
+              if (!response.content.endsWith('\n')) {
+                process.stdout.write('\n');
+              }
+            }
           }
 
           // Add assistant message to history
@@ -149,7 +186,7 @@ Guidelines:
               console.error(chalk.gray(`\n🔧 Executing ${response.tool_calls.length} tools...`));
             }
 
-            const toolResults = await toolExecutor.executeTools(response.tool_calls);
+            const toolResults = await toolExecutor.executeTools(response.tool_calls, { verbose: options.verbose });
             
             // Add tool results to messages
             for (const result of toolResults) {

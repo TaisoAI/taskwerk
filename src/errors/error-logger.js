@@ -71,7 +71,11 @@ export class ErrorLogger {
 
   getTaskwerkVersion() {
     try {
-      // Try to read version from package.json
+      // Use injected version if available, otherwise try reading package.json
+      if (global.__PACKAGE_VERSION__) {
+        return global.__PACKAGE_VERSION__;
+      }
+      
       const packagePath = join(
         dirname(import.meta.url).replace('file://', ''),
         '../../../package.json'

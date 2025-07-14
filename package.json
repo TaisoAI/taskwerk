@@ -18,7 +18,8 @@
   },
   "scripts": {
     "start": "node src/cli/index.js",
-    "test": "vitest run test/ --pool=forks --poolOptions.forks.singleFork=true",
+    "test": "npm run lint && vitest run test/ --pool=forks --poolOptions.forks.singleFork=true",
+    "test:ci": "npm run lint && npm run format:check && npm run test:coverage",
     "test:coverage": "vitest run test/ --coverage --pool=forks --poolOptions.forks.singleFork=true",
     "test:watch": "vitest test/",
     "test:vitest": "vitest run test/",

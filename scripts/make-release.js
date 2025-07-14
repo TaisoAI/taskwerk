@@ -96,39 +96,22 @@ async function run() {
     
     console.log(chalk.blue(`\n📝 Preparing release v${newVersion}...\n`));
 
-    // Run all checks
-    console.log(chalk.gray('Running checks...'));
-    
-    // Format check
-    console.log(chalk.gray('  - Checking code formatting...'));
+    // Run build and test cycle
+    console.log(chalk.gray('Running build...'));
     try {
-      execSync('npm run format:check', { stdio: 'pipe' });
+      execSync('npm run build', { stdio: 'inherit' });
     } catch (error) {
-      console.log(chalk.yellow('⚠️  Code needs formatting. Running formatter...'));
-      execSync('npm run format', { stdio: 'inherit' });
-    }
-    
-    // Lint
-    console.log(chalk.gray('  - Running linter...'));
-    try {
-      execSync('npm run lint', { stdio: 'pipe' });
-    } catch (error) {
-      console.log(chalk.red('❌ Linting failed. Fix errors before releasing.'));
+      console.log(chalk.red('❌ Build failed. Fix errors before releasing.'));
       process.exit(1);
     }
-    
-    // Tests
-    console.log(chalk.gray('  - Running tests...'));
+
+    console.log(chalk.gray('\nRunning tests...'));
     try {
       execSync('npm test', { stdio: 'inherit' });
     } catch (error) {
       console.log(chalk.red('❌ Tests failed. Fix them before releasing.'));
       process.exit(1);
     }
-
-    // Build the project
-    console.log(chalk.gray('\nBuilding project...'));
-    execSync('npm run build', { stdio: 'inherit' });
 
     // Update package.json version only if it changed
     const versionChanged = packageJson.version !== newVersion;

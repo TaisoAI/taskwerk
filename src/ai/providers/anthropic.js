@@ -62,9 +62,22 @@ export class AnthropicProvider extends BaseProvider {
     return this.models;
   }
 
-  async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk }) {
+  async complete({ model, messages, temperature = 0.7, maxTokens = 8192, stream = false, onChunk, tools }) {
     if (!this.isConfigured()) {
       throw new Error('Anthropic provider not configured');
+    }
+
+    const body = {
+      model,
+      messages: this.formatMessages(messages),
+      temperature,
+      max_tokens: maxTokens,
+      stream
+    };
+
+    // Add tools if provided
+    if (tools && tools.length > 0) {
+      body.tools = tools;
     }
 
     const response = await fetch(`${this.baseUrl}/messages`, {
@@ -74,13 +87,7 @@ export class AnthropicProvider extends BaseProvider {
         'x-api-key': this.config.api_key,
         'content-type': 'application/json'
       },
-      body: JSON.stringify({
-        model,
-        messages: this.formatMessages(messages),
-        temperature,
-        max_tokens: maxTokens,
-        stream
-      })
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
@@ -93,13 +100,34 @@ export class AnthropicProvider extends BaseProvider {
     }
 
     const data = await response.json();
-    return {
-      content: data.content[0].text,
+    
+    // Handle tool use
+    const result = {
+      content: '',
+      tool_calls: [],
       usage: {
         prompt_tokens: data.usage.input_tokens,
         completion_tokens: data.usage.output_tokens
       }
     };
+    
+    // Process content blocks
+    for (const block of data.content) {
+      if (block.type === 'text') {
+        result.content += block.text;
+      } else if (block.type === 'tool_use') {
+        result.tool_calls.push({
+          id: block.id,
+          type: 'function',
+          function: {
+            name: block.name,
+            arguments: JSON.stringify(block.input)
+          }
+        });
+      }
+    }
+    
+    return result;
   }
 
   formatMessages(messages) {
@@ -115,11 +143,49 @@ export class AnthropicProvider extends BaseProvider {
           content: `System: ${msg.content}`
         });
         lastRole = 'user';
-      } else if (msg.role === lastRole) {
-        // Combine consecutive messages from same role
-        formatted[formatted.length - 1].content += `\n\n${msg.content}`;
+      } else if (msg.role === 'tool') {
+        // Format tool results
+        formatted.push({
+          role: 'user',
+          content: [{
+            type: 'tool_result',
+            tool_use_id: msg.tool_call_id,
+            content: msg.content
+          }]
+        });
+        lastRole = 'user';
+      } else if (msg.role === 'assistant' && msg.tool_calls) {
+        // Format assistant message with tool calls
+        const content = [];
+        if (msg.content) {
+          content.push({ type: 'text', text: msg.content });
+        }
+        for (const toolCall of msg.tool_calls) {
+          content.push({
+            type: 'tool_use',
+            id: toolCall.id,
+            name: toolCall.function.name,
+            input: JSON.parse(toolCall.function.arguments)
+          });
+        }
+        formatted.push({
+          role: 'assistant',
+          content
+        });
+        lastRole = 'assistant';
+      } else if (msg.role === lastRole && msg.role !== 'assistant') {
+        // Combine consecutive messages from same role (except assistant)
+        const last = formatted[formatted.length - 1];
+        if (typeof last.content === 'string') {
+          last.content += `\n\n${msg.content}`;
+        } else {
+          last.content.push({ type: 'text', text: msg.content });
+        }
       } else {
-        formatted.push(msg);
+        formatted.push({
+          role: msg.role,
+          content: msg.content
+        });
         lastRole = msg.role;
       }
     }

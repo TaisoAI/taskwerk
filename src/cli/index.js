@@ -10,6 +10,8 @@ import { importCommand } from '../commands/import.js';
 import { gitCommand } from '../commands/git/index.js';
 import { aiconfigCommand } from '../commands/aiconfig.js';
 import { llmCommand } from '../commands/llm.js';
+import { askCommand } from '../commands/ask.js';
+import { agentCommand } from '../commands/agent.js';
 import { ErrorHandler } from '../errors/index.js';
 
 const require = createRequire(import.meta.url);
@@ -45,5 +47,7 @@ program.addCommand(importCommand());
 program.addCommand(gitCommand());
 program.addCommand(aiconfigCommand());
 program.addCommand(llmCommand());
+program.addCommand(askCommand());
+program.addCommand(agentCommand());
 
 program.parse(process.argv);

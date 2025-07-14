@@ -40,8 +40,8 @@ jobs:
         env:
           CI: true
       
-      - name: Build all targets
-        run: npm run build:all
+      - name: Build project
+        run: npm run build
       
       - name: Determine version
         id: version

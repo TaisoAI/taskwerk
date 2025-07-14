@@ -19,12 +19,12 @@ export function llmCommand() {
     .option('--max-tokens <num>', 'Override max tokens (default: 8192)', parseInt)
     .option('--context-tasks', 'Include current tasks as context')
     .option('--no-stream', 'Disable streaming output')
-    .option('--raw', 'Output raw response without formatting')
-    .option('--verbose', 'Show metadata (provider, model, token usage)')
-    .option('--quiet', 'Suppress all output except the response (deprecated, inverse of --verbose)')
+    .option('--verbose', 'Show metadata (provider, model, timing, token usage)')
     .action(async (promptArgs, options) => {
       const logger = new Logger('llm');
       const llmManager = new LLMManager();
+      const startTime = Date.now();
+      let firstTokenTime = null;
 
       try {
         // Get the prompt from various sources
@@ -65,7 +65,12 @@ export function llmCommand() {
           temperature: options.temperature,
           maxTokens: options.maxTokens || 8192,  // Default to 8192 tokens
           stream: options.stream,
-          onChunk: options.stream ? (chunk) => process.stdout.write(chunk) : undefined
+          onChunk: options.stream ? (chunk) => {
+            if (!firstTokenTime) {
+              firstTokenTime = Date.now();
+            }
+            process.stdout.write(chunk);
+          } : undefined
         };
 
         // Add provider/model overrides if specified
@@ -77,10 +82,14 @@ export function llmCommand() {
         }
 
         // Show what we're doing (only if verbose)
-        if (options.verbose || (!options.quiet && options.quiet !== undefined)) {
+        if (options.verbose) {
           const provider = options.provider || llmManager.getConfigSummary().current_provider;
           const model = options.model || llmManager.getConfigSummary().current_model;
           console.error(`[${new Date().toISOString()}] [INFO] [llm] Using ${provider} with model ${model}`);
+          if (options.temperature !== undefined) {
+            console.error(`Temperature: ${options.temperature}`);
+          }
+          console.error(`Max tokens: ${options.maxTokens || 8192}`);
         }
         
         // Log the LLM request
@@ -91,21 +100,35 @@ export function llmCommand() {
         // Execute the completion
         const result = await llmManager.complete(completionParams);
 
-        // Handle output
+        // Handle output - always raw
         if (!options.stream) {
-          if (options.raw) {
-            process.stdout.write(result.content);
-          } else {
-            console.log(result.content);
-          }
-        } else if (options.stream && !options.raw) {
-          // Add newline after streaming if not raw
-          console.log();
+          process.stdout.write(result.content);
         }
 
         // Show usage stats only if verbose
-        if ((options.verbose || (!options.quiet && options.quiet !== undefined)) && result.usage) {
-          console.error(`\n📊 Tokens - Prompt: ${result.usage.prompt_tokens}, Response: ${result.usage.completion_tokens}`);
+        if (options.verbose) {
+          const endTime = Date.now();
+          const totalTime = endTime - startTime;
+          
+          console.error('\n--- Performance Metrics ---');
+          console.error(`Total time: ${totalTime}ms`);
+          
+          if (firstTokenTime) {
+            const timeToFirstToken = firstTokenTime - startTime;
+            console.error(`Time to first token: ${timeToFirstToken}ms`);
+          }
+          
+          if (result.usage) {
+            console.error(`\n📊 Token Usage:`);
+            console.error(`  Prompt tokens: ${result.usage.prompt_tokens}`);
+            console.error(`  Response tokens: ${result.usage.completion_tokens}`);
+            console.error(`  Total tokens: ${result.usage.prompt_tokens + result.usage.completion_tokens}`);
+            
+            const totalTokens = result.usage.completion_tokens;
+            const generationTime = firstTokenTime ? (endTime - firstTokenTime) : totalTime;
+            const tokensPerSecond = (totalTokens / (generationTime / 1000)).toFixed(2);
+            console.error(`  Tokens/second: ${tokensPerSecond}`);
+          }
         }
 
       } catch (error) {

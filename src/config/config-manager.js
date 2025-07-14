@@ -29,7 +29,7 @@ export class ConfigManager {
       if (!existsSync(this.configPath)) {
         // Create default config if it doesn't exist
         this.config = getDefaultConfig();
-        this.save();
+        // Don't automatically save - let the user configure it first
         return this.config;
       }
 

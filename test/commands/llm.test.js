@@ -32,9 +32,7 @@ describe('llm command', () => {
     expect(optionNames).toContain('--max-tokens');
     expect(optionNames).toContain('--context-tasks');
     expect(optionNames).toContain('--no-stream');
-    expect(optionNames).toContain('--raw');
     expect(optionNames).toContain('--verbose');
-    expect(optionNames).toContain('--quiet');
   });
 
   it('should handle missing prompt', async () => {

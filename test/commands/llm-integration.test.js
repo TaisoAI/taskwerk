@@ -55,7 +55,7 @@ describe('llm command integration', () => {
   it('should accept piped input', () => {
     return new Promise((resolve) => {
       const echo = spawn('echo', ['Hello from pipe']);
-      const llm = spawn('node', [cliPath, 'llm', '--quiet']);
+      const llm = spawn('node', [cliPath, 'llm']);
       
       // Pipe echo output to llm input
       echo.stdout.pipe(llm.stdin);

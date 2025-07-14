@@ -30,7 +30,9 @@
     "dev": "node src/cli/index.js",
     "prebuild": "node scripts/update-version.js",
     "build": "node scripts/build.js",
-    "build:exe": "node scripts/build-executables.js"
+    "build:exe": "node scripts/build-executables.js",
+    "make-release": "node scripts/make-release.js",
+    "make-release-dry-run": "echo 'Dry run for release process - checks tests and build'"
   },
   "keywords": [
     "task",

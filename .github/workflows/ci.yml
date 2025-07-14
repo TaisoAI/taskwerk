@@ -112,7 +112,13 @@ jobs:
             exit 1
           fi
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          echo "Token length: ${#NPM_TOKEN}"
+          echo "npmrc file created successfully"
+          # Check if the token starts with npm_ (without revealing it)
+          if [[ "${{ secrets.NPM_TOKEN }}" == npm_* ]]; then
+            echo "Token format looks correct (starts with npm_)"
+          else
+            echo "WARNING: Token doesn't start with npm_"
+          fi
       
       - name: Check npm authentication
         run: |

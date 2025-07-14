@@ -21,10 +21,10 @@ Taskwerk is a command-line task manager that integrates with AI models (Claude, 
 ### Features
 
 - **Task Management**: Create, update, list, and track tasks with priority, status, and tags
+- **Task Organization**: Split tasks into subtasks and manage dependencies
 - **AI Integration**: Ask questions about your tasks or let AI agents help complete them
 - **Local Storage**: SQLite database keeps your data on your machine
 - **Markdown Support**: Import and export tasks as markdown for sharing or backup
-- **Git Integration**: Branch-aware task tracking
 
 ## 🎯 Quick Start
 

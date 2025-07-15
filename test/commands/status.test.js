@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { statusCommand } from '../../src/commands/status.js';
 import { setupCommandTest } from '../helpers/command-test-helper.js';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
+import { join } from 'path';
+import { TaskwerkDatabase } from '../../src/db/database.js';
+import { applySchema } from '../../src/db/schema.js';
 
 describe('status command', () => {
   let testSetup;
@@ -9,11 +12,22 @@ describe('status command', () => {
   beforeEach(() => {
     testSetup = setupCommandTest(true); // Enable database
 
-    // Create .taskwerk directory in current directory for the test
+    // Create .taskwerk directory and database file in current directory for the test
     const taskwerkDir = '.taskwerk';
     if (!existsSync(taskwerkDir)) {
       mkdirSync(taskwerkDir, { recursive: true });
     }
+
+    // Create the database file that the status command expects
+    const dbPath = join(taskwerkDir, 'taskwerk.db');
+    const db = new TaskwerkDatabase(dbPath);
+    const connection = db.connect();
+    applySchema(connection);
+    db.close();
+
+    // Create a minimal config file
+    const configPath = join(taskwerkDir, 'config.yml');
+    writeFileSync(configPath, 'general:\n  version: 1.0.0\n');
   });
 
   afterEach(() => {
@@ -22,8 +36,7 @@ describe('status command', () => {
     // Clean up test directory
     const taskwerkDir = '.taskwerk';
     if (existsSync(taskwerkDir)) {
-      // Note: In a real test, you'd want to recursively delete this
-      // For now, we'll leave it for the test runner to clean up
+      rmSync(taskwerkDir, { recursive: true, force: true });
     }
   });
 

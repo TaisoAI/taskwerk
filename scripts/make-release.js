@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
+import { version as currentVersion } from '../src/version.js';
 
 const packageJsonPath = join(process.cwd(), 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
@@ -12,7 +13,7 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 console.log(chalk.bold.blue(`\n🚀 Taskwerk Release Script\n`));
 
 async function getVersion() {
-  const currentVersion = packageJson.version;
+  // Use version from version.js as the source of truth
   
   const { versionType } = await inquirer.prompt([
     {
@@ -203,7 +204,8 @@ async function run() {
     writeFileSync(releaseNotesFile, releaseNotes);
 
     try {
-      execSync(`gh release create ${tagName} --title "TaskWerk ${newVersion}" --notes-file ${releaseNotesFile} dist/taskwerk.js`, { stdio: 'inherit' });
+      // Use version from version.js to ensure consistency
+      execSync(`gh release create ${tagName} --title "taskwerk ${currentVersion}" --notes-file ${releaseNotesFile} dist/taskwerk.js`, { stdio: 'inherit' });
       console.log(chalk.green(`\n✅ GitHub release created: https://github.com/taisoai/taskwerk/releases/tag/${tagName}`));
     } catch (error) {
       console.log(chalk.yellow('\n⚠️  Failed to create GitHub release. You can create it manually.'));

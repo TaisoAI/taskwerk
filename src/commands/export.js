@@ -15,7 +15,9 @@ export function exportCommand() {
     .option('--all', 'Include completed and cancelled tasks')
     .option('--with-metadata', 'Include YAML frontmatter metadata (markdown only)')
     .option('--stdout', 'Output to stdout instead of file')
-    .addHelpText('after', `
+    .addHelpText(
+      'after',
+      `
 Examples:
   $ twrk export                            # Export to tasks-export-YYYY-MM-DD.md
   $ twrk export -o tasks.md                # Export to specific file
@@ -24,7 +26,8 @@ Examples:
   $ twrk export -s todo                    # Export only todo tasks to file
   $ twrk export -a @ai-agent               # Export AI agent tasks to file
   $ twrk export --with-metadata            # Include YAML frontmatter
-  $ twrk export -f csv                     # Export as CSV for spreadsheets`)
+  $ twrk export -f csv                     # Export as CSV for spreadsheets`
+    )
     .action(async options => {
       const logger = new Logger('export');
 
@@ -79,10 +82,11 @@ Examples:
           if (!filename) {
             // Generate filename based on date and format
             const date = new Date().toISOString().split('T')[0];
-            const extension = options.format === 'json' ? 'json' : options.format === 'csv' ? 'csv' : 'md';
+            const extension =
+              options.format === 'json' ? 'json' : options.format === 'csv' ? 'csv' : 'md';
             filename = `tasks-export-${date}.${extension}`;
           }
-          
+
           await fs.writeFile(filename, output, 'utf8');
           console.log(`✅ Exported ${tasks.length} tasks to ${filename}`);
         }

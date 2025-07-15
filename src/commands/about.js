@@ -25,8 +25,7 @@ export function aboutCommand() {
     console.log(chalk.bold.blue('📦 Package Information:'));
     console.log(`   ${chalk.bold('Name:')} ${packageInfo.name}`);
     console.log(`   ${chalk.bold('Version:')} ${chalk.green(packageInfo.version)}`);
-    console.log(`   ${chalk.bold('Description:')} ${packageInfo.description}`);
-    console.log(`   ${chalk.bold('Author:')} ${packageInfo.author}`);
+    console.log(`   ${chalk.bold('About:')} ${packageInfo.description}`);
     console.log(`   ${chalk.bold('License:')} ${packageInfo.license}`);
     console.log('');
     console.log(chalk.bold.blue('🔗 Project Links:'));

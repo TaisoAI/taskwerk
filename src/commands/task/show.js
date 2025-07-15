@@ -125,15 +125,16 @@ export function taskShowCommand() {
         if (subtasks.length > 0) {
           console.log(`\n📋 Subtasks:`);
           subtasks.forEach(subtask => {
-            const statusIcon = {
-              'todo': '⏳',
-              'in-progress': '🔄',
-              'in_progress': '🔄',
-              'blocked': '🚫',
-              'done': '✅',
-              'completed': '✅',
-              'cancelled': '❌',
-            }[subtask.status] || '⏳';
+            const statusIcon =
+              {
+                'todo': '⏳',
+                'in-progress': '🔄',
+                'in_progress': '🔄',
+                'blocked': '🚫',
+                'done': '✅',
+                'completed': '✅',
+                'cancelled': '❌',
+              }[subtask.status] || '⏳';
             console.log(`  ${statusIcon} ${subtask.id} - ${subtask.name}`);
           });
         }

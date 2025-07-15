@@ -23,32 +23,33 @@ function formatTableRow(task, widths, indent = 0) {
   // Add indentation for subtasks
   const indentStr = '  '.repeat(indent);
   const taskName = indentStr + (indent > 0 ? '└─ ' : '') + task.name;
-  
+
   const cols = [
     task.id.padEnd(widths.id),
     (statusEmoji[task.status] || '⏳ Todo').padEnd(widths.status),
     (priorityEmoji[task.priority] || '🟡 Med').padEnd(widths.priority),
     taskName.slice(0, widths.name).padEnd(widths.name),
     new Date(task.created_at).toLocaleDateString().padEnd(widths.created),
-    (task.assignee || '').padEnd(widths.assignee)
+    (task.assignee || '').padEnd(widths.assignee),
   ];
-  
+
   return cols.join(' ');
 }
 
-function calculateColumnWidths(tasks) {
+function calculateColumnWidths(_tasks) {
   const widths = {
-    id: 12,       // TASK-001.1
-    status: 8,    // 🔄 Prog
-    priority: 8,  // 🚨 Crit
-    name: 35,     // Task name
-    created: 10,  // MM/DD/YYYY
-    assignee: 10  // @username
+    id: 12, // TASK-001.1
+    status: 8, // 🔄 Prog
+    priority: 8, // 🚨 Crit
+    name: 35, // Task name
+    created: 10, // MM/DD/YYYY
+    assignee: 10, // @username
   };
 
   // Adjust name width based on terminal width
   const terminalWidth = process.stdout.columns || 80;
-  const fixedWidth = widths.id + widths.status + widths.priority + widths.created + widths.assignee + 5; // spaces
+  const fixedWidth =
+    widths.id + widths.status + widths.priority + widths.created + widths.assignee + 5; // spaces
   const availableWidth = terminalWidth - fixedWidth;
   widths.name = Math.max(20, Math.min(50, availableWidth));
 
@@ -59,7 +60,7 @@ function buildTaskTree(tasks, api) {
   // Group tasks by parent_id
   const taskMap = new Map();
   const rootTasks = [];
-  
+
   // First pass: create map and identify root tasks
   tasks.forEach(task => {
     taskMap.set(task.id, task);
@@ -67,13 +68,13 @@ function buildTaskTree(tasks, api) {
       rootTasks.push(task);
     }
   });
-  
+
   // Second pass: get subtasks for each task
   const processedTasks = [];
-  
+
   function addTaskWithSubtasks(task, indent = 0) {
     processedTasks.push({ ...task, _indent: indent });
-    
+
     // Get subtasks
     const subtasks = api.getSubtasks(task.id);
     subtasks.forEach(subtask => {
@@ -82,12 +83,12 @@ function buildTaskTree(tasks, api) {
       }
     });
   }
-  
+
   // Process root tasks
   rootTasks.forEach(task => {
     addTaskWithSubtasks(task);
   });
-  
+
   return processedTasks;
 }
 
@@ -106,7 +107,9 @@ export function taskListCommand() {
     .option('--limit <number>', 'Limit number of results', '50')
     .option('--all', 'Show all tasks including completed/archived')
     .option('--tree', 'Show tasks in hierarchical tree view')
-    .addHelpText('after', `
+    .addHelpText(
+      'after',
+      `
 Examples:
   $ twrk listtask                          # List active tasks
   $ twrk listtask --all                    # List all tasks including done
@@ -115,7 +118,8 @@ Examples:
   $ twrk listtask -p high                  # List high priority tasks
   $ twrk listtask -t bug                   # List tasks tagged with 'bug'
   $ twrk listtask --search "login"         # Search for tasks mentioning login
-  $ twrk listtask --sort priority --limit 10  # Top 10 tasks by priority`)
+  $ twrk listtask --sort priority --limit 10  # Top 10 tasks by priority`
+    )
     .action(async options => {
       const logger = new Logger('task-list');
 
@@ -188,20 +192,28 @@ Examples:
           header = `🔍 Search results for "${options.search}"`;
         }
         const filters = [];
-        if (options.status) filters.push(`status: ${options.status}`);
-        if (options.priority) filters.push(`priority: ${options.priority}`);
-        if (options.assignee) filters.push(`assignee: ${options.assignee}`);
-        if (options.tags) filters.push(`tags: ${options.tags.join(', ')}`);
+        if (options.status) {
+          filters.push(`status: ${options.status}`);
+        }
+        if (options.priority) {
+          filters.push(`priority: ${options.priority}`);
+        }
+        if (options.assignee) {
+          filters.push(`assignee: ${options.assignee}`);
+        }
+        if (options.tags) {
+          filters.push(`tags: ${options.tags.join(', ')}`);
+        }
         if (filters.length > 0) {
           header += ` (${filters.join(', ')})`;
         }
 
         console.log(header);
-        
+
         // Calculate column widths
         const widths = calculateColumnWidths(tasks);
         const totalWidth = Object.values(widths).reduce((sum, w) => sum + w, 0) + 5;
-        
+
         // Header row
         console.log('─'.repeat(totalWidth));
         const headerCols = [
@@ -210,7 +222,7 @@ Examples:
           'Priority'.padEnd(widths.priority),
           'Task'.padEnd(widths.name),
           'Created'.padEnd(widths.created),
-          'Assignee'.padEnd(widths.assignee)
+          'Assignee'.padEnd(widths.assignee),
         ];
         console.log(headerCols.join(' '));
         console.log('─'.repeat(totalWidth));

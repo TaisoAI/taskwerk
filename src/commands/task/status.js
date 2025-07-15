@@ -15,11 +15,11 @@ export function taskStatusCommand() {
 
       try {
         const api = new TaskwerkAPI();
-        
+
         // Normalize status values
         const normalizedStatus = newStatus.toLowerCase();
         const validStatuses = ['todo', 'in-progress', 'blocked', 'done', 'cancelled'];
-        
+
         if (!validStatuses.includes(normalizedStatus)) {
           console.error(`❌ Invalid status: ${newStatus}`);
           console.error(`Valid statuses: ${validStatuses.join(', ')}`);

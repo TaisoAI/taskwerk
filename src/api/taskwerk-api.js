@@ -801,20 +801,18 @@ export class TaskwerkAPI {
     }
   }
 
-
   /**
    * Get parent task if this is a subtask
    * @param {string} taskId - Task ID
    * @returns {Object|null} Parent task or null
    */
   getParentTask(taskId) {
-    const db = this.getDatabase();
     const task = this.getTask(taskId);
-    
+
     if (!task.parent_id) {
       return null;
     }
-    
+
     return this.getTask(task.parent_id);
   }
 
@@ -829,16 +827,16 @@ export class TaskwerkAPI {
       task,
       parent: null,
       siblings: [],
-      subtasks: []
+      subtasks: [],
     };
-    
+
     if (task.parent_id) {
       hierarchy.parent = this.getTask(task.parent_id);
       hierarchy.siblings = this.getSubtasks(task.parent_id).filter(t => t.id !== taskId);
     }
-    
+
     hierarchy.subtasks = this.getSubtasks(taskId);
-    
+
     return hierarchy;
   }
 

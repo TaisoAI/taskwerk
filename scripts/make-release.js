@@ -124,6 +124,65 @@ async function run() {
       }
     }
 
+    // Check CI status on main branch
+    if (branch === 'main') {
+      console.log(chalk.gray('Checking CI status...'));
+      try {
+        // Check if gh CLI is available
+        const ghCheck = spawnSync('gh', ['--version'], { stdio: 'pipe' });
+        if (ghCheck.status === 0) {
+          // Get latest CI run status
+          const ciStatus = spawnSync('gh', ['run', 'list', '--branch', 'main', '--limit', '1', '--json', 'status,conclusion'], {
+            encoding: 'utf8',
+            stdio: 'pipe'
+          });
+          
+          if (ciStatus.status === 0 && ciStatus.stdout) {
+            const runs = JSON.parse(ciStatus.stdout);
+            if (runs.length > 0 && runs[0].conclusion === 'failure') {
+              console.log(chalk.red('❌ Latest CI run on main branch failed!'));
+              console.log(chalk.yellow('Creating a release with failing CI can lead to npm publish failures.'));
+              
+              const { proceedWithFailingCI } = await inquirer.prompt([
+                {
+                  type: 'confirm',
+                  name: 'proceedWithFailingCI',
+                  message: 'CI is failing. Continue anyway?',
+                  default: false
+                }
+              ]);
+              
+              if (!proceedWithFailingCI) {
+                console.log(chalk.red('Release cancelled. Please fix CI failures first.'));
+                console.log(chalk.gray('Tip: Use a feature branch to fix issues, then merge to main.'));
+                process.exit(0);
+              }
+            } else if (runs.length > 0 && runs[0].status === 'in_progress') {
+              console.log(chalk.yellow('⏳ CI is currently running on main branch.'));
+              const { waitForCI } = await inquirer.prompt([
+                {
+                  type: 'confirm',
+                  name: 'waitForCI',
+                  message: 'Wait for CI to complete?',
+                  default: true
+                }
+              ]);
+              
+              if (!waitForCI) {
+                console.log(chalk.yellow('⚠️  Proceeding without waiting for CI to complete.'));
+              } else {
+                console.log(chalk.red('Please wait for CI to complete and run make-release again.'));
+                process.exit(0);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        // gh CLI not available or error checking status, continue with warning
+        console.log(chalk.yellow('⚠️  Could not check CI status. Make sure CI is passing before releasing.'));
+      }
+    }
+
     // Check for uncommitted changes
     try {
       execSync('git diff-index --quiet HEAD --');

@@ -33,7 +33,9 @@
     "ci": "npm run build && npm run test",
     "build:exe": "node scripts/build-executables.js",
     "make-release": "node scripts/make-release.js",
-    "make-release-dry-run": "echo 'Dry run for release process - checks tests and build'"
+    "make-release-dry-run": "echo 'Dry run for release process - checks tests and build'",
+    "ci:status": "node scripts/check-ci-status.js",
+    "ci:logs": "gh run view --log-failed"
   },
   "keywords": [
     "task",

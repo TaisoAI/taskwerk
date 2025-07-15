@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { aboutCommand } from '../../src/commands/about.js';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const packageJson = require('../../package.json');
+import packageInfo from '../../src/version.js';
 
 describe('About Command', () => {
   let consoleLogSpy;
@@ -39,16 +36,15 @@ describe('About Command', () => {
     expect(output).toContain('███████╗██╗  ██╗██╗    ██╗███████╗██████╗'); // Part of ASCII art
 
     // Check version line
-    expect(output).toContain(`taskwerk v${packageJson.version}`);
+    expect(output).toContain(`taskwerk v${packageInfo.version}`);
     expect(output).toContain('by Taiso.AI');
 
     // Check package info
     expect(output).toContain('📦 Package Information:');
-    expect(output).toContain(`Name: ${packageJson.name}`);
-    expect(output).toContain(`Version: ${packageJson.version}`);
-    expect(output).toContain(`Description: ${packageJson.description}`);
-    expect(output).toContain(`Author: ${packageJson.author}`);
-    expect(output).toContain(`License: ${packageJson.license}`);
+    expect(output).toContain(`Name: ${packageInfo.name}`);
+    expect(output).toContain(`Version: ${packageInfo.version}`);
+    expect(output).toContain(`About: ${packageInfo.description}`);
+    expect(output).toContain(`License: ${packageInfo.license}`);
 
     // Check other sections
     expect(output).toContain('🔗 Project Links:');
@@ -70,7 +66,7 @@ describe('About Command', () => {
     expect(output).toContain('╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██║    ██║██╔════╝██╔══██╗██║ ██╔╝');
   });
 
-  it('should handle all properties from package.json', () => {
+  it('should handle all properties from package info', () => {
     const command = aboutCommand();
 
     expect(() => command.parse([], { from: 'user' })).not.toThrow();

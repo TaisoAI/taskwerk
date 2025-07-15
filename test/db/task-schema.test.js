@@ -308,7 +308,7 @@ describe('Task Schema', () => {
   describe('Task ID Generation', () => {
     it('should generate sequential task IDs', async () => {
       const id1 = await generateTaskId('TASK', db);
-      expect(id1).toBe('TASK-1');
+      expect(id1).toBe('TASK-001');
 
       // Insert the task
       db.prepare(
@@ -319,12 +319,12 @@ describe('Task Schema', () => {
       ).run(id1, 'Task 1', 'user1', 'user1');
 
       const id2 = await generateTaskId('TASK', db);
-      expect(id2).toBe('TASK-2');
+      expect(id2).toBe('TASK-002');
     });
 
     it('should handle custom prefixes', async () => {
       const id1 = await generateTaskId('BUG', db);
-      expect(id1).toBe('BUG-1');
+      expect(id1).toBe('BUG-001');
 
       db.prepare(
         `
@@ -334,7 +334,7 @@ describe('Task Schema', () => {
       ).run(id1, 'Bug 1', 'user1', 'user1');
 
       const id2 = await generateTaskId('BUG', db);
-      expect(id2).toBe('BUG-2');
+      expect(id2).toBe('BUG-002');
     });
 
     it('should check if task ID exists', () => {

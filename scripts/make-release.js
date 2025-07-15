@@ -1,20 +1,60 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { version as currentVersion } from '../src/version.js';
-
-const packageJsonPath = join(process.cwd(), 'package.json');
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
 console.log(chalk.bold.blue(`\n🚀 Taskwerk Release Script\n`));
 
-async function getVersion() {
-  // Use version from version.js as the source of truth
-  
+// Helper to check if a GitHub release exists
+function checkGitHubRelease(version) {
+  try {
+    // First check if gh CLI is available
+    const ghCheck = spawnSync('gh', ['--version'], { stdio: 'pipe' });
+    if (ghCheck.status !== 0) {
+      // gh CLI not available, skip check
+      return false;
+    }
+    
+    const result = spawnSync('gh', ['release', 'view', `v${version}`], { 
+      encoding: 'utf8',
+      stdio: 'pipe' 
+    });
+    return result.status === 0;
+  } catch {
+    return false;
+  }
+}
+
+// Helper to check if an npm version exists
+function checkNpmVersion(packageName, version) {
+  try {
+    const result = spawnSync('npm', ['view', `${packageName}@${version}`, 'version'], {
+      encoding: 'utf8',
+      stdio: 'pipe'
+    });
+    return result.stdout.trim() === version;
+  } catch {
+    return false;
+  }
+}
+
+// Helper to get CLI version
+function getCliVersion() {
+  try {
+    const result = spawnSync('node', ['bin/taskwerk.js', '--version'], {
+      encoding: 'utf8',
+      stdio: 'pipe'
+    });
+    return result.stdout.trim();
+  } catch {
+    return null;
+  }
+}
+
+async function getVersion(currentVersion) {
   const { versionType } = await inquirer.prompt([
     {
       type: 'list',
@@ -92,34 +132,98 @@ async function run() {
       process.exit(1);
     }
 
+    // Read current package.json
+    const packageJsonPath = join(process.cwd(), 'package.json');
+    let packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+    const currentVersion = packageJson.version;
+
+    // Check version consistency
+    console.log(chalk.gray('Checking version consistency...'));
+    const cliVersion = getCliVersion();
+    if (cliVersion && cliVersion !== currentVersion) {
+      console.log(chalk.yellow(`⚠️  Version mismatch detected:`));
+      console.log(chalk.yellow(`   package.json: ${currentVersion}`));
+      console.log(chalk.yellow(`   CLI version:  ${cliVersion}`));
+      console.log(chalk.yellow(`   Running build to sync versions...`));
+      
+      try {
+        execSync('npm run build', { stdio: 'inherit' });
+      } catch (error) {
+        console.log(chalk.red('❌ Build failed. Fix errors before releasing.'));
+        process.exit(1);
+      }
+    }
+
     // Get new version
-    const newVersion = await getVersion();
+    const newVersion = await getVersion(currentVersion);
     
     console.log(chalk.blue(`\n📝 Preparing release v${newVersion}...\n`));
 
-    // Run build and test cycle
-    console.log(chalk.gray('Running build...'));
+    // Check if release already exists
+    console.log(chalk.gray('Checking for existing releases...'));
+    const hasGitHubRelease = checkGitHubRelease(newVersion);
+    const hasNpmRelease = checkNpmVersion('taskwerk', newVersion);
+    
+    if (hasGitHubRelease || hasNpmRelease) {
+      console.log(chalk.red(`\n❌ Version ${newVersion} already exists:`));
+      if (hasGitHubRelease) {
+        console.log(chalk.red(`   - GitHub release v${newVersion} exists`));
+      }
+      if (hasNpmRelease) {
+        console.log(chalk.red(`   - npm package taskwerk@${newVersion} exists`));
+      }
+      console.log(chalk.yellow('\nPlease choose a different version.'));
+      process.exit(1);
+    }
+
+    // Update package.json version only if it changed
+    const versionChanged = currentVersion !== newVersion;
+    if (versionChanged) {
+      packageJson.version = newVersion;
+      writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+      console.log(chalk.green(`✅ Updated package.json to v${newVersion}`));
+      
+      // Reload package.json for later use
+      packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+    }
+
+    // Run build (which will update version.js)
+    console.log(chalk.gray('\nRunning build...'));
     try {
       execSync('npm run build', { stdio: 'inherit' });
     } catch (error) {
       console.log(chalk.red('❌ Build failed. Fix errors before releasing.'));
+      // Revert package.json if we changed it
+      if (versionChanged) {
+        execSync('git checkout -- package.json');
+      }
       process.exit(1);
     }
 
+    // Run tests
     console.log(chalk.gray('\nRunning tests...'));
     try {
       execSync('npm test', { stdio: 'inherit' });
     } catch (error) {
       console.log(chalk.red('❌ Tests failed. Fix them before releasing.'));
+      // Revert package.json if we changed it
+      if (versionChanged) {
+        execSync('git checkout -- package.json');
+      }
       process.exit(1);
     }
 
-    // Update package.json version only if it changed
-    const versionChanged = packageJson.version !== newVersion;
-    if (versionChanged) {
-      packageJson.version = newVersion;
-      writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-      console.log(chalk.green(`✅ Updated package.json to v${newVersion}`));
+    // Verify CLI version matches after build
+    const postBuildCliVersion = getCliVersion();
+    if (postBuildCliVersion !== newVersion) {
+      console.log(chalk.red(`❌ CLI version mismatch after build:`));
+      console.log(chalk.red(`   Expected: ${newVersion}`));
+      console.log(chalk.red(`   Actual:   ${postBuildCliVersion}`));
+      // Revert package.json if we changed it
+      if (versionChanged) {
+        execSync('git checkout -- package.json');
+      }
+      process.exit(1);
     }
 
     // Get release notes
@@ -204,8 +308,8 @@ async function run() {
     writeFileSync(releaseNotesFile, releaseNotes);
 
     try {
-      // Use version from version.js to ensure consistency
-      execSync(`gh release create ${tagName} --title "taskwerk ${currentVersion}" --notes-file ${releaseNotesFile} dist/taskwerk.js`, { stdio: 'inherit' });
+      // Use newVersion to ensure consistency
+      execSync(`gh release create ${tagName} --title "taskwerk ${newVersion}" --notes-file ${releaseNotesFile} dist/taskwerk.js`, { stdio: 'inherit' });
       console.log(chalk.green(`\n✅ GitHub release created: https://github.com/taisoai/taskwerk/releases/tag/${tagName}`));
     } catch (error) {
       console.log(chalk.yellow('\n⚠️  Failed to create GitHub release. You can create it manually.'));

@@ -431,23 +431,12 @@ export class TaskwerkAPI {
     const db = this.getDatabase();
 
     try {
-      // For sync operations, use SQLite transaction
-      if (operations.constructor.name !== 'AsyncFunction') {
-        return db.executeTransaction(() => {
-          return operations(this);
-        });
-      }
+      // Use better-sqlite3's transaction method
+      const transaction = db.transaction(() => {
+        return operations(this);
+      });
 
-      // For async operations, handle manually
-      db.prepare('BEGIN').run();
-      try {
-        const result = operations(this);
-        db.prepare('COMMIT').run();
-        return result;
-      } catch (error) {
-        db.prepare('ROLLBACK').run();
-        throw error;
-      }
+      return transaction();
     } catch (error) {
       this.logger.error(`Transaction failed: ${error.message}`);
       throw error;

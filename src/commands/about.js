@@ -1,16 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-
-// These constants are injected during build via global variables
-const packageJson = {
-  version: global.__PACKAGE_VERSION__ || '0.6.7',
-  description:
-    global.__PACKAGE_DESCRIPTION__ ||
-    'A task management CLI for developers and AI agents working together',
-  name: global.__PACKAGE_NAME__ || 'taskwerk',
-  author: global.__PACKAGE_AUTHOR__ || 'manu chatterjee <deftio@deftio.com>',
-  license: global.__PACKAGE_LICENSE__ || 'MIT',
-};
+import packageInfo from '../version.js';
 
 export function aboutCommand() {
   const about = new Command('about');
@@ -28,16 +18,16 @@ export function aboutCommand() {
 
     console.log(chalk.cyan(banner));
     console.log(
-      chalk.bold(`🚀 taskwerk v${packageJson.version}`) + chalk.gray(' by Taiso.AI (www.taiso.ai)')
+      chalk.bold(`🚀 taskwerk v${packageInfo.version}`) + chalk.gray(' by Taiso.AI (www.taiso.ai)')
     );
     console.log(chalk.white('A task management CLI for developers and AI agents working together'));
     console.log('');
     console.log(chalk.bold.blue('📦 Package Information:'));
-    console.log(`   ${chalk.bold('Name:')} ${packageJson.name}`);
-    console.log(`   ${chalk.bold('Version:')} ${chalk.green(packageJson.version)}`);
-    console.log(`   ${chalk.bold('Description:')} ${packageJson.description}`);
-    console.log(`   ${chalk.bold('Author:')} ${packageJson.author}`);
-    console.log(`   ${chalk.bold('License:')} ${packageJson.license}`);
+    console.log(`   ${chalk.bold('Name:')} ${packageInfo.name}`);
+    console.log(`   ${chalk.bold('Version:')} ${chalk.green(packageInfo.version)}`);
+    console.log(`   ${chalk.bold('Description:')} ${packageInfo.description}`);
+    console.log(`   ${chalk.bold('Author:')} ${packageInfo.author}`);
+    console.log(`   ${chalk.bold('License:')} ${packageInfo.license}`);
     console.log('');
     console.log(chalk.bold.blue('🔗 Project Links:'));
     console.log(

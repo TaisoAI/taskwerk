@@ -24,8 +24,6 @@ describe('init command', () => {
     const optionNames = command.options.map(opt => opt.long);
 
     expect(optionNames).toContain('--force');
-    expect(optionNames).toContain('--git');
-    expect(optionNames).toContain('--no-git');
   });
 
   it('should initialize taskwerk when executed', () => {

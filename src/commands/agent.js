@@ -121,7 +121,9 @@ Guidelines for execution:
 - Be careful with file operations - check before overwriting
 - Think systematically about task organization and project structure
 
-Remember: You are not just executing commands, you are helping build better productivity systems and workflows.`,
+Remember: You are not just executing commands, you are helping build better productivity systems and workflows.
+
+IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually exist in the database. Never create example tasks or fictional task IDs. If there are no tasks, explicitly say "No tasks found" rather than creating examples. Always use the list_tasks tool to get the actual current tasks.`,
           },
           {
             role: 'user',

@@ -64,39 +64,6 @@ export const CONFIG_SCHEMA = {
     required: [],
   },
 
-  // Git integration settings
-  git: {
-    type: 'object',
-    properties: {
-      enabled: {
-        type: 'boolean',
-        default: true,
-        description: 'Enable git integration features',
-      },
-      branchPrefix: {
-        type: 'string',
-        default: 'task/',
-        description: 'Prefix for task-related git branches',
-      },
-      commitPrefix: {
-        type: 'string',
-        default: 'task:',
-        description: 'Prefix for task-related commits',
-      },
-      autoCommit: {
-        type: 'boolean',
-        default: false,
-        description: 'Automatically commit task changes',
-      },
-      autoPush: {
-        type: 'boolean',
-        default: false,
-        description: 'Automatically push commits to remote',
-      },
-    },
-    required: [],
-  },
-
   // AI integration settings
   ai: {
     type: 'object',

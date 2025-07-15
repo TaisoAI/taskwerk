@@ -11,7 +11,6 @@ describe('Configuration Schema', () => {
     it('should define all configuration sections', () => {
       expect(CONFIG_SCHEMA).toHaveProperty('general');
       expect(CONFIG_SCHEMA).toHaveProperty('database');
-      expect(CONFIG_SCHEMA).toHaveProperty('git');
       expect(CONFIG_SCHEMA).toHaveProperty('ai');
       expect(CONFIG_SCHEMA).toHaveProperty('output');
       expect(CONFIG_SCHEMA).toHaveProperty('export');
@@ -81,10 +80,6 @@ describe('Configuration Schema', () => {
       expect(config.database.backupEnabled).toBe(true);
       expect(config.database.backupInterval).toBe('daily');
       expect(config.database.backupCount).toBe(7);
-
-      expect(config.git.enabled).toBe(true);
-      expect(config.git.branchPrefix).toBe('task/');
-      expect(config.git.autoCommit).toBe(false);
 
       expect(config.ai.enabled).toBe(false);
       expect(config.ai.provider).toBe('openai');

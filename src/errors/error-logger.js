@@ -8,14 +8,13 @@ import {
   renameSync,
 } from 'fs';
 import { join, dirname } from 'path';
-import { homedir } from 'os';
 
 /**
  * Error logger for persistent error tracking
  */
 export class ErrorLogger {
   constructor(logDir = null) {
-    this.logDir = logDir || join(homedir(), '.taskwerk', 'logs');
+    this.logDir = logDir || join('.taskwerk', 'logs');
     this.errorLogPath = join(this.logDir, 'errors.log');
     this.ensureLogDirectory();
   }
@@ -71,11 +70,7 @@ export class ErrorLogger {
 
   getTaskwerkVersion() {
     try {
-      // Use injected version if available, otherwise try reading package.json
-      if (global.__PACKAGE_VERSION__) {
-        return global.__PACKAGE_VERSION__;
-      }
-
+      // For now, we'll read from package.json
       const packagePath = join(
         dirname(import.meta.url).replace('file://', ''),
         '../../../package.json'

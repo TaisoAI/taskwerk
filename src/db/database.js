@@ -1,9 +1,8 @@
 import Database from 'better-sqlite3';
 import { existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
-import { homedir } from 'os';
 
-const DEFAULT_DB_DIR = join(homedir(), '.taskwerk');
+const DEFAULT_DB_DIR = '.taskwerk';
 const DEFAULT_DB_FILE = 'taskwerk.db';
 
 export class TaskwerkDatabase {

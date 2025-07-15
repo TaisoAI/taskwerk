@@ -282,19 +282,6 @@ taskwerk import tasks.md --dry-run  # Preview what will be imported
 # - Metadata in YAML frontmatter
 ```
 
-### Git Integration
-
-```bash
-# Create git commits with task context
-taskwerk git commit TASK-123  # Commits with task description
-
-# Create branches from tasks
-taskwerk git branch TASK-123   # Creates feature/TASK-123-task-title
-
-# Sync task status with git
-taskwerk git sync             # Updates task status based on branch activity
-```
-
 ## 🛠️ Configuration
 
 Taskwerk stores configuration in `~/.taskwerk/config.yml`:

@@ -83,7 +83,9 @@ Key principles:
 Current working directory: ${process.cwd()}
 ${context ? `\nContext:\n${context}` : ''}
 
-Remember: You can read and analyze, but cannot modify files or tasks. For modifications, suggest the user use 'taskwerk agent' instead.`,
+Remember: You can read and analyze, but cannot modify files or tasks. For modifications, suggest the user use 'taskwerk agent' instead.
+
+IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually exist in the database. Never create example tasks or fictional task IDs. If there are no tasks, explicitly say "No tasks found" rather than creating examples.`,
           },
           {
             role: 'user',

@@ -1,12 +1,11 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
-import { homedir } from 'os';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { getConfigSchema, getDefaultConfig, getSensitiveFields } from './schema.js';
 import { ConfigurationError } from '../errors/index.js';
 import { mergeEnvConfig } from './env-loader.js';
 
-const CONFIG_DIR = join(homedir(), '.taskwerk');
+const CONFIG_DIR = '.taskwerk';
 const CONFIG_FILE = 'config.yml';
 const CONFIG_PATH = join(CONFIG_DIR, CONFIG_FILE);
 

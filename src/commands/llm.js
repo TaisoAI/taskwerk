@@ -54,7 +54,10 @@ export function llmCommand() {
         }
 
         if (context) {
-          messages.push({ role: 'system', content: `Current tasks context:\n${context}` });
+          messages.push({
+            role: 'system',
+            content: `Current tasks context:\n${context}\n\nIMPORTANT: Only reference tasks that are shown above. Never create example tasks or fictional task IDs.`,
+          });
         }
 
         messages.push({ role: 'user', content: prompt });

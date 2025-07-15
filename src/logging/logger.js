@@ -1,6 +1,5 @@
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
 import { format } from 'util';
 import { getConfigManager } from '../config/index.js';
 
@@ -23,7 +22,7 @@ const LOG_LEVEL_NAMES = {
 };
 
 // Default log directory
-const DEFAULT_LOG_DIR = join(homedir(), '.taskwerk', 'logs');
+const DEFAULT_LOG_DIR = join('.taskwerk', 'logs');
 
 /**
  * Logger class for Taskwerk

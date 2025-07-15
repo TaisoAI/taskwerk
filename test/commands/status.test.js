@@ -1,16 +1,30 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { statusCommand } from '../../src/commands/status.js';
 import { setupCommandTest } from '../helpers/command-test-helper.js';
+import { existsSync, mkdirSync } from 'fs';
 
 describe('status command', () => {
   let testSetup;
 
   beforeEach(() => {
     testSetup = setupCommandTest(true); // Enable database
+
+    // Create .taskwerk directory in current directory for the test
+    const taskwerkDir = '.taskwerk';
+    if (!existsSync(taskwerkDir)) {
+      mkdirSync(taskwerkDir, { recursive: true });
+    }
   });
 
   afterEach(() => {
     testSetup.cleanup();
+
+    // Clean up test directory
+    const taskwerkDir = '.taskwerk';
+    if (existsSync(taskwerkDir)) {
+      // Note: In a real test, you'd want to recursively delete this
+      // For now, we'll leave it for the test runner to clean up
+    }
   });
 
   it('should create command with correct name and description', () => {

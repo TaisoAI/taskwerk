@@ -1,7 +1,6 @@
 import { Command } from 'commander';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
 import { ConfigManager } from '../config/config-manager.js';
 import { TaskwerkDatabase } from '../db/database.js';
 import { applySchema } from '../db/schema.js';
@@ -13,16 +12,14 @@ export function initCommand() {
   init
     .description('Initialize taskwerk in the current directory')
     .option('-f, --force', 'Force initialization, overwrite existing config')
-    .option('--git', 'Enable git integration', true)
-    .option('--no-git', 'Disable git integration')
     .action(async _options => {
       const logger = new Logger('init');
 
       try {
         console.log('🚀 Initializing taskwerk...');
 
-        // Create .taskwerk directory
-        const taskwerkDir = join(homedir(), '.taskwerk');
+        // Create .taskwerk directory in current working directory
+        const taskwerkDir = '.taskwerk';
         if (!existsSync(taskwerkDir)) {
           mkdirSync(taskwerkDir, { recursive: true });
           console.log(`✅ Created directory: ${taskwerkDir}`);

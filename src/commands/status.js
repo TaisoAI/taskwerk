@@ -1,7 +1,6 @@
 import { Command } from 'commander';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
 import { TaskwerkAPI } from '../api/taskwerk-api.js';
 import { ConfigManager } from '../config/config-manager.js';
 import { TaskwerkDatabase } from '../db/database.js';
@@ -18,7 +17,7 @@ export function statusCommand() {
       const logger = new Logger('status');
 
       try {
-        const taskwerkDir = join(homedir(), '.taskwerk');
+        const taskwerkDir = '.taskwerk';
         const dbPath = join(taskwerkDir, 'taskwerk.db');
         const configPath = join(taskwerkDir, 'config.yml');
 

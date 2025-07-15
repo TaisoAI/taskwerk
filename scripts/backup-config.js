@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import { existsSync, copyFileSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
 
-const CONFIG_PATH = join(homedir(), '.taskwerk', 'config.yml');
-const BACKUP_PATH = join(homedir(), '.taskwerk', 'config.yml.backup');
+const CONFIG_PATH = join('.taskwerk', 'config.yml');
+const BACKUP_PATH = join('.taskwerk', 'config.yml.backup');
 
 if (existsSync(CONFIG_PATH)) {
   copyFileSync(CONFIG_PATH, BACKUP_PATH);

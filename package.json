@@ -1,6 +1,6 @@
 {
   "name": "taskwerk",
-  "version": "0.7.3",
+  "version": "0.7.4-dev.3",
   "author": "manu chatterjee <deftio@deftio.com>",
   "description": "A task management CLI for developers and AI agents working together",
   "repository": {
@@ -18,8 +18,8 @@
   },
   "scripts": {
     "start": "node src/cli/index.js",
-    "test": "npm run lint && vitest run test/ --pool=forks --poolOptions.forks.singleFork=true",
-    "test:coverage": "npm run lint && vitest run test/ --coverage --pool=forks --poolOptions.forks.singleFork=true",
+    "test": "npm run lint && vitest run test/ --pool=forks --poolOptions.forks.singleFork=true --poolOptions.forks.maxForks=1",
+    "test:coverage": "npm run lint && vitest run test/ --coverage --pool=forks --poolOptions.forks.singleFork=true --poolOptions.forks.maxForks=1",
     "test:watch": "vitest test/",
     "test:unit": "vitest run test/",
     "lint": "eslint src/ test/",
@@ -35,7 +35,13 @@
     "make-release": "node scripts/make-release.js",
     "make-release-dry-run": "echo 'Dry run for release process - checks tests and build'",
     "ci:status": "node scripts/check-ci-status.js",
-    "ci:logs": "gh run view --log-failed"
+    "ci:logs": "gh run view --log-failed",
+    "dev:start": "node scripts/dev-version.js start",
+    "dev:bump": "node scripts/dev-version.js bump",
+    "dev:finalize": "node scripts/dev-version.js finalize",
+    "dev:next-patch": "node scripts/dev-version.js next-patch",
+    "dev:next-minor": "node scripts/dev-version.js next-minor",
+    "dev:next-major": "node scripts/dev-version.js next-major"
   },
   "keywords": [
     "task",

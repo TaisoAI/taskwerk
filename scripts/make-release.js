@@ -55,11 +55,19 @@ function getCliVersion() {
 }
 
 async function getVersion(currentVersion) {
+  // Check if we're on a dev version
+  const isDevVersion = currentVersion.includes('-dev.');
+  
+  let message = `Current version is ${chalk.yellow(currentVersion)}. What would you like to do?`;
+  if (isDevVersion) {
+    message = chalk.yellow(`⚠️  You're on a development version (${currentVersion}). Run 'npm run dev:finalize' first!`);
+  }
+  
   const { versionType } = await inquirer.prompt([
     {
       type: 'list',
       name: 'versionType',
-      message: `Current version is ${chalk.yellow(currentVersion)}. What would you like to do?`,
+      message: message,
       choices: [
         { name: `Release current version (${currentVersion})`, value: 'current' },
         { name: 'Patch bump (bug fixes)', value: 'patch' },

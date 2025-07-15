@@ -9,11 +9,22 @@ export function exportCommand() {
   exp
     .description('Export tasks to a file')
     .option('-f, --format <format>', 'Export format (json, markdown, csv)', 'markdown')
-    .option('-o, --output <file>', 'Output file path')
+    .option('-o, --output <file>', 'Output file path (auto-generated if not specified)')
     .option('-s, --status <status>', 'Filter by status')
     .option('-a, --assignee <name>', 'Filter by assignee')
     .option('--all', 'Include completed and cancelled tasks')
     .option('--with-metadata', 'Include YAML frontmatter metadata (markdown only)')
+    .option('--stdout', 'Output to stdout instead of file')
+    .addHelpText('after', `
+Examples:
+  $ twrk export                            # Export to tasks-export-YYYY-MM-DD.md
+  $ twrk export -o tasks.md                # Export to specific file
+  $ twrk export --stdout                   # Output to stdout (old behavior)
+  $ twrk export --all -f json              # Export all tasks as JSON file
+  $ twrk export -s todo                    # Export only todo tasks to file
+  $ twrk export -a @ai-agent               # Export AI agent tasks to file
+  $ twrk export --with-metadata            # Include YAML frontmatter
+  $ twrk export -f csv                     # Export as CSV for spreadsheets`)
     .action(async options => {
       const logger = new Logger('export');
 
@@ -59,11 +70,21 @@ export function exportCommand() {
         }
 
         // Write output
-        if (options.output) {
-          await fs.writeFile(options.output, output, 'utf8');
-          console.log(`✅ Exported ${tasks.length} tasks to ${options.output}`);
-        } else {
+        if (options.stdout) {
+          // Output to stdout (old behavior)
           console.log(output);
+        } else {
+          // Save to file (new default behavior)
+          let filename = options.output;
+          if (!filename) {
+            // Generate filename based on date and format
+            const date = new Date().toISOString().split('T')[0];
+            const extension = options.format === 'json' ? 'json' : options.format === 'csv' ? 'csv' : 'md';
+            filename = `tasks-export-${date}.${extension}`;
+          }
+          
+          await fs.writeFile(filename, output, 'utf8');
+          console.log(`✅ Exported ${tasks.length} tasks to ${filename}`);
         }
       } catch (error) {
         logger.error('Export failed', error);

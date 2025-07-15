@@ -8,12 +8,20 @@ export function taskAddCommand() {
   add
     .description('Add a new task')
     .argument('<name>', 'Task name')
-    .option('-p, --priority <level>', 'Set priority (low, medium, high)', 'medium')
+    .option('-p, --priority <level>', 'Set priority (low, medium, high, critical)', 'medium')
     .option('-a, --assignee <name>', 'Assign task to a person')
     .option('-e, --estimate <hours>', 'Time estimate in hours')
     .option('-P, --parent <id>', 'Parent task ID')
     .option('-t, --tags <tags...>', 'Add tags to the task')
     .option('-d, --description <text>', 'Task description')
+    .addHelpText('after', `
+Examples:
+  $ twrk addtask "Fix login bug"
+  $ twrk addtask "Update API docs" -p high
+  $ twrk addtask "Refactor auth module" -a @john -e 8
+  $ twrk addtask "Add unit tests" -P TASK-001 -d "Test the new auth flow"
+  $ twrk addtask "Security audit" -t security compliance -p critical
+  $ twrk addtask "Review PR #123" -a @ai-agent -d "Check code style and tests"`)
     .action(async (name, options) => {
       const logger = new Logger('task-add');
 

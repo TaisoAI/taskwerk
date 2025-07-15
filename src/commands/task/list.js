@@ -2,25 +2,53 @@ import { Command } from 'commander';
 import { TaskwerkAPI } from '../../api/taskwerk-api.js';
 import { Logger } from '../../logging/logger.js';
 
-function formatTask(task, index) {
+function formatTableRow(task, widths) {
   const statusEmoji = {
-    'todo': '⏳',
-    'in-progress': '🔄',
-    'in_progress': '🔄',
-    'blocked': '🚫',
-    'done': '✅',
-    'completed': '✅',
-    'cancelled': '❌',
+    'todo': '⏳ Todo',
+    'in-progress': '🔄 Prog',
+    'in_progress': '🔄 Prog',
+    'blocked': '🚫 Block',
+    'done': '✅ Done',
+    'completed': '✅ Done',
+    'cancelled': '❌ Canc',
   };
 
   const priorityEmoji = {
-    low: '🔵',
-    medium: '🟡',
-    high: '🔴',
-    critical: '🚨',
+    low: '🔵 Low',
+    medium: '🟡 Med',
+    high: '🔴 High',
+    critical: '🚨 Crit',
   };
 
-  return `${index + 1}. ${statusEmoji[task.status] || '⏳'} ${priorityEmoji[task.priority] || '🟡'} ${task.id} - ${task.name}${task.assignee ? ` (@${task.assignee})` : ''}`;
+  const cols = [
+    task.id.padEnd(widths.id),
+    (statusEmoji[task.status] || '⏳ Todo').padEnd(widths.status),
+    (priorityEmoji[task.priority] || '🟡 Med').padEnd(widths.priority),
+    task.name.slice(0, widths.name).padEnd(widths.name),
+    new Date(task.created_at).toLocaleDateString().padEnd(widths.created),
+    (task.assignee || '').padEnd(widths.assignee)
+  ];
+  
+  return cols.join(' ');
+}
+
+function calculateColumnWidths(tasks) {
+  const widths = {
+    id: 9,        // TASK-001
+    status: 8,    // 🔄 Prog
+    priority: 8,  // 🚨 Crit
+    name: 35,     // Task name
+    created: 10,  // MM/DD/YYYY
+    assignee: 10  // @username
+  };
+
+  // Adjust name width based on terminal width
+  const terminalWidth = process.stdout.columns || 80;
+  const fixedWidth = widths.id + widths.status + widths.priority + widths.created + widths.assignee + 5; // spaces
+  const availableWidth = terminalWidth - fixedWidth;
+  widths.name = Math.max(20, Math.min(50, availableWidth));
+
+  return widths;
 }
 
 export function taskListCommand() {
@@ -37,6 +65,16 @@ export function taskListCommand() {
     .option('--format <format>', 'Output format (table, json, csv)', 'table')
     .option('--limit <number>', 'Limit number of results', '50')
     .option('--all', 'Show all tasks including completed/archived')
+    .addHelpText('after', `
+Examples:
+  $ twrk listtask                          # List active tasks
+  $ twrk listtask --all                    # List all tasks including done
+  $ twrk listtask -s todo                  # List only todo tasks  
+  $ twrk listtask -a @john                 # List tasks assigned to john
+  $ twrk listtask -p high                  # List high priority tasks
+  $ twrk listtask -t bug                   # List tasks tagged with 'bug'
+  $ twrk listtask --search "login"         # Search for tasks mentioning login
+  $ twrk listtask --sort priority --limit 10  # Top 10 tasks by priority`)
     .action(async options => {
       const logger = new Logger('task-list');
 
@@ -108,28 +146,40 @@ export function taskListCommand() {
         if (options.search) {
           header = `🔍 Search results for "${options.search}"`;
         }
-        if (options.status) {
-          header += ` (status: ${options.status})`;
-        }
-        if (options.priority) {
-          header += ` (priority: ${options.priority})`;
-        }
-        if (options.assignee) {
-          header += ` (assignee: ${options.assignee})`;
-        }
-        if (options.tags) {
-          header += ` (tags: ${options.tags.join(', ')})`;
+        const filters = [];
+        if (options.status) filters.push(`status: ${options.status}`);
+        if (options.priority) filters.push(`priority: ${options.priority}`);
+        if (options.assignee) filters.push(`assignee: ${options.assignee}`);
+        if (options.tags) filters.push(`tags: ${options.tags.join(', ')}`);
+        if (filters.length > 0) {
+          header += ` (${filters.join(', ')})`;
         }
 
         console.log(header);
-        console.log('─'.repeat(50));
+        
+        // Calculate column widths
+        const widths = calculateColumnWidths(tasks);
+        const totalWidth = Object.values(widths).reduce((sum, w) => sum + w, 0) + 5;
+        
+        // Header row
+        console.log('─'.repeat(totalWidth));
+        const headerCols = [
+          'ID'.padEnd(widths.id),
+          'Status'.padEnd(widths.status),
+          'Priority'.padEnd(widths.priority),
+          'Task'.padEnd(widths.name),
+          'Created'.padEnd(widths.created),
+          'Assignee'.padEnd(widths.assignee)
+        ];
+        console.log(headerCols.join(' '));
+        console.log('─'.repeat(totalWidth));
 
         // Display tasks
-        tasks.forEach((task, index) => {
-          console.log(formatTask(task, index));
+        tasks.forEach(task => {
+          console.log(formatTableRow(task, widths));
         });
 
-        console.log('─'.repeat(50));
+        console.log('─'.repeat(totalWidth));
         console.log(`📊 Showing ${tasks.length} task${tasks.length !== 1 ? 's' : ''}`);
 
         if (!options.all && tasks.length >= parseInt(options.limit)) {

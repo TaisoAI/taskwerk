@@ -17,9 +17,14 @@ export class TaskwerkAPI {
    * Get database connection
    */
   getDatabase() {
-    if (!this.db.isConnected()) {
-      this.db.connect();
+    // If we have a TaskwerkDatabase instance
+    if (this.db && typeof this.db.isConnected === 'function') {
+      if (!this.db.isConnected()) {
+        this.db.connect();
+      }
+      return this.db.db; // Return the actual SQLite connection
     }
+    // Otherwise assume it's already a raw SQLite connection
     return this.db;
   }
 

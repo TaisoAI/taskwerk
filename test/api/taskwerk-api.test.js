@@ -24,7 +24,7 @@ describe('TaskwerkAPI', () => {
     db = database.connect();
     applySchema(db);
 
-    api = new TaskwerkAPI(db);
+    api = new TaskwerkAPI(database);
   });
 
   afterEach(() => {

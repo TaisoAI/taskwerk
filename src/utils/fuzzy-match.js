@@ -54,16 +54,24 @@ function levenshteinDistance(a, b) {
 export function findSimilarTaskIds(input, maxDistance = 3, database = null) {
   const db = database || getDatabase();
 
-  // Ensure database is connected
-  if (!db.isConnected()) {
-    db.connect();
+  // Handle both raw SQLite connections and TaskwerkDatabase instances
+  let sqliteDb;
+  if (db && typeof db.isConnected === 'function') {
+    // It's a TaskwerkDatabase instance
+    if (!db.isConnected()) {
+      db.connect();
+    }
+    sqliteDb = db.db;
+  } else {
+    // It's already a raw SQLite connection
+    sqliteDb = db;
   }
 
   // Normalize input to uppercase for comparison
   const normalizedInput = input.toUpperCase();
 
   // Get all task IDs
-  const stmt = db.prepare('SELECT id FROM tasks ORDER BY id');
+  const stmt = sqliteDb.prepare('SELECT id FROM tasks ORDER BY id');
   const tasks = stmt.all();
 
   const suggestions = [];
@@ -120,13 +128,21 @@ export function fuzzyMatchTaskId(input, database = null) {
 
   const db = database || getDatabase();
 
-  // Ensure database is connected
-  if (!db.isConnected()) {
-    db.connect();
+  // Handle both raw SQLite connections and TaskwerkDatabase instances
+  let sqliteDb;
+  if (db && typeof db.isConnected === 'function') {
+    // It's a TaskwerkDatabase instance
+    if (!db.isConnected()) {
+      db.connect();
+    }
+    sqliteDb = db.db;
+  } else {
+    // It's already a raw SQLite connection
+    sqliteDb = db;
   }
 
   // First try exact match (case-insensitive)
-  const exactStmt = db.prepare('SELECT id FROM tasks WHERE UPPER(id) = UPPER(?)');
+  const exactStmt = sqliteDb.prepare('SELECT id FROM tasks WHERE UPPER(id) = UPPER(?)');
   const exactMatch = exactStmt.get(input);
   if (exactMatch) {
     return exactMatch.id;
@@ -164,14 +180,14 @@ export function fuzzyMatchTaskId(input, database = null) {
   if (normalizedInput.match(/^\d+$/)) {
     const number = normalizedInput.padStart(3, '0');
     // Prioritize TASK- prefix for number-only matches
-    const taskStmt = db.prepare('SELECT id FROM tasks WHERE id = ?');
+    const taskStmt = sqliteDb.prepare('SELECT id FROM tasks WHERE id = ?');
     const taskMatch = taskStmt.get(`TASK-${number}`);
     if (taskMatch) {
       return taskMatch.id;
     }
 
     // If no TASK- match, try any prefix
-    const partialStmt = db.prepare('SELECT id FROM tasks WHERE id LIKE ? ORDER BY id');
+    const partialStmt = sqliteDb.prepare('SELECT id FROM tasks WHERE id LIKE ? ORDER BY id');
     const partialMatch = partialStmt.get(`%-${number}`);
     if (partialMatch) {
       return partialMatch.id;

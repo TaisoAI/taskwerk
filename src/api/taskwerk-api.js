@@ -153,7 +153,7 @@ export class TaskwerkAPI {
 
     // If still not found, try fuzzy matching
     if (!task) {
-      const fuzzyMatch = fuzzyMatchTaskId(taskId);
+      const fuzzyMatch = fuzzyMatchTaskId(taskId, db);
       if (fuzzyMatch) {
         stmt = db.prepare('SELECT * FROM tasks WHERE id = ?');
         task = stmt.get(fuzzyMatch);
@@ -161,7 +161,7 @@ export class TaskwerkAPI {
     }
 
     if (!task) {
-      throw new TaskNotFoundError(formatTaskNotFoundError(taskId));
+      throw new TaskNotFoundError(formatTaskNotFoundError(taskId, db));
     }
 
     // Parse JSON fields

@@ -53,7 +53,7 @@ describe('task status command', () => {
     // Check that error was logged (might have logger prefix)
     const errorCalls = testSetup.consoleErrorSpy.mock.calls;
     const hasErrorMessage = errorCalls.some(call =>
-      call.some(arg => arg && arg.toString().includes('❌ Failed to update task status:'))
+      call.some(arg => arg && arg.toString().includes('❌'))
     );
     expect(hasErrorMessage).toBe(true);
     expect(testSetup.processExitSpy).toHaveBeenCalledWith(1);

@@ -9,6 +9,29 @@ export function taskShowCommand() {
     .description('Show task details')
     .argument('<id>', 'Task ID')
     .option('--format <format>', 'Output format (text, json)', 'text')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  Basic usage:
+    $ twrk showtask TASK-001                 # Show task by full ID
+    $ twrk showtask 1                        # Use fuzzy matching
+    $ twrk showtask task-1                   # Case-insensitive
+    
+  Different formats:
+    $ twrk showtask 1 --format json          # JSON output for scripting
+    $ twrk showtask TASK-001 --format text   # Default human-readable format
+    
+  Common workflows:
+    $ twrk showtask 1 | grep Status          # Check task status
+    $ twrk showtask 1 --format json | jq .  # Pretty print JSON
+    
+  Viewing subtasks:
+    $ twrk showtask TASK-001.1               # Show subtask details
+    $ twrk showtask 1.1                      # Fuzzy match subtask
+    
+Note: If task not found, similar task IDs will be suggested`
+    )
     .action(async (id, options) => {
       const logger = new Logger('task-show');
 
@@ -170,7 +193,12 @@ export function taskShowCommand() {
         console.log('═'.repeat(50));
       } catch (error) {
         logger.error('Failed to show task', error);
-        console.error('❌ Failed to show task:', error.message);
+        // For TaskNotFoundError, the message already contains suggestions
+        if (error.code === 'TASK_NOT_FOUND') {
+          console.error(`❌ ${error.message}`);
+        } else {
+          console.error('❌ Failed to show task:', error.message);
+        }
         process.exit(1);
       }
     });

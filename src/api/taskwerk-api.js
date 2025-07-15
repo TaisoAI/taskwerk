@@ -5,6 +5,7 @@ import { ValidationError } from '../errors/base-error.js';
 import { Logger } from '../logging/logger.js';
 import { query } from './query-builder.js';
 import { TaskValidator } from './validation.js';
+import { fuzzyMatchTaskId, formatTaskNotFoundError } from '../utils/fuzzy-match.js';
 
 export class TaskwerkAPI {
   constructor(database = null) {
@@ -128,7 +129,7 @@ export class TaskwerkAPI {
   }
 
   /**
-   * Get a task by ID (case-insensitive)
+   * Get a task by ID (case-insensitive with fuzzy matching)
    * @param {string} taskId - Task ID
    * @returns {Object} Task data
    */
@@ -145,8 +146,17 @@ export class TaskwerkAPI {
       task = stmt.get(taskId);
     }
 
+    // If still not found, try fuzzy matching
     if (!task) {
-      throw new TaskNotFoundError(`Task ${taskId} not found`);
+      const fuzzyMatch = fuzzyMatchTaskId(taskId);
+      if (fuzzyMatch) {
+        stmt = db.prepare('SELECT * FROM tasks WHERE id = ?');
+        task = stmt.get(fuzzyMatch);
+      }
+    }
+
+    if (!task) {
+      throw new TaskNotFoundError(formatTaskNotFoundError(taskId));
     }
 
     // Parse JSON fields

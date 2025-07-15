@@ -82,7 +82,12 @@ export function taskDeleteCommand() {
         }
       } catch (error) {
         logger.error('Failed to delete task', error);
-        console.error('❌ Failed to delete task:', error.message);
+        // For TaskNotFoundError, the message already contains suggestions
+        if (error.code === 'TASK_NOT_FOUND') {
+          console.error(`❌ ${error.message}`);
+        } else {
+          console.error('❌ Failed to delete task:', error.message);
+        }
         process.exit(1);
       }
     });

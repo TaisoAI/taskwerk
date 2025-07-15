@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { ConfigManager } from '../config/config-manager.js';
 import { TaskwerkDatabase } from '../db/database.js';
@@ -12,6 +12,34 @@ export function initCommand() {
   init
     .description('Initialize taskwerk in the current directory')
     .option('-f, --force', 'Force initialization, overwrite existing config')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  Basic initialization:
+    $ twrk init                          # Initialize in current directory
+    $ twrk init --force                  # Reinitialize, keeping data
+    
+  Common workflows:
+    $ cd my-project && twrk init         # Initialize in project root
+    $ twrk init && twrk addtask "Setup project"
+    
+What this creates:
+  .taskwerk/
+  ├── taskwerk.db                       # SQLite database for tasks
+  ├── config.yml                        # Configuration file
+  ├── taskwerk_rules.md                 # Project conventions (customize this!)
+  └── logs/                             # Log files directory
+  
+After initialization:
+  $ twrk addtask "My first task"        # Create your first task
+  $ twrk listtask                       # View all tasks
+  $ twrk aiconfig                       # Setup AI integration
+  $ cat .taskwerk/taskwerk_rules.md    # Review/edit project rules
+  
+Note: The .taskwerk directory should be added to version control
+      (except taskwerk.db if you want task data to be local)`
+    )
     .action(async _options => {
       const logger = new Logger('init');
 
@@ -96,7 +124,7 @@ Define your project-specific categories here:
 ## Notes
 Add any project-specific rules or conventions below:
 `;
-          require('fs').writeFileSync(rulesPath, rulesContent, 'utf8');
+          writeFileSync(rulesPath, rulesContent, 'utf8');
           console.log('✅ Created taskwerk_rules.md');
         }
 

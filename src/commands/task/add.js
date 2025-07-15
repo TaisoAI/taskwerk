@@ -18,12 +18,32 @@ export function taskAddCommand() {
       'after',
       `
 Examples:
-  $ twrk addtask "Fix login bug"
-  $ twrk addtask "Update API docs" -p high
-  $ twrk addtask "Refactor auth module" -a @john -e 8
-  $ twrk addtask "Add unit tests" -P TASK-001 -d "Test the new auth flow"
-  $ twrk addtask "Security audit" -t security compliance -p critical
-  $ twrk addtask "Review PR #123" -a @ai-agent -d "Check code style and tests"`
+  Basic usage:
+    $ twrk addtask "Fix login bug"                      # Create a simple task
+    $ twrk addtask "Update API docs" -p high            # Set high priority
+    $ twrk addtask "Refactor auth" -a @john -e 8        # Assign to john, 8hr estimate
+  
+  With descriptions and tags:
+    $ twrk addtask "Security audit" -p critical -t security compliance -d "Q4 audit"
+    $ twrk addtask "Fix memory leak" -t bug performance -d "Users report high RAM usage"
+    $ twrk addtask "Add dark mode" -t feature ui -a @design-team
+  
+  Creating subtasks:
+    $ twrk addtask "Setup CI/CD" -P TASK-001            # Create subtask under TASK-001
+    $ twrk addtask "Write tests" -P 1                   # Use fuzzy matching for parent
+    $ twrk addtask "Deploy to staging" -P TASK-001.1    # Subtask of a subtask
+  
+  For AI/LLM workflows:
+    $ twrk addtask "Review PR #123" -a @ai-agent -d "Check for security issues"
+    $ twrk addtask "Generate tests" -a @claude -t ai codegen -d "Cover edge cases"
+    $ twrk addtask "Optimize query" -a @ai-agent -d "Current query takes 5s, need <100ms"
+  
+  Quick shortcuts:
+    $ twrk addtask "Quick fix" -p high -t urgent        # High priority urgent task
+    $ twrk addtask "Document API" -e 4 -t docs          # 4-hour documentation task
+    $ twrk addtask "Meeting notes" -t meeting today     # Tagged for easy filtering
+  
+Note: Task IDs support fuzzy matching - use '1' instead of 'TASK-001'`
     )
     .action(async (name, options) => {
       const logger = new Logger('task-add');

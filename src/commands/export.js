@@ -12,21 +12,50 @@ export function exportCommand() {
     .option('-o, --output <file>', 'Output file path (auto-generated if not specified)')
     .option('-s, --status <status>', 'Filter by status')
     .option('-a, --assignee <name>', 'Filter by assignee')
+    .option('-t, --tasks <ids...>', 'Export specific tasks by ID')
     .option('--all', 'Include completed and cancelled tasks')
+    .option('--with-subtasks', 'Include subtasks of exported tasks')
     .option('--with-metadata', 'Include YAML frontmatter metadata (markdown only)')
     .option('--stdout', 'Output to stdout instead of file')
     .addHelpText(
       'after',
       `
 Examples:
-  $ twrk export                            # Export to tasks-export-YYYY-MM-DD.md
-  $ twrk export -o tasks.md                # Export to specific file
-  $ twrk export --stdout                   # Output to stdout (old behavior)
-  $ twrk export --all -f json              # Export all tasks as JSON file
-  $ twrk export -s todo                    # Export only todo tasks to file
-  $ twrk export -a @ai-agent               # Export AI agent tasks to file
-  $ twrk export --with-metadata            # Include YAML frontmatter
-  $ twrk export -f csv                     # Export as CSV for spreadsheets`
+  Basic exports:
+    $ twrk export                                # Export active tasks to dated file
+    $ twrk export -o mytasks.md                  # Export to specific filename
+    $ twrk export --stdout                       # Output to terminal (pipe-friendly)
+    $ twrk export --all                          # Include completed/cancelled tasks
+    
+  Export specific tasks:
+    $ twrk export -t 1 2 3                       # Export tasks 1, 2, and 3
+    $ twrk export -t TASK-001 TASK-002           # Use full IDs
+    $ twrk export -t 1 --with-subtasks           # Include all subtasks
+    
+  Filter exports:
+    $ twrk export -s todo                        # Only todo tasks
+    $ twrk export -s in-progress -a @john        # John's active tasks
+    $ twrk export -a @ai-agent                   # Tasks for AI to work on
+    
+  Different formats:
+    $ twrk export -f json                        # JSON for programmatic use
+    $ twrk export -f csv                         # CSV for spreadsheets
+    $ twrk export -f markdown --with-metadata    # Markdown with YAML frontmatter
+    
+  AI/LLM workflows:
+    $ twrk export -t 1 2 3 --stdout | pbcopy     # Copy to clipboard (macOS)
+    $ twrk export -a @ai-agent -o ai-tasks.md    # Export AI's assigned tasks
+    $ twrk export -s todo --stdout | llm         # Pipe directly to LLM CLI
+    
+  Advanced examples:
+    $ twrk export -t $(twrk listtask -s blocked --format json | jq -r '.[].id')
+    $ twrk export --all -f json | jq '.[] | select(.priority=="high")'
+    $ twrk export -s todo --stdout | grep -A5 "Priority: high"
+    
+Note: 
+  - Default format is Markdown, perfect for LLMs
+  - Files are saved as 'tasks-export-YYYY-MM-DD.{ext}'
+  - Use --stdout to pipe to other commands`
     )
     .action(async options => {
       const logger = new Logger('export');
@@ -44,11 +73,36 @@ Examples:
         }
 
         // Get tasks
-        let tasks = api.listTasks(queryOptions);
+        let tasks;
 
-        // Filter out completed and cancelled tasks unless --all is specified
-        if (!options.all) {
-          tasks = tasks.filter(task => task.status !== 'completed' && task.status !== 'cancelled');
+        if (options.tasks && options.tasks.length > 0) {
+          // Export specific tasks by ID
+          tasks = [];
+          for (const taskId of options.tasks) {
+            try {
+              const task = api.getTask(taskId);
+              tasks.push(task);
+
+              // Include subtasks if requested
+              if (options.withSubtasks) {
+                const subtasks = api.getSubtasks(task.id);
+                tasks.push(...subtasks);
+              }
+            } catch (error) {
+              logger.warn(`Failed to get task ${taskId}: ${error.message}`);
+              console.warn(`⚠️  Skipping ${taskId}: ${error.message}`);
+            }
+          }
+        } else {
+          // Export filtered tasks
+          tasks = api.listTasks(queryOptions);
+
+          // Filter out completed and cancelled tasks unless --all is specified
+          if (!options.all) {
+            tasks = tasks.filter(
+              task => task.status !== 'completed' && task.status !== 'cancelled'
+            );
+          }
         }
 
         if (tasks.length === 0) {
@@ -113,6 +167,9 @@ async function formatAsMarkdown(tasks, api, includeMetadata = false) {
   }
 
   output += `# Tasks Export - ${date}\n\n`;
+
+  // Add LLM-friendly instructions
+  output += `> The following tasks are exported from the Taskwerk task management system. Each task includes its ID, name, status, priority, and other relevant details.\n\n`;
 
   for (const task of tasks) {
     output += `## ${task.id}: ${task.name}\n`;

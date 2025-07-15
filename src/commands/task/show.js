@@ -120,6 +120,37 @@ export function taskShowCommand() {
           });
         }
 
+        // Show subtasks
+        const subtasks = api.getSubtasks(task.id);
+        if (subtasks.length > 0) {
+          console.log(`\n📋 Subtasks:`);
+          subtasks.forEach(subtask => {
+            const statusIcon = {
+              'todo': '⏳',
+              'in-progress': '🔄',
+              'in_progress': '🔄',
+              'blocked': '🚫',
+              'done': '✅',
+              'completed': '✅',
+              'cancelled': '❌',
+            }[subtask.status] || '⏳';
+            console.log(`  ${statusIcon} ${subtask.id} - ${subtask.name}`);
+          });
+        }
+
+        // Show parent task if this is a subtask
+        if (task.parent_id) {
+          try {
+            const parent = api.getParentTask(task.id);
+            if (parent) {
+              console.log(`\n📎 Parent Task:`);
+              console.log(`  ${parent.id} - ${parent.name}`);
+            }
+          } catch (err) {
+            // Parent might be deleted
+          }
+        }
+
         // Show recent timeline events
         if (timeline.length > 0) {
           console.log(`\n⏱️  Recent Activity:`);

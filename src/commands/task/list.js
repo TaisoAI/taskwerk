@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { TaskwerkAPI } from '../../api/taskwerk-api.js';
 import { Logger } from '../../logging/logger.js';
 
-function formatTableRow(task, widths) {
+function formatTableRow(task, widths, indent = 0) {
   const statusEmoji = {
     'todo': '⏳ Todo',
     'in-progress': '🔄 Prog',
@@ -20,11 +20,15 @@ function formatTableRow(task, widths) {
     critical: '🚨 Crit',
   };
 
+  // Add indentation for subtasks
+  const indentStr = '  '.repeat(indent);
+  const taskName = indentStr + (indent > 0 ? '└─ ' : '') + task.name;
+  
   const cols = [
     task.id.padEnd(widths.id),
     (statusEmoji[task.status] || '⏳ Todo').padEnd(widths.status),
     (priorityEmoji[task.priority] || '🟡 Med').padEnd(widths.priority),
-    task.name.slice(0, widths.name).padEnd(widths.name),
+    taskName.slice(0, widths.name).padEnd(widths.name),
     new Date(task.created_at).toLocaleDateString().padEnd(widths.created),
     (task.assignee || '').padEnd(widths.assignee)
   ];
@@ -34,7 +38,7 @@ function formatTableRow(task, widths) {
 
 function calculateColumnWidths(tasks) {
   const widths = {
-    id: 9,        // TASK-001
+    id: 12,       // TASK-001.1
     status: 8,    // 🔄 Prog
     priority: 8,  // 🚨 Crit
     name: 35,     // Task name
@@ -51,6 +55,42 @@ function calculateColumnWidths(tasks) {
   return widths;
 }
 
+function buildTaskTree(tasks, api) {
+  // Group tasks by parent_id
+  const taskMap = new Map();
+  const rootTasks = [];
+  
+  // First pass: create map and identify root tasks
+  tasks.forEach(task => {
+    taskMap.set(task.id, task);
+    if (!task.parent_id) {
+      rootTasks.push(task);
+    }
+  });
+  
+  // Second pass: get subtasks for each task
+  const processedTasks = [];
+  
+  function addTaskWithSubtasks(task, indent = 0) {
+    processedTasks.push({ ...task, _indent: indent });
+    
+    // Get subtasks
+    const subtasks = api.getSubtasks(task.id);
+    subtasks.forEach(subtask => {
+      if (taskMap.has(subtask.id)) {
+        addTaskWithSubtasks(subtask, indent + 1);
+      }
+    });
+  }
+  
+  // Process root tasks
+  rootTasks.forEach(task => {
+    addTaskWithSubtasks(task);
+  });
+  
+  return processedTasks;
+}
+
 export function taskListCommand() {
   const list = new Command('list');
 
@@ -65,6 +105,7 @@ export function taskListCommand() {
     .option('--format <format>', 'Output format (table, json, csv)', 'table')
     .option('--limit <number>', 'Limit number of results', '50')
     .option('--all', 'Show all tasks including completed/archived')
+    .option('--tree', 'Show tasks in hierarchical tree view')
     .addHelpText('after', `
 Examples:
   $ twrk listtask                          # List active tasks
@@ -175,9 +216,18 @@ Examples:
         console.log('─'.repeat(totalWidth));
 
         // Display tasks
-        tasks.forEach(task => {
-          console.log(formatTableRow(task, widths));
-        });
+        if (options.tree) {
+          // Build hierarchical view
+          const treeTasks = buildTaskTree(tasks, api);
+          treeTasks.forEach(task => {
+            console.log(formatTableRow(task, widths, task._indent || 0));
+          });
+        } else {
+          // Regular flat view
+          tasks.forEach(task => {
+            console.log(formatTableRow(task, widths));
+          });
+        }
 
         console.log('─'.repeat(totalWidth));
         console.log(`📊 Showing ${tasks.length} task${tasks.length !== 1 ? 's' : ''}`);

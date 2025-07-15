@@ -1,5 +1,5 @@
 import { getDatabase } from '../db/database.js';
-import { generateTaskId, taskIdExists } from '../db/task-id.js';
+import { generateTaskId, generateSubtaskId, taskIdExists } from '../db/task-id.js';
 import { TaskNotFoundError, DuplicateTaskIdError } from '../errors/task-errors.js';
 import { ValidationError } from '../errors/base-error.js';
 import { Logger } from '../logging/logger.js';
@@ -39,7 +39,15 @@ export class TaskwerkAPI {
 
     // Generate ID if not provided
     if (!taskData.id) {
-      taskData.id = await generateTaskId('TASK', db);
+      if (taskData.parent_id) {
+        // Check if parent exists
+        this.getTask(taskData.parent_id);
+        // Generate subtask ID like TASK-001.1
+        taskData.id = await generateSubtaskId(taskData.parent_id, db);
+      } else {
+        // Generate regular task ID like TASK-001
+        taskData.id = await generateTaskId('TASK', db);
+      }
     } else if (taskIdExists(taskData.id, db)) {
       throw new DuplicateTaskIdError(taskData.id);
     }
@@ -791,6 +799,47 @@ export class TaskwerkAPI {
       this.logger.error(`Failed to add note to task ${taskId}: ${error.message}`);
       throw error;
     }
+  }
+
+
+  /**
+   * Get parent task if this is a subtask
+   * @param {string} taskId - Task ID
+   * @returns {Object|null} Parent task or null
+   */
+  getParentTask(taskId) {
+    const db = this.getDatabase();
+    const task = this.getTask(taskId);
+    
+    if (!task.parent_id) {
+      return null;
+    }
+    
+    return this.getTask(task.parent_id);
+  }
+
+  /**
+   * Get task hierarchy (parent and all siblings)
+   * @param {string} taskId - Task ID
+   * @returns {Object} Hierarchy object with parent and siblings
+   */
+  getTaskHierarchy(taskId) {
+    const task = this.getTask(taskId);
+    const hierarchy = {
+      task,
+      parent: null,
+      siblings: [],
+      subtasks: []
+    };
+    
+    if (task.parent_id) {
+      hierarchy.parent = this.getTask(task.parent_id);
+      hierarchy.siblings = this.getSubtasks(task.parent_id).filter(t => t.id !== taskId);
+    }
+    
+    hierarchy.subtasks = this.getSubtasks(taskId);
+    
+    return hierarchy;
   }
 
   /**

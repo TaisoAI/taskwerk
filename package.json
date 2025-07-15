@@ -1,6 +1,6 @@
 {
   "name": "taskwerk",
-  "version": "0.7.4-dev.5",
+  "version": "0.7.4-dev.6",
   "author": "manu chatterjee <deftio@deftio.com>",
   "description": "A task management CLI for developers and AI agents working together",
   "repository": {
@@ -18,8 +18,8 @@
   },
   "scripts": {
     "start": "node src/cli/index.js",
-    "test": "npm run lint && vitest run test/ --pool=forks --poolOptions.forks.singleFork=true --poolOptions.forks.maxForks=1",
-    "test:coverage": "npm run lint && vitest run test/ --coverage --pool=forks --poolOptions.forks.singleFork=true --poolOptions.forks.maxForks=1",
+    "test": "npm run lint && vitest run test/ --reporter=verbose",
+    "test:coverage": "npm run lint && vitest run test/ --coverage --reporter=verbose",
     "test:watch": "vitest test/",
     "test:unit": "vitest run test/",
     "lint": "eslint src/ test/",

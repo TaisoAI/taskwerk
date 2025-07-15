@@ -75,7 +75,7 @@ describe('CLI Entry Point', () => {
       proc.on('close', code => {
         expect(code).toBe(0);
         expect(output).toContain('taskwerk');
-        expect(output).toContain('0.7.4-dev.5');
+        expect(output).toContain('0.7.4-dev.6');
         resolve();
       });
     });

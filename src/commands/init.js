@@ -28,6 +28,12 @@ export function initCommand() {
         // Initialize configuration
         const configManager = new ConfigManager();
         configManager.load(); // This creates default config if it doesn't exist
+
+        // Save the default config if it doesn't exist
+        const configPath = join(taskwerkDir, 'config.yml');
+        if (!existsSync(configPath)) {
+          configManager.save();
+        }
         console.log('✅ Configuration initialized');
 
         // Initialize database
@@ -48,12 +54,58 @@ export function initCommand() {
           console.log('✅ Log directory created');
         }
 
+        // Create taskwerk_rules.md
+        const rulesPath = join(taskwerkDir, 'taskwerk_rules.md');
+        if (!existsSync(rulesPath)) {
+          const rulesContent = `# Taskwerk Rules
+
+This file contains project-specific rules and conventions for task management.
+
+## Task Naming Conventions
+- Use clear, action-oriented task names
+- Start with a verb when possible (e.g., "Fix login bug", "Update documentation")
+
+## Priority Guidelines
+- **Critical**: Production issues, security vulnerabilities
+- **High**: Blocking other work, customer-facing bugs
+- **Medium**: Important features, non-blocking bugs
+- **Low**: Nice-to-have features, minor improvements
+
+## Task Assignment
+- Use @username format for assignments
+- Special assignees:
+  - @ai-agent: Tasks suitable for AI automation
+  - @team: Tasks for team discussion
+
+## Task Categories
+Define your project-specific categories here:
+- bug: Bug fixes
+- feature: New features
+- docs: Documentation updates
+- refactor: Code improvements
+- test: Test additions or fixes
+
+## Workflow States
+- **todo**: Not started
+- **in-progress**: Currently being worked on
+- **blocked**: Waiting on external dependency
+- **review**: In code review
+- **done**: Completed
+- **cancelled**: No longer needed
+
+## Notes
+Add any project-specific rules or conventions below:
+`;
+          require('fs').writeFileSync(rulesPath, rulesContent, 'utf8');
+          console.log('✅ Created taskwerk_rules.md');
+        }
+
         database.close();
 
         console.log('\n🎉 Taskwerk initialized successfully!');
         console.log('\nTry these commands:');
-        console.log('  taskwerk task add "My first task"');
-        console.log('  taskwerk task list');
+        console.log('  taskwerk addtask "My first task"');
+        console.log('  taskwerk listtask');
         console.log('  taskwerk --help');
       } catch (error) {
         logger.error('Failed to initialize taskwerk', error);

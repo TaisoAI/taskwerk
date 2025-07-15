@@ -1,7 +1,7 @@
 import { getDatabase } from './database.js';
 
 /**
- * Generate the next task ID in TASK-XXX format
+ * Generate the next task ID in TASK-001 format
  * @param {string} prefix - Optional prefix (default: 'TASK')
  * @param {object} db - Optional database instance (defaults to singleton)
  * @returns {Promise<string>} The next available task ID
@@ -21,7 +21,10 @@ export async function generateTaskId(prefix = 'TASK', db = null) {
     .get(prefix, prefix);
 
   const nextNumber = (result?.max_id || 0) + 1;
-  return `${prefix}-${nextNumber}`;
+
+  // Format with leading zeros (minimum 3 digits, auto-extend for larger numbers)
+  const paddedNumber = nextNumber.toString().padStart(3, '0');
+  return `${prefix}-${paddedNumber}`;
 }
 
 /**
@@ -37,7 +40,7 @@ export function taskIdExists(taskId, db = null) {
 }
 
 /**
- * Validate task ID format
+ * Validate task ID format (accepts both TASK-1 and TASK-001 formats)
  * @param {string} taskId - The task ID to validate
  * @returns {boolean} True if valid format
  */

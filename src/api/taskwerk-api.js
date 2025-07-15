@@ -120,15 +120,22 @@ export class TaskwerkAPI {
   }
 
   /**
-   * Get a task by ID
+   * Get a task by ID (case-insensitive)
    * @param {string} taskId - Task ID
    * @returns {Object} Task data
    */
   getTask(taskId) {
     const db = this.getDatabase();
 
-    const stmt = db.prepare('SELECT * FROM tasks WHERE id = ?');
-    const task = stmt.get(taskId);
+    // Try exact match first
+    let stmt = db.prepare('SELECT * FROM tasks WHERE id = ?');
+    let task = stmt.get(taskId);
+
+    // If not found, try case-insensitive match
+    if (!task) {
+      stmt = db.prepare('SELECT * FROM tasks WHERE UPPER(id) = UPPER(?)');
+      task = stmt.get(taskId);
+    }
 
     if (!task) {
       throw new TaskNotFoundError(`Task ${taskId} not found`);
@@ -164,8 +171,9 @@ export class TaskwerkAPI {
       throw new ValidationError(`Validation failed: ${messages.join(', ')}`);
     }
 
-    // Check if task exists
+    // Check if task exists and get the actual ID (handles case-insensitive lookup)
     const currentTask = this.getTask(taskId);
+    const actualTaskId = currentTask.id;
 
     // Track changes for timeline
     const changes = {};
@@ -199,7 +207,7 @@ export class TaskwerkAPI {
     values.push(updatedBy);
 
     const sql = `UPDATE tasks SET ${updateFields.join(', ')} WHERE id = ?`;
-    values.push(taskId);
+    values.push(actualTaskId);
 
     try {
       const stmt = db.prepare(sql);
@@ -209,12 +217,12 @@ export class TaskwerkAPI {
         throw new ValidationError('Failed to update task');
       }
 
-      this.logger.info(`Updated task ${taskId}`);
+      this.logger.info(`Updated task ${actualTaskId}`);
 
       // Add to timeline
-      await this.addTimelineEvent(taskId, 'updated', updatedBy, 'Task updated', changes);
+      await this.addTimelineEvent(actualTaskId, 'updated', updatedBy, 'Task updated', changes);
 
-      return this.getTask(taskId);
+      return this.getTask(actualTaskId);
     } catch (error) {
       this.logger.error(`Failed to update task ${taskId}: ${error.message}`);
       throw error;
@@ -230,21 +238,22 @@ export class TaskwerkAPI {
   async deleteTask(taskId, _deletedBy = 'system') {
     const db = this.getDatabase();
 
-    // Check if task exists
-    this.getTask(taskId);
+    // Check if task exists and get the actual ID (handles case-insensitive lookup)
+    const task = this.getTask(taskId);
+    const actualTaskId = task.id;
 
     try {
       const stmt = db.prepare('DELETE FROM tasks WHERE id = ?');
-      const result = stmt.run(taskId);
+      const result = stmt.run(actualTaskId);
 
       if (result.changes === 0) {
         throw new ValidationError('Failed to delete task');
       }
 
-      this.logger.info(`Deleted task ${taskId}`);
+      this.logger.info(`Deleted task ${actualTaskId}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to delete task ${taskId}: ${error.message}`);
+      this.logger.error(`Failed to delete task ${actualTaskId}: ${error.message}`);
       throw error;
     }
   }

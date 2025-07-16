@@ -1,6 +1,6 @@
 {
   "name": "taskwerk",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "author": "manu chatterjee <deftio@deftio.com>",
   "description": "A task management CLI for developers and AI agents working together",
   "repository": {

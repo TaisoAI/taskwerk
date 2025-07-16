@@ -17,6 +17,10 @@ describe('LLMManager', () => {
     originalHome = process.env.HOME;
     process.env.HOME = tempDir;
 
+    // Create .taskwerk directory
+    const taskwerkDir = path.join(tempDir, '.taskwerk');
+    await fs.mkdir(taskwerkDir, { recursive: true });
+
     // Create fresh ConfigManager and LLMManager instances
     configManager = new ConfigManager();
     llmManager = new LLMManager(configManager);

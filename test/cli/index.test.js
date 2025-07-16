@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { version } from '../../src/version.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -75,7 +76,7 @@ describe('CLI Entry Point', () => {
       proc.on('close', code => {
         expect(code).toBe(0);
         expect(output).toContain('taskwerk');
-        expect(output).toContain('0.7.4');
+        expect(output).toContain(version);
         resolve();
       });
     });

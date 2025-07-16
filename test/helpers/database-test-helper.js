@@ -3,7 +3,6 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { TaskwerkDatabase } from '../../src/db/database.js';
 import { applySchema } from '../../src/db/schema.js';
-import { MigrationRunner } from '../../src/db/migrations.js';
 
 export function createTestDatabase() {
   const tempDir = mkdtempSync(join(tmpdir(), 'taskwerk-test-'));
@@ -13,9 +12,10 @@ export function createTestDatabase() {
   const db = database.connect();
 
   applySchema(db);
-
-  const migrationRunner = new MigrationRunner(db);
-  migrationRunner.runPendingMigrations();
+  
+  // Note: We don't run migrations in tests because applySchema() 
+  // already creates all necessary tables. The migration system
+  // is not currently used in this project.
 
   return {
     database,

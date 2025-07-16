@@ -12,8 +12,8 @@ export function createTestDatabase() {
   const db = database.connect();
 
   applySchema(db);
-  
-  // Note: We don't run migrations in tests because applySchema() 
+
+  // Note: We don't run migrations in tests because applySchema()
   // already creates all necessary tables. The migration system
   // is not currently used in this project.
 

@@ -112,6 +112,63 @@ async function getVersion(currentVersion) {
   }
 }
 
+// Helper to wait for CI to complete
+async function waitForCICompletion(timeout = 300000) { // 5 minutes default
+  console.log(chalk.gray('\nWaiting for CI to complete...'));
+  
+  const startTime = Date.now();
+  let lastStatus = null;
+  
+  while (Date.now() - startTime < timeout) {
+    try {
+      // Get latest workflow run
+      const result = spawnSync('gh', [
+        'run', 'list', 
+        '--branch', 'main', 
+        '--limit', '1', 
+        '--json', 'status,conclusion,name'
+      ], {
+        encoding: 'utf8',
+        stdio: 'pipe'
+      });
+      
+      if (result.status === 0 && result.stdout) {
+        const runs = JSON.parse(result.stdout);
+        if (runs.length > 0) {
+          const run = runs[0];
+          
+          if (run.status !== lastStatus) {
+            lastStatus = run.status;
+            console.log(chalk.gray(`CI status: ${run.status}`));
+          }
+          
+          if (run.status === 'completed') {
+            return run.conclusion === 'success';
+          }
+        }
+      }
+    } catch (error) {
+      // Ignore errors and continue waiting
+    }
+    
+    // Wait 5 seconds before checking again
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+  
+  // Timeout reached
+  console.log(chalk.yellow('⚠️  CI check timed out'));
+  const { continueAnyway } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'continueAnyway',
+      message: 'CI status check timed out. Continue anyway?',
+      default: false
+    }
+  ]);
+  
+  return continueAnyway;
+}
+
 async function run() {
   try {
     // Check if we're on main branch
@@ -129,65 +186,6 @@ async function run() {
       if (!proceed) {
         console.log(chalk.red('Release cancelled.'));
         process.exit(0);
-      }
-    }
-
-    // Check CI status on main branch
-    if (branch === 'main') {
-      console.log(chalk.gray('Checking CI status...'));
-      try {
-        // Check if gh CLI is available
-        const ghCheck = spawnSync('gh', ['--version'], { stdio: 'pipe' });
-        if (ghCheck.status === 0) {
-          // Get latest CI run status
-          const ciStatus = spawnSync('gh', ['run', 'list', '--branch', 'main', '--limit', '1', '--json', 'status,conclusion'], {
-            encoding: 'utf8',
-            stdio: 'pipe'
-          });
-          
-          if (ciStatus.status === 0 && ciStatus.stdout) {
-            const runs = JSON.parse(ciStatus.stdout);
-            if (runs.length > 0 && runs[0].conclusion === 'failure') {
-              console.log(chalk.red('❌ Latest CI run on main branch failed!'));
-              console.log(chalk.yellow('Creating a release with failing CI can lead to npm publish failures.'));
-              
-              const { proceedWithFailingCI } = await inquirer.prompt([
-                {
-                  type: 'confirm',
-                  name: 'proceedWithFailingCI',
-                  message: 'CI is failing. Continue anyway?',
-                  default: false
-                }
-              ]);
-              
-              if (!proceedWithFailingCI) {
-                console.log(chalk.red('Release cancelled. Please fix CI failures first.'));
-                console.log(chalk.gray('Tip: Use a feature branch to fix issues, then merge to main.'));
-                process.exit(0);
-              }
-            } else if (runs.length > 0 && runs[0].status === 'in_progress') {
-              console.log(chalk.yellow('⏳ CI is currently running on main branch.'));
-              const { waitForCI } = await inquirer.prompt([
-                {
-                  type: 'confirm',
-                  name: 'waitForCI',
-                  message: 'Wait for CI to complete?',
-                  default: true
-                }
-              ]);
-              
-              if (!waitForCI) {
-                console.log(chalk.yellow('⚠️  Proceeding without waiting for CI to complete.'));
-              } else {
-                console.log(chalk.red('Please wait for CI to complete and run make-release again.'));
-                process.exit(0);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        // gh CLI not available or error checking status, continue with warning
-        console.log(chalk.yellow('⚠️  Could not check CI status. Make sure CI is passing before releasing.'));
       }
     }
 
@@ -297,46 +295,51 @@ async function run() {
     console.log(chalk.blue('\n📋 Generate release notes:\n'));
     
     const lastTag = execSync('git describe --tags --abbrev=0 2>/dev/null || echo ""').toString().trim();
-    let commits = '';
+    let commitMessages = '';
     
     if (lastTag) {
-      commits = execSync(`git log ${lastTag}..HEAD --pretty=format:"- %s (%h)" --no-merges`).toString();
+      commitMessages = execSync(`git log ${lastTag}..HEAD --pretty=format:"- %s"`).toString();
     } else {
-      commits = execSync('git log --pretty=format:"- %s (%h)" --no-merges').toString();
+      commitMessages = execSync('git log --pretty=format:"- %s"').toString();
     }
-    
+
     console.log(chalk.gray('Recent commits:'));
-    console.log(commits);
-    
+    console.log(chalk.gray(commitMessages));
+
     const { releaseNotes } = await inquirer.prompt([
       {
         type: 'editor',
         name: 'releaseNotes',
-        message: 'Edit release notes (Markdown supported):',
-        default: `## What's Changed\n\n${commits}\n\n## Installation\n\n\`\`\`bash\nnpm install -g taskwerk@${newVersion}\n\`\`\`\n`
+        message: 'Edit release notes:',
+        default: `# taskwerk ${newVersion}\n\n## Changes\n\n${commitMessages}\n`
       }
     ]);
 
     // Confirm release
     console.log(chalk.blue('\n📦 Release Summary:\n'));
-    console.log(`Version: ${chalk.yellow(newVersion)}`);
-    console.log(`Branch: ${chalk.yellow(branch)}`);
-    console.log('\nRelease Notes:');
-    console.log(chalk.gray(releaseNotes));
-    
+    console.log(`Version: ${chalk.yellow(currentVersion)} → ${chalk.green(newVersion)}`);
+    console.log(`Branch: ${chalk.cyan(branch)}`);
+    console.log('\nRelease notes:');
+    console.log(chalk.gray(releaseNotes.split('\n').slice(0, 10).join('\n')));
+    if (releaseNotes.split('\n').length > 10) {
+      console.log(chalk.gray('...'));
+    }
+
     const { confirmRelease } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'confirmRelease',
-        message: chalk.bold('Create this release?'),
+        message: `Ready to release v${newVersion}?`,
         default: true
       }
     ]);
 
     if (!confirmRelease) {
-      // Revert package.json
-      execSync('git checkout -- package.json');
-      console.log(chalk.red('Release cancelled.'));
+      console.log(chalk.yellow('Release cancelled.'));
+      // Revert package.json if we changed it
+      if (versionChanged) {
+        execSync('git checkout -- package.json');
+      }
       process.exit(0);
     }
 
@@ -347,16 +350,30 @@ async function run() {
       console.log(chalk.green('✅ Committed version bump'));
     }
 
+    // Push to main (but not the tag yet)
+    console.log(chalk.gray('\nPushing to main...'));
+    execSync('git push origin main');
+    console.log(chalk.green('✅ Pushed to main'));
+
+    // Wait for CI to complete
+    const ciPassed = await waitForCICompletion();
+    
+    if (!ciPassed) {
+      console.log(chalk.red('\n❌ CI failed or was cancelled.'));
+      console.log(chalk.yellow('The version bump has been pushed, but no tag or release was created.'));
+      console.log(chalk.yellow('Fix the CI issues and run make-release again.'));
+      process.exit(1);
+    }
+
+    console.log(chalk.green('✅ CI passed!'));
+
     // Create and push tag
     const tagName = `v${newVersion}`;
     execSync(`git tag -a ${tagName} -m "Release ${tagName}"`);
     console.log(chalk.green(`✅ Created tag ${tagName}`));
 
-    // Push changes
-    console.log(chalk.gray('\nPushing to GitHub...'));
-    execSync('git push origin main');
     execSync(`git push origin ${tagName}`);
-    console.log(chalk.green('✅ Pushed to GitHub'));
+    console.log(chalk.green('✅ Pushed tag'));
 
     // Create GitHub release using gh CLI
     console.log(chalk.gray('\nCreating GitHub release...'));
@@ -383,9 +400,7 @@ async function run() {
     }
 
     console.log(chalk.bold.green(`\n🎉 Release v${newVersion} completed!\n`));
-    console.log(chalk.gray('Next steps:'));
-    console.log(chalk.gray('1. The GitHub Actions workflow will automatically publish to npm'));
-    console.log(chalk.gray('2. Or publish manually with: npm publish'));
+    console.log(chalk.gray('The tag will trigger automatic npm publish via GitHub Actions.'));
 
   } catch (error) {
     console.error(chalk.red('\n❌ Release failed:'), error.message);

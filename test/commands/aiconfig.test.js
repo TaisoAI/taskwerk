@@ -67,9 +67,7 @@ describe('aiconfig command', () => {
 
     process.exit = originalExit;
 
-    expect(testSetup.consoleErrorSpy).toHaveBeenCalledWith(
-      '❌ Invalid configuration format.'
-    );
+    expect(testSetup.consoleErrorSpy).toHaveBeenCalledWith('❌ Invalid configuration format.');
     expect(testSetup.consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining('💡 Use: taskwerk aiconfig set')
     );

@@ -267,9 +267,23 @@ export class LLMManager {
       current_model: aiConfig.current_model || 'none',
       providers: providers.map(p => ({
         ...p,
-        config: p.configured ? this.getProviderConfig(p.name) : {},
+        config: p.configured ? this.safeGetProviderConfig(p.name) : {},
       })),
       defaults: aiConfig.defaults || {},
     };
+  }
+
+  /**
+   * Safely get provider config without throwing
+   * @param {string} providerName
+   * @returns {Object}
+   */
+  safeGetProviderConfig(providerName) {
+    try {
+      return this.getProviderConfig(providerName);
+    } catch (error) {
+      // Return just the raw config if we can't get provider details
+      return this.configManager.get(`ai.providers.${providerName}`, {});
+    }
   }
 }

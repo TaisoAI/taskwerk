@@ -9,7 +9,7 @@ export function aiconfigCommand() {
 
   aiconfig
     .description('Configure AI/LLM settings')
-    .option('--set <key=value>', 'Set a configuration value (e.g., provider.api_key)')
+    .option('--set <key=value>', 'Set a configuration value (e.g., openai.api_key=sk-...)')
     .option('--list-providers', 'List available AI providers')
     .option('--list-models [provider]', 'List available models for provider')
     .option('--choose', 'Interactively choose provider and model')
@@ -52,7 +52,13 @@ export function aiconfigCommand() {
         }
       } catch (error) {
         logger.error('Configuration failed', error);
-        console.error('❌ Configuration failed:', error.message);
+        if (
+          error.message &&
+          !error.message.includes('Unknown configuration key') &&
+          !error.message.includes('Invalid configuration format')
+        ) {
+          console.error('❌ Configuration failed:', error.message);
+        }
         process.exit(1);
       }
     });
@@ -269,26 +275,50 @@ async function setConfig(llmManager, configString) {
   // Parse the config string (e.g., "anthropic.api_key=sk-ant-...")
   const match = configString.match(/^([^.]+)\.([^=]+)=(.+)$/);
   if (!match) {
-    throw new Error('Invalid configuration format. Use: provider.key=value');
+    console.error('❌ Invalid configuration format.');
+    console.error('\n💡 Use: taskwerk aiconfig set <provider>.<key>=<value>');
+    console.error('\nExamples:');
+    console.error('  taskwerk aiconfig set openai.api_key=sk-...');
+    console.error('  taskwerk aiconfig set anthropic.api_key=sk-ant-...');
+    console.error('  taskwerk aiconfig set ollama.base_url=http://localhost:11434');
+    process.exit(1);
   }
 
   const [, provider, key, value] = match;
 
   // Special handling for provider-level settings
   if (key === 'api_key' || key === 'enabled' || key === 'base_url') {
-    llmManager.configureProvider(provider, key, value);
-    console.log(`✅ Set ${provider}.${key}`);
+    try {
+      llmManager.configureProvider(provider, key, value);
+      console.log(`✅ Set ${provider}.${key}`);
 
-    // Test the connection if we just set an API key
-    if (key === 'api_key') {
-      console.log('\n🧪 Testing connection...');
-      const providerInstance = llmManager.getProvider(provider);
-      const result = await providerInstance.testConnection();
-      const icon = result.success ? '✅' : '❌';
-      console.log(`${icon} ${result.message}`);
+      // Test the connection if we just set an API key
+      if (key === 'api_key') {
+        console.log('\n🧪 Testing connection...');
+        const providerInstance = llmManager.getProvider(provider);
+        const result = await providerInstance.testConnection();
+        const icon = result.success ? '✅' : '❌';
+        console.log(`${icon} ${result.message}`);
+      }
+    } catch (error) {
+      if (error.message.includes('Unknown provider')) {
+        console.error(`❌ Unknown provider: ${provider}`);
+        console.error('\n💡 Available providers:');
+        const providers = llmManager.listProviders();
+        for (const p of providers) {
+          console.error(`  - ${p.name}`);
+        }
+      } else {
+        console.error(`❌ Failed to set configuration: ${error.message}`);
+      }
+      process.exit(1);
     }
   } else {
-    throw new Error(`Unknown configuration key: ${key}`);
+    console.error(`❌ Unknown configuration key: ${key}`);
+    console.error('\n💡 Valid keys are: api_key, enabled, base_url');
+    console.error('\nExample:');
+    console.error(`  taskwerk aiconfig set ${provider}.api_key=<your-api-key>`);
+    process.exit(1);
   }
 }
 

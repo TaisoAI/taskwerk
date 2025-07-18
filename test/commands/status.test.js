@@ -1,18 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { statusCommand } from '../../src/commands/status.js';
 import { setupCommandTest } from '../helpers/command-test-helper.js';
-import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync, mkdtempSync } from 'fs';
 import { join } from 'path';
+import { tmpdir } from 'os';
 import { TaskwerkDatabase } from '../../src/db/database.js';
 import { applySchema } from '../../src/db/schema.js';
 
 describe('status command', () => {
   let testSetup;
+  let tempDir;
+  let originalCwd;
 
   beforeEach(() => {
     testSetup = setupCommandTest(true); // Enable database
 
-    // Create .taskwerk directory and database file in current directory for the test
+    // Create a temporary directory and change to it
+    tempDir = mkdtempSync(join(tmpdir(), 'taskwerk-test-'));
+    originalCwd = process.cwd();
+    process.chdir(tempDir);
+
+    // Create .taskwerk directory and database file in temp directory for the test
     const taskwerkDir = '.taskwerk';
     if (!existsSync(taskwerkDir)) {
       mkdirSync(taskwerkDir, { recursive: true });
@@ -33,10 +41,12 @@ describe('status command', () => {
   afterEach(() => {
     testSetup.cleanup();
 
-    // Clean up test directory
-    const taskwerkDir = '.taskwerk';
-    if (existsSync(taskwerkDir)) {
-      rmSync(taskwerkDir, { recursive: true, force: true });
+    // Change back to original directory
+    process.chdir(originalCwd);
+
+    // Clean up temp directory
+    if (tempDir && existsSync(tempDir)) {
+      rmSync(tempDir, { recursive: true, force: true });
     }
   });
 

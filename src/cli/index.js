@@ -35,7 +35,7 @@ program
 Quick Start:
   $ twrk init                              # Initialize taskwerk in current directory
   $ twrk addtask "Fix login bug"           # Create your first task
-  $ twrk listtask                          # View all tasks
+  $ twrk list                              # View all tasks
   $ twrk showtask 1                        # Show details for task 1
 
 Common Workflows:
@@ -51,7 +51,7 @@ Common Workflows:
     
   Bulk Operations:
     $ twrk export -s todo                          # Export all todo tasks
-    $ twrk listtask -s blocked --format json       # List blocked tasks as JSON
+    $ twrk list -s blocked --format json       # List blocked tasks as JSON
 
 Key Features:
   • Fuzzy ID matching: Use '1' instead of 'TASK-001'
@@ -93,9 +93,20 @@ const addTask = taskAddCommand();
 addTask.name('addtask');
 program.addCommand(addTask);
 
+// Add 'list' as the primary command
+const listCommand = taskListCommand();
+listCommand.name('list');
+program.addCommand(listCommand);
+
+// Add 'listtask' as an alias for backwards compatibility
 const listTask = taskListCommand();
 listTask.name('listtask');
 program.addCommand(listTask);
+
+// Add 'listtasks' as another alias
+const listTasks = taskListCommand();
+listTasks.name('listtasks');
+program.addCommand(listTasks);
 
 const showTask = taskShowCommand();
 showTask.name('showtask');

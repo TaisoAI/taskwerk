@@ -35,13 +35,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Build project
+        run: npm run build
+      
       - name: Run tests
         run: npm test
         env:
           CI: true
-      
-      - name: Build project
-        run: npm run build
       
       - name: Determine version
         id: version

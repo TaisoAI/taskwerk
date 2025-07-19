@@ -54,6 +54,16 @@ function getCliVersion() {
   }
 }
 
+// Helper to check if git tag exists (local or remote)
+function checkGitTag(tag) {
+  try {
+    execSync(`git rev-parse --verify ${tag}`, { stdio: 'pipe' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function getVersion(currentVersion) {
   // Check if we're on a dev version
   const isDevVersion = currentVersion.includes('-dev.');
@@ -114,10 +124,12 @@ async function getVersion(currentVersion) {
 
 // Helper to wait for CI to complete
 async function waitForCICompletion(timeout = 300000) { // 5 minutes default
-  console.log(chalk.gray('\nWaiting for CI to complete...'));
+  console.log(chalk.gray('\n⏱️  Waiting for CI to complete...'));
+  console.log(chalk.gray('You can check the status at: https://github.com/taisoai/taskwerk/actions'));
   
   const startTime = Date.now();
   let lastStatus = null;
+  let dotCount = 0;
   
   while (Date.now() - startTime < timeout) {
     try {
@@ -126,7 +138,7 @@ async function waitForCICompletion(timeout = 300000) { // 5 minutes default
         'run', 'list', 
         '--branch', 'main', 
         '--limit', '1', 
-        '--json', 'status,conclusion,name'
+        '--json', 'status,conclusion,name,databaseId'
       ], {
         encoding: 'utf8',
         stdio: 'pipe'
@@ -139,11 +151,28 @@ async function waitForCICompletion(timeout = 300000) { // 5 minutes default
           
           if (run.status !== lastStatus) {
             lastStatus = run.status;
-            console.log(chalk.gray(`CI status: ${run.status}`));
+            console.log(chalk.gray(`\nCI status: ${run.status} (${run.name})`));
+            dotCount = 0;
+          } else {
+            // Show progress dots
+            process.stdout.write('.');
+            dotCount++;
+            if (dotCount > 50) {
+              console.log();
+              dotCount = 0;
+            }
           }
           
           if (run.status === 'completed') {
-            return run.conclusion === 'success';
+            console.log(); // New line after dots
+            if (run.conclusion === 'success') {
+              console.log(chalk.green('✅ CI passed!'));
+              return true;
+            } else {
+              console.log(chalk.red(`❌ CI failed with conclusion: ${run.conclusion}`));
+              console.log(chalk.yellow(`View logs: https://github.com/taisoai/taskwerk/actions/runs/${run.databaseId}`));
+              return false;
+            }
           }
         }
       }
@@ -156,7 +185,7 @@ async function waitForCICompletion(timeout = 300000) { // 5 minutes default
   }
   
   // Timeout reached
-  console.log(chalk.yellow('⚠️  CI check timed out'));
+  console.log(chalk.yellow('\n⚠️  CI check timed out'));
   const { continueAnyway } = await inquirer.prompt([
     {
       type: 'confirm',
@@ -189,35 +218,10 @@ async function run() {
       }
     }
 
-    // Check for uncommitted changes
-    try {
-      execSync('git diff-index --quiet HEAD --');
-    } catch {
-      console.log(chalk.red('❌ You have uncommitted changes. Please commit or stash them first.'));
-      process.exit(1);
-    }
-
     // Read current package.json
     const packageJsonPath = join(process.cwd(), 'package.json');
     let packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
     const currentVersion = packageJson.version;
-
-    // Check version consistency
-    console.log(chalk.gray('Checking version consistency...'));
-    const cliVersion = getCliVersion();
-    if (cliVersion && cliVersion !== currentVersion) {
-      console.log(chalk.yellow(`⚠️  Version mismatch detected:`));
-      console.log(chalk.yellow(`   package.json: ${currentVersion}`));
-      console.log(chalk.yellow(`   CLI version:  ${cliVersion}`));
-      console.log(chalk.yellow(`   Running build to sync versions...`));
-      
-      try {
-        execSync('npm run build', { stdio: 'inherit' });
-      } catch (error) {
-        console.log(chalk.red('❌ Build failed. Fix errors before releasing.'));
-        process.exit(1);
-      }
-    }
 
     // Get new version
     const newVersion = await getVersion(currentVersion);
@@ -226,11 +230,16 @@ async function run() {
 
     // Check if release already exists
     console.log(chalk.gray('Checking for existing releases...'));
+    const tagName = `v${newVersion}`;
+    const hasGitTag = checkGitTag(tagName);
     const hasGitHubRelease = checkGitHubRelease(newVersion);
     const hasNpmRelease = checkNpmVersion('taskwerk', newVersion);
     
-    if (hasGitHubRelease || hasNpmRelease) {
+    if (hasGitTag || hasGitHubRelease || hasNpmRelease) {
       console.log(chalk.red(`\n❌ Version ${newVersion} already exists:`));
+      if (hasGitTag) {
+        console.log(chalk.red(`   - Git tag ${tagName} exists`));
+      }
       if (hasGitHubRelease) {
         console.log(chalk.red(`   - GitHub release v${newVersion} exists`));
       }
@@ -247,33 +256,18 @@ async function run() {
       packageJson.version = newVersion;
       writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
       console.log(chalk.green(`✅ Updated package.json to v${newVersion}`));
-      
-      // Reload package.json for later use
-      packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
     }
 
-    // Run build (which will update version.js)
-    console.log(chalk.gray('\nRunning build...'));
+    // Step 1: Run full build
+    console.log(chalk.blue('\n🔨 Step 1: Running full build...'));
     try {
       execSync('npm run build', { stdio: 'inherit' });
+      console.log(chalk.green('✅ Build completed successfully'));
     } catch (error) {
       console.log(chalk.red('❌ Build failed. Fix errors before releasing.'));
-      // Revert package.json if we changed it
       if (versionChanged) {
         execSync('git checkout -- package.json');
-      }
-      process.exit(1);
-    }
-
-    // Run tests
-    console.log(chalk.gray('\nRunning tests...'));
-    try {
-      execSync('npm test', { stdio: 'inherit' });
-    } catch (error) {
-      console.log(chalk.red('❌ Tests failed. Fix them before releasing.'));
-      // Revert package.json if we changed it
-      if (versionChanged) {
-        execSync('git checkout -- package.json');
+        console.log(chalk.gray('Reverted package.json'));
       }
       process.exit(1);
     }
@@ -284,14 +278,63 @@ async function run() {
       console.log(chalk.red(`❌ CLI version mismatch after build:`));
       console.log(chalk.red(`   Expected: ${newVersion}`));
       console.log(chalk.red(`   Actual:   ${postBuildCliVersion}`));
-      // Revert package.json if we changed it
       if (versionChanged) {
         execSync('git checkout -- package.json');
+        console.log(chalk.gray('Reverted package.json'));
       }
       process.exit(1);
     }
 
-    // Get release notes
+    // Step 2: Run full test suite
+    console.log(chalk.blue('\n🧪 Step 2: Running full test suite...'));
+    try {
+      execSync('npm test', { stdio: 'inherit' });
+      console.log(chalk.green('✅ All tests passed'));
+    } catch (error) {
+      console.log(chalk.red('❌ Tests failed. Fix them before releasing.'));
+      if (versionChanged) {
+        execSync('git checkout -- package.json');
+        console.log(chalk.gray('Reverted package.json'));
+      }
+      process.exit(1);
+    }
+
+    // Step 3: Check git status
+    console.log(chalk.blue('\n📋 Step 3: Checking git status...'));
+    
+    // Check for uncommitted changes
+    let hasChanges = false;
+    try {
+      execSync('git diff-index --quiet HEAD --');
+    } catch {
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      // Show what changed
+      console.log(chalk.yellow('📝 Uncommitted changes detected:'));
+      execSync('git status --short', { stdio: 'inherit' });
+      
+      const { commitChanges } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'commitChanges',
+          message: 'Commit these changes?',
+          default: true
+        }
+      ]);
+      
+      if (!commitChanges) {
+        console.log(chalk.red('❌ Cannot proceed with uncommitted changes.'));
+        if (versionChanged) {
+          execSync('git checkout -- package.json');
+          console.log(chalk.gray('Reverted package.json'));
+        }
+        process.exit(1);
+      }
+    }
+
+    // Get release notes before committing
     console.log(chalk.blue('\n📋 Generate release notes:\n'));
     
     const lastTag = execSync('git describe --tags --abbrev=0 2>/dev/null || echo ""').toString().trim();
@@ -315,43 +358,45 @@ async function run() {
       }
     ]);
 
-    // Confirm release
+    // Step 4: Commit changes
+    if (versionChanged) {
+      console.log(chalk.blue('\n📝 Step 4: Committing version bump...'));
+      execSync('git add package.json package-lock.json');
+      execSync(`git commit -m "chore: bump version to ${newVersion} for release"`);
+      console.log(chalk.green('✅ Committed version bump'));
+    }
+
+    // Confirm before pushing
     console.log(chalk.blue('\n📦 Release Summary:\n'));
     console.log(`Version: ${chalk.yellow(currentVersion)} → ${chalk.green(newVersion)}`);
     console.log(`Branch: ${chalk.cyan(branch)}`);
-    console.log('\nRelease notes:');
+    console.log('\nRelease notes preview:');
     console.log(chalk.gray(releaseNotes.split('\n').slice(0, 10).join('\n')));
     if (releaseNotes.split('\n').length > 10) {
       console.log(chalk.gray('...'));
     }
 
-    const { confirmRelease } = await inquirer.prompt([
+    const { confirmPush } = await inquirer.prompt([
       {
         type: 'confirm',
-        name: 'confirmRelease',
-        message: `Ready to release v${newVersion}?`,
+        name: 'confirmPush',
+        message: `Push to main and wait for CI?`,
         default: true
       }
     ]);
 
-    if (!confirmRelease) {
+    if (!confirmPush) {
       console.log(chalk.yellow('Release cancelled.'));
-      // Revert package.json if we changed it
       if (versionChanged) {
-        execSync('git checkout -- package.json');
+        execSync('git reset --soft HEAD~1');
+        execSync('git checkout -- package.json package-lock.json');
+        console.log(chalk.gray('Reverted commits and package.json'));
       }
       process.exit(0);
     }
 
-    // Commit version bump only if version changed
-    if (versionChanged) {
-      execSync('git add package.json');
-      execSync(`git commit -m "chore: bump version to ${newVersion}"`);
-      console.log(chalk.green('✅ Committed version bump'));
-    }
-
-    // Push to main (but not the tag yet)
-    console.log(chalk.gray('\nPushing to main...'));
+    // Step 5: Push and wait for CI
+    console.log(chalk.blue('\n🚀 Step 5: Pushing to main...'));
     execSync('git push origin main');
     console.log(chalk.green('✅ Pushed to main'));
 
@@ -361,51 +406,120 @@ async function run() {
     if (!ciPassed) {
       console.log(chalk.red('\n❌ CI failed or was cancelled.'));
       console.log(chalk.yellow('The version bump has been pushed, but no tag or release was created.'));
-      console.log(chalk.yellow('Fix the CI issues and run make-release again.'));
+      console.log(chalk.yellow('You can:'));
+      console.log(chalk.yellow('  1. Fix the CI issues and run make-release again with "current version"'));
+      console.log(chalk.yellow('  2. Revert the version bump commit if needed'));
       process.exit(1);
     }
 
-    console.log(chalk.green('✅ CI passed!'));
-
-    // Create and push tag
-    const tagName = `v${newVersion}`;
-    execSync(`git tag -a ${tagName} -m "Release ${tagName}"`);
+    // Step 6: Create and push tag (this triggers release workflow)
+    console.log(chalk.blue('\n🏷️  Step 6: Creating release tag...'));
+    
+    // Create annotated tag with release notes
+    const tagMessage = `Release ${tagName}\n\n${releaseNotes}`;
+    execSync(`git tag -a ${tagName} -m "${tagMessage.replace(/"/g, '\\"')}"`);
     console.log(chalk.green(`✅ Created tag ${tagName}`));
 
     execSync(`git push origin ${tagName}`);
-    console.log(chalk.green('✅ Pushed tag'));
+    console.log(chalk.green('✅ Pushed tag (this will trigger the release workflow)'));
 
-    // Create GitHub release using gh CLI
-    console.log(chalk.gray('\nCreating GitHub release...'));
-    
-    try {
-      execSync('gh --version', { stdio: 'ignore' });
-    } catch {
-      console.log(chalk.yellow('\n⚠️  GitHub CLI (gh) not found.'));
-      console.log(chalk.yellow('Install it from: https://cli.github.com'));
-      console.log(chalk.yellow('\nThe tag has been pushed. You can create the release manually on GitHub.'));
-      process.exit(0);
+    // Step 7: Monitor release workflow
+    console.log(chalk.blue('\n📦 Step 7: Release workflow triggered...'));
+    console.log(chalk.gray('The release workflow will:'));
+    console.log(chalk.gray('  1. Create GitHub release'));
+    console.log(chalk.gray('  2. Publish to npm'));
+    console.log(chalk.gray('\nYou can monitor progress at:'));
+    console.log(chalk.cyan(`https://github.com/taisoai/taskwerk/actions`));
+
+    // Optionally wait for release workflow
+    const { waitForRelease } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'waitForRelease',
+        message: 'Wait for release workflow to complete?',
+        default: true
+      }
+    ]);
+
+    if (waitForRelease) {
+      console.log(chalk.gray('\nWaiting for release workflow...'));
+      
+      // Give it a moment for the workflow to start
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Check release workflow status
+      const releaseSuccess = await waitForReleaseWorkflow(tagName);
+      
+      if (releaseSuccess) {
+        console.log(chalk.bold.green(`\n🎉 Release v${newVersion} completed successfully!\n`));
+        console.log(chalk.green(`GitHub Release: https://github.com/taisoai/taskwerk/releases/tag/${tagName}`));
+        console.log(chalk.green(`npm Package: https://www.npmjs.com/package/taskwerk/v/${newVersion}`));
+      } else {
+        console.log(chalk.yellow('\n⚠️  Release workflow may have issues.'));
+        console.log(chalk.yellow('Check the workflow status and logs for details.'));
+      }
+    } else {
+      console.log(chalk.bold.green(`\n🎉 Release v${newVersion} tag created!\n`));
+      console.log(chalk.gray('The release workflow will complete in the background.'));
     }
-
-    // Save release notes to temp file
-    const releaseNotesFile = `/tmp/taskwerk-release-notes-${Date.now()}.md`;
-    writeFileSync(releaseNotesFile, releaseNotes);
-
-    try {
-      // Use newVersion to ensure consistency
-      execSync(`gh release create ${tagName} --title "taskwerk ${newVersion}" --notes-file ${releaseNotesFile} dist/taskwerk.js`, { stdio: 'inherit' });
-      console.log(chalk.green(`\n✅ GitHub release created: https://github.com/taisoai/taskwerk/releases/tag/${tagName}`));
-    } catch (error) {
-      console.log(chalk.yellow('\n⚠️  Failed to create GitHub release. You can create it manually.'));
-    }
-
-    console.log(chalk.bold.green(`\n🎉 Release v${newVersion} completed!\n`));
-    console.log(chalk.gray('The tag will trigger automatic npm publish via GitHub Actions.'));
 
   } catch (error) {
     console.error(chalk.red('\n❌ Release failed:'), error.message);
     process.exit(1);
   }
+}
+
+// Helper to wait for release workflow
+async function waitForReleaseWorkflow(tag, timeout = 600000) { // 10 minutes
+  const startTime = Date.now();
+  let lastStatus = null;
+  let dotCount = 0;
+  
+  while (Date.now() - startTime < timeout) {
+    try {
+      // Get workflow runs for the tag
+      const result = spawnSync('gh', [
+        'run', 'list', 
+        '--workflow', 'release.yml',
+        '--limit', '1', 
+        '--json', 'status,conclusion,name,databaseId'
+      ], {
+        encoding: 'utf8',
+        stdio: 'pipe'
+      });
+      
+      if (result.status === 0 && result.stdout) {
+        const runs = JSON.parse(result.stdout);
+        if (runs.length > 0) {
+          const run = runs[0];
+          
+          if (run.status !== lastStatus) {
+            lastStatus = run.status;
+            console.log(chalk.gray(`\nRelease workflow status: ${run.status}`));
+            dotCount = 0;
+          } else {
+            process.stdout.write('.');
+            dotCount++;
+            if (dotCount > 50) {
+              console.log();
+              dotCount = 0;
+            }
+          }
+          
+          if (run.status === 'completed') {
+            console.log(); // New line after dots
+            return run.conclusion === 'success';
+          }
+        }
+      }
+    } catch (error) {
+      // Ignore errors
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+  
+  return false;
 }
 
 // Run the script

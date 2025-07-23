@@ -123,22 +123,25 @@ async function getVersion(currentVersion) {
 }
 
 // Helper to wait for CI to complete
-async function waitForCICompletion(timeout = 300000) { // 5 minutes default
+async function waitForCICompletion(commitSha, timeout = 300000) { // 5 minutes default
   console.log(chalk.gray('\n⏱️  Waiting for CI to complete...'));
   console.log(chalk.gray('You can check the status at: https://github.com/taisoai/taskwerk/actions'));
+  console.log(chalk.gray(`Waiting for CI run for commit: ${commitSha.substring(0, 7)}`));
   
   const startTime = Date.now();
   let lastStatus = null;
   let dotCount = 0;
+  let foundRun = false;
   
-  while (Date.now() - startTime < timeout) {
+  // First wait for the CI run to appear
+  while (!foundRun && Date.now() - startTime < 30000) { // 30 seconds to find the run
     try {
-      // Get latest workflow run
       const result = spawnSync('gh', [
         'run', 'list', 
         '--branch', 'main', 
-        '--limit', '1', 
-        '--json', 'status,conclusion,name,databaseId'
+        '--workflow', 'ci.yml',
+        '--limit', '5', 
+        '--json', 'status,conclusion,name,databaseId,headSha'
       ], {
         encoding: 'utf8',
         stdio: 'pipe'
@@ -146,12 +149,58 @@ async function waitForCICompletion(timeout = 300000) { // 5 minutes default
       
       if (result.status === 0 && result.stdout) {
         const runs = JSON.parse(result.stdout);
-        if (runs.length > 0) {
-          const run = runs[0];
-          
-          if (run.status !== lastStatus) {
-            lastStatus = run.status;
-            console.log(chalk.gray(`\nCI status: ${run.status} (${run.name})`));
+        const ourRun = runs.find(run => run.headSha === commitSha);
+        if (ourRun) {
+          foundRun = true;
+          console.log(chalk.gray(`\nFound CI run for our commit`));
+          break;
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    
+    process.stdout.write('.');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  
+  if (!foundRun) {
+    console.log(chalk.yellow('\n⚠️  Could not find CI run for the pushed commit'));
+    const { continueAnyway } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'continueAnyway',
+        message: 'Could not find CI run. Continue anyway?',
+        default: false
+      }
+    ]);
+    return continueAnyway;
+  }
+  
+  // Now wait for it to complete
+  dotCount = 0;
+  while (Date.now() - startTime < timeout) {
+    try {
+      // Get workflow runs for our commit
+      const result = spawnSync('gh', [
+        'run', 'list', 
+        '--branch', 'main',
+        '--workflow', 'ci.yml', 
+        '--limit', '5', 
+        '--json', 'status,conclusion,name,databaseId,headSha'
+      ], {
+        encoding: 'utf8',
+        stdio: 'pipe'
+      });
+      
+      if (result.status === 0 && result.stdout) {
+        const runs = JSON.parse(result.stdout);
+        const ourRun = runs.find(run => run.headSha === commitSha);
+        
+        if (ourRun) {
+          if (ourRun.status !== lastStatus) {
+            lastStatus = ourRun.status;
+            console.log(chalk.gray(`\nCI status: ${ourRun.status} (${ourRun.name})`));
             dotCount = 0;
           } else {
             // Show progress dots
@@ -163,14 +212,14 @@ async function waitForCICompletion(timeout = 300000) { // 5 minutes default
             }
           }
           
-          if (run.status === 'completed') {
+          if (ourRun.status === 'completed') {
             console.log(); // New line after dots
-            if (run.conclusion === 'success') {
+            if (ourRun.conclusion === 'success') {
               console.log(chalk.green('✅ CI passed!'));
               return true;
             } else {
-              console.log(chalk.red(`❌ CI failed with conclusion: ${run.conclusion}`));
-              console.log(chalk.yellow(`View logs: https://github.com/taisoai/taskwerk/actions/runs/${run.databaseId}`));
+              console.log(chalk.red(`❌ CI failed with conclusion: ${ourRun.conclusion}`));
+              console.log(chalk.yellow(`View logs: https://github.com/taisoai/taskwerk/actions/runs/${ourRun.databaseId}`));
               return false;
             }
           }
@@ -302,18 +351,21 @@ async function run() {
     // Step 3: Check git status
     console.log(chalk.blue('\n📋 Step 3: Checking git status...'));
     
-    // Check for uncommitted changes
+    // Show ALL files including untracked (like dist/)
+    console.log(chalk.gray('All changed files (including build artifacts):'));
+    execSync('git status --porcelain', { stdio: 'inherit' });
+    
+    // Check for uncommitted changes (staged or unstaged)
     let hasChanges = false;
     try {
-      execSync('git diff-index --quiet HEAD --');
+      const statusOutput = execSync('git status --porcelain').toString();
+      hasChanges = statusOutput.trim().length > 0;
     } catch {
       hasChanges = true;
     }
 
     if (hasChanges) {
-      // Show what changed
-      console.log(chalk.yellow('📝 Uncommitted changes detected:'));
-      execSync('git status --short', { stdio: 'inherit' });
+      console.log(chalk.yellow('\n📝 Changes detected after build:'));
       
       const { commitChanges } = await inquirer.prompt([
         {
@@ -399,9 +451,12 @@ async function run() {
     console.log(chalk.blue('\n🚀 Step 5: Pushing to main...'));
     execSync('git push origin main');
     console.log(chalk.green('✅ Pushed to main'));
+    
+    // Get the commit SHA we just pushed
+    const pushedCommitSha = execSync('git rev-parse HEAD').toString().trim();
 
     // Wait for CI to complete
-    const ciPassed = await waitForCICompletion();
+    const ciPassed = await waitForCICompletion(pushedCommitSha);
     
     if (!ciPassed) {
       console.log(chalk.red('\n❌ CI failed or was cancelled.'));

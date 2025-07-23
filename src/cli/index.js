@@ -74,6 +74,9 @@ Tip: Task IDs support fuzzy matching - just use the number!`
     process.on('unhandledRejection', error => {
       ErrorHandler.handle(error, thisCommand.name());
     });
+  })
+  .configureHelp({
+    sortSubcommands: true,
   });
 
 // Add all commands
@@ -98,14 +101,16 @@ const listCommand = taskListCommand();
 listCommand.name('list');
 program.addCommand(listCommand);
 
-// Add 'listtask' as an alias for backwards compatibility
+// Add 'listtask' as an alias for backwards compatibility (hidden from help)
 const listTask = taskListCommand();
 listTask.name('listtask');
+listTask.hidden = true;
 program.addCommand(listTask);
 
 // Add 'listtasks' as another alias
 const listTasks = taskListCommand();
 listTasks.name('listtasks');
+listTasks.description('List tasks (alias for "list")');
 program.addCommand(listTasks);
 
 const showTask = taskShowCommand();

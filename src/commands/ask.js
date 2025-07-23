@@ -2,6 +2,11 @@ import { Command } from 'commander';
 import { LLMManager } from '../ai/llm-manager.js';
 import { ToolExecutor } from '../ai/tool-executor.js';
 import { Logger } from '../logging/logger.js';
+import {
+  generateCommandReference,
+  generateToolReference,
+  getStandardTaskCommands,
+} from '../utils/command-reference.js';
 import chalk from 'chalk';
 
 export function askCommand() {
@@ -55,6 +60,11 @@ export function askCommand() {
         }
 
         // Build messages
+        // Generate dynamic command reference
+        const commands = getStandardTaskCommands();
+        const commandReference = generateCommandReference(commands);
+        const toolReference = generateToolReference(toolExecutor);
+
         const messages = [
           {
             role: 'system',
@@ -68,10 +78,14 @@ Your role is to help users with:
 - Suggesting taskwerk commands and features
 - Analyzing task data and progress
 
+${commandReference}
+
 You have read-only access to:
 - Files in the current directory
 - Current tasks and their status
 - Task history and metadata
+
+${toolReference}
 
 Key principles:
 1. Always think in terms of tasks, projects, and productivity

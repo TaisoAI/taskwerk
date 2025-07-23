@@ -2,6 +2,11 @@ import { Command } from 'commander';
 import { LLMManager } from '../ai/llm-manager.js';
 import { ToolExecutor } from '../ai/tool-executor.js';
 import { Logger } from '../logging/logger.js';
+import {
+  generateCommandReference,
+  generateToolReference,
+  getStandardTaskCommands,
+} from '../utils/command-reference.js';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 
@@ -80,6 +85,11 @@ export function agentCommand() {
           context += `\nCurrent tasks:\n${JSON.stringify(tasks, null, 2)}\n`;
         }
 
+        // Generate dynamic command reference
+        const commands = getStandardTaskCommands();
+        const commandReference = generateCommandReference(commands);
+        const toolReference = generateToolReference(toolExecutor);
+
         // Initialize conversation
         const messages = [
           {
@@ -99,6 +109,10 @@ Your mission:
 - Organize and structure projects effectively
 - Automate repetitive task management operations
 - Provide actionable, results-oriented assistance
+
+${commandReference}
+
+${toolReference}
 
 Core principles:
 1. Think like a productivity expert and project manager

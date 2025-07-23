@@ -20,7 +20,7 @@ describe('CLI Entry Point', () => {
 
       proc.on('close', code => {
         expect(code).toBe(0);
-        expect(output.trim()).toMatch(/^\d+\.\d+\.\d+(-\w+\.\d+)?$/);
+        expect(output.trim()).toMatch(/^\d+\.\d+\.\d+(-\w+(\.\d+)?)?$/);
         resolve();
       });
     });

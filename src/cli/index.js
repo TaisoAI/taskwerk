@@ -44,6 +44,16 @@ Common Workflows:
     $ twrk updatetask 1 -s in-progress
     $ twrk done 1                          # Mark task as done
     
+  Search & Filter:
+    $ twrk list --search "authentication"  # Find tasks mentioning auth
+    $ twrk list --search "bug" -p high     # Find high priority bugs
+    $ twrk list --search "TODO" -s in-progress # Find in-progress TODOs
+    
+  Task Splitting:
+    $ twrk splittask 1 -n "Backend" "Frontend" # Quick split into 2 tasks
+    $ twrk splittask 1 --divide-estimate   # Interactive with estimates
+    $ twrk splittask 1 -i                  # Full interactive mode
+    
   AI/LLM Integration:
     $ twrk export -t 1 2 3 --stdout | pbcopy      # Copy tasks to clipboard
     $ twrk updatetask 1 -a @ai-agent              # Assign to AI
@@ -132,6 +142,47 @@ program.addCommand(statusTask);
 const splitTask = taskSplitCommand();
 splitTask.name('splittask');
 program.addCommand(splitTask);
+
+// Add search alias command
+program
+  .command('search <term>')
+  .description('Search tasks by name, description, or content')
+  .option('-s, --status <status>', 'Filter by status')
+  .option('-a, --assignee <name>', 'Filter by assignee')
+  .option('-p, --priority <level>', 'Filter by priority')
+  .option('-t, --tags <tags...>', 'Filter by tags')
+  .option('--format <format>', 'Output format', 'table')
+  .addHelpText(
+    'after',
+    `
+Examples:
+  $ twrk search "authentication"     # Find tasks mentioning auth
+  $ twrk search "bug" -p high        # Find high priority bugs
+  $ twrk search "TODO" -s in-progress # Find in-progress TODOs
+  
+This is a shortcut for: twrk list --search <term>`
+  )
+  .action(async (term, options) => {
+    const listCmd = taskListCommand();
+    const args = ['--search', term];
+    if (options.status) {
+      args.push('-s', options.status);
+    }
+    if (options.assignee) {
+      args.push('-a', options.assignee);
+    }
+    if (options.priority) {
+      args.push('-p', options.priority);
+    }
+    if (options.tags) {
+      args.push('-t');
+      args.push(...options.tags);
+    }
+    if (options.format) {
+      args.push('--format', options.format);
+    }
+    await listCmd.parseAsync(args, { from: 'user' });
+  });
 
 // Add quick status commands
 program

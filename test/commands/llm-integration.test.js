@@ -53,9 +53,16 @@ describe('llm command integration', () => {
   });
 
   it('should accept piped input', () => {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       const echo = spawn('echo', ['Hello from pipe']);
       const llm = spawn('node', [cliPath, 'llm']);
+
+      // Set up timeout
+      const timeout = setTimeout(() => {
+        echo.kill();
+        llm.kill();
+        reject(new Error('Test timed out'));
+      }, 4500);
 
       // Pipe echo output to llm input
       echo.stdout.pipe(llm.stdin);
@@ -66,6 +73,7 @@ describe('llm command integration', () => {
       });
 
       llm.on('close', code => {
+        clearTimeout(timeout);
         // Will fail if no LLM configured, but that's expected
         // We're just testing that it accepts piped input
         if (error.includes('No AI provider configured')) {
@@ -75,8 +83,13 @@ describe('llm command integration', () => {
         }
         resolve();
       });
+
+      llm.on('error', err => {
+        clearTimeout(timeout);
+        reject(err);
+      });
     });
-  });
+  }, 10000);
 
   it('should handle command line prompt', () => {
     return new Promise(resolve => {

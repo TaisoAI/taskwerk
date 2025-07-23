@@ -195,17 +195,21 @@ export class LLMManager {
    * Set the current provider and model
    * @param {string} providerName
    * @param {string} modelId
+   * @param {boolean} global - Save to global config instead of local
    */
-  setCurrentProvider(providerName, modelId) {
+  setCurrentProvider(providerName, modelId, global = false) {
     if (!this.providers.has(providerName)) {
       throw new Error(`Unknown provider: ${providerName}`);
     }
 
-    this.configManager.set('ai.current_provider', providerName);
-    this.configManager.set('ai.current_model', modelId);
-    this.configManager.save();
+    this.configManager.set('ai.current_provider', providerName, global);
+    this.configManager.set('ai.current_model', modelId, global);
+    this.configManager.save(global);
 
-    this.logger.info(`Set current provider to ${providerName} with model ${modelId}`);
+    const scope = global ? 'global' : 'local';
+    this.logger.info(
+      `Set current provider to ${providerName} with model ${modelId} in ${scope} config`
+    );
   }
 
   /**
@@ -213,8 +217,9 @@ export class LLMManager {
    * @param {string} providerName
    * @param {string} key
    * @param {string} value
+   * @param {boolean} global - Save to global config instead of local
    */
-  configureProvider(providerName, key, value) {
+  configureProvider(providerName, key, value, global = false) {
     if (!this.providers.has(providerName)) {
       throw new Error(`Unknown provider: ${providerName}`);
     }
@@ -226,10 +231,13 @@ export class LLMManager {
       value = value === 'true' || value === true;
     }
 
-    this.configManager.set(configPath, value);
-    this.configManager.save();
+    this.configManager.set(configPath, value, global);
+    this.configManager.save(global);
 
-    this.logger.info(`Set ${providerName}.${key} = ${key.includes('key') ? '***' : value}`);
+    const scope = global ? 'global' : 'local';
+    this.logger.info(
+      `Set ${providerName}.${key} = ${key.includes('key') ? '***' : value} in ${scope} config`
+    );
   }
 
   /**

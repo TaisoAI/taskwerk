@@ -1,21 +1,19 @@
 /**
- * Configuration manager for Taskwerk
- * This now uses GlobalConfigManager internally to support global/local configs
+ * Wrapper to maintain backward compatibility while transitioning to GlobalConfigManager
  */
-import { GlobalConfigManager, getGlobalConfigPath, ConfigSource } from './global-config-manager.js';
-
-// Re-export for backward compatibility
-export { getGlobalConfigPath, ConfigSource };
+import { GlobalConfigManager } from './global-config-manager.js';
 
 /**
- * ConfigManager that maintains backward compatibility while using GlobalConfigManager
+ * Legacy ConfigManager that wraps GlobalConfigManager
+ * This maintains the existing API while using the new global/local functionality
  */
 export class ConfigManager extends GlobalConfigManager {
   constructor(configPath = null) {
     super(configPath);
     // For backward compatibility
-    this.configPath = this.localPath;
     this.config = null;
+    // Expose configPath for backward compatibility
+    this.configPath = this.localPath;
   }
 
   /**
@@ -30,9 +28,10 @@ export class ConfigManager extends GlobalConfigManager {
    * Save configuration to file (backward compatibility)
    * Always saves to local by default
    */
-  save(global = false) {
+  save() {
     // For backward compatibility, just save the local config as-is
-    super.save(global);
+    // Do not update localConfig with merged config
+    super.save(false);
   }
 
   /**
@@ -50,9 +49,6 @@ export class ConfigManager extends GlobalConfigManager {
    * Always sets in local config
    */
   set(path, value) {
-    if (!this.config) {
-      this.load();
-    }
     super.set(path, value, false);
     this.config = this.mergedConfig;
   }
@@ -61,16 +57,13 @@ export class ConfigManager extends GlobalConfigManager {
    * Delete a configuration value (backward compatibility)
    */
   delete(path) {
-    if (!this.config) {
-      this.load();
-    }
     const result = super.delete(path, false);
     this.config = this.mergedConfig;
     return result;
   }
 
   /**
-   * Alias for delete method (used by config command)
+   * Alias for delete method (backward compatibility)
    */
   unset(path) {
     return this.delete(path);
@@ -80,16 +73,12 @@ export class ConfigManager extends GlobalConfigManager {
    * Reset configuration to defaults (backward compatibility)
    */
   reset() {
+    // Clear local config
     this.localConfig = {};
-    this.save();
-    this.load(); // Reload to get defaults
-  }
-
-  /**
-   * Merge configuration with defaults (backward compatibility)
-   */
-  mergeWithDefaults(config) {
-    return this.deepMerge(this.defaultConfig, config);
+    // Save empty local config - use parent save to avoid wrapper behavior
+    super.save(false);
+    // Reload to get fresh config (defaults merged with any global)
+    this.load();
   }
 
   /**
@@ -108,24 +97,4 @@ export class ConfigManager extends GlobalConfigManager {
   toJSON() {
     return this.getMasked();
   }
-}
-
-// Singleton instance
-let configManagerInstance = null;
-
-/**
- * Get the configuration manager instance
- */
-export function getConfigManager(configPath = null) {
-  if (!configManagerInstance) {
-    configManagerInstance = new ConfigManager(configPath);
-  }
-  return configManagerInstance;
-}
-
-/**
- * Reset the configuration manager instance
- */
-export function resetConfigManager() {
-  configManagerInstance = null;
 }

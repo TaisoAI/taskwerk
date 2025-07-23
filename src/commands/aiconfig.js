@@ -15,6 +15,8 @@ export function aiconfigCommand() {
   aiconfig
     .description('Configure AI/LLM settings')
     .option('--set <key=value>', 'Set a configuration value (e.g., openai.api_key=sk-...)')
+    .option('--global', 'Apply operation to global config (~/.config/taskwerk/)')
+    .option('--local', 'Apply operation to local config (default)')
     .option('--list-providers', 'List available AI providers')
     .option('--list-models [provider]', 'List available models for provider')
     .option('--choose', 'Interactively choose provider and model')
@@ -22,8 +24,12 @@ export function aiconfigCommand() {
     .option('--model <name>', 'Set the current model (non-interactive)')
     .option('--test', 'Test connection to configured providers')
     .option('--show', 'Show current AI configuration')
+    .option('--show-origin', 'Show configuration with source information')
     .option('--list-tools', 'List available AI tools')
     .option('--show-prompts', 'Show system prompts for ask and agent modes')
+    .option('--migrate-to-global', 'Migrate local config to global')
+    .option('--copy-from-global', 'Copy global config to local')
+    .option('--clear', 'Clear configuration')
     .action(async options => {
       const logger = new Logger('aiconfig');
       const llmManager = new LLMManager();
@@ -35,9 +41,9 @@ export function aiconfigCommand() {
         } else if (options.listModels !== undefined) {
           await listModels(llmManager, options.listModels);
         } else if (options.choose) {
-          await chooseProviderAndModel(llmManager);
+          await chooseProviderAndModel(llmManager, options.global);
         } else if (options.provider && options.model) {
-          await setProviderAndModel(llmManager, options.provider, options.model);
+          await setProviderAndModel(llmManager, options.provider, options.model, options.global);
         } else if (options.provider) {
           console.error('❌ --model is required when setting --provider');
           process.exit(1);
@@ -47,13 +53,23 @@ export function aiconfigCommand() {
         } else if (options.test) {
           await testProviders(llmManager);
         } else if (options.set) {
-          await setConfig(llmManager, options.set);
+          await setConfig(llmManager, options.set, options.global);
+        } else if (options.migrateToGlobal) {
+          await migrateToGlobal(llmManager);
+        } else if (options.copyFromGlobal) {
+          await copyFromGlobal(llmManager);
+        } else if (options.clear) {
+          await clearConfig(llmManager, options.global);
         } else if (options.listTools) {
           await listTools();
         } else if (options.showPrompts) {
           await showPrompts();
-        } else if (options.show) {
-          await showConfig(llmManager);
+        } else if (options.show || options.showOrigin) {
+          await showConfig(llmManager, {
+            global: options.global,
+            local: options.local,
+            showOrigin: options.showOrigin,
+          });
         } else {
           // Default: show current config
           await showConfig(llmManager);
@@ -142,7 +158,7 @@ async function listModels(llmManager, providerName) {
   }
 }
 
-async function setProviderAndModel(llmManager, providerName, modelName) {
+async function setProviderAndModel(llmManager, providerName, modelName, isGlobal = false) {
   try {
     // Verify provider exists
     const provider = llmManager.getProvider(providerName);
@@ -161,9 +177,10 @@ async function setProviderAndModel(llmManager, providerName, modelName) {
     }
 
     // Set the configuration
-    llmManager.setCurrentProvider(providerName, modelName);
+    llmManager.setCurrentProvider(providerName, modelName, isGlobal);
 
-    console.log(`✅ Configuration updated:`);
+    const scope = isGlobal ? 'global' : 'local';
+    console.log(`✅ Configuration updated in ${scope} config:`);
     console.log(`   Provider: ${providerName}`);
     console.log(`   Model: ${modelName}`);
   } catch (error) {
@@ -172,7 +189,7 @@ async function setProviderAndModel(llmManager, providerName, modelName) {
   }
 }
 
-async function chooseProviderAndModel(llmManager) {
+async function chooseProviderAndModel(llmManager, isGlobal = false) {
   // First, discover all available models
   console.log('🔍 Discovering available models...');
   const modelsByProvider = await llmManager.discoverModels();
@@ -258,9 +275,10 @@ async function chooseProviderAndModel(llmManager) {
   ]);
 
   // Save selection
-  llmManager.setCurrentProvider(selectedProvider, selectedModel);
+  llmManager.setCurrentProvider(selectedProvider, selectedModel, isGlobal);
 
-  console.log(`\n✅ Configuration saved:`);
+  const scope = isGlobal ? 'global' : 'local';
+  console.log(`\n✅ Configuration saved to ${scope} config:`);
   console.log(`   Provider: ${selectedProvider}`);
   console.log(`   Model: ${selectedModel}`);
 }
@@ -279,16 +297,16 @@ async function testProviders(llmManager) {
   console.log(`\n📊 Summary: ${successCount}/${results.length} providers connected successfully`);
 }
 
-async function setConfig(llmManager, configString) {
+async function setConfig(llmManager, configString, isGlobal = false) {
   // Parse the config string (e.g., "anthropic.api_key=sk-ant-...")
   const match = configString.match(/^([^.]+)\.([^=]+)=(.+)$/);
   if (!match) {
     console.error('❌ Invalid configuration format.');
-    console.error('\n💡 Use: taskwerk aiconfig set <provider>.<key>=<value>');
+    console.error('\n💡 Use: taskwerk aiconfig --set <provider>.<key>=<value>');
     console.error('\nExamples:');
-    console.error('  taskwerk aiconfig set openai.api_key=sk-...');
-    console.error('  taskwerk aiconfig set anthropic.api_key=sk-ant-...');
-    console.error('  taskwerk aiconfig set ollama.base_url=http://localhost:11434');
+    console.error('  taskwerk aiconfig --set openai.api_key=sk-...');
+    console.error('  taskwerk aiconfig --set anthropic.api_key=sk-ant-...');
+    console.error('  taskwerk aiconfig --set ollama.base_url=http://localhost:11434');
     process.exit(1);
   }
 
@@ -297,8 +315,9 @@ async function setConfig(llmManager, configString) {
   // Special handling for provider-level settings
   if (key === 'api_key' || key === 'enabled' || key === 'base_url') {
     try {
-      llmManager.configureProvider(provider, key, value);
-      console.log(`✅ Set ${provider}.${key}`);
+      llmManager.configureProvider(provider, key, value, isGlobal);
+      const scope = isGlobal ? 'global' : 'local';
+      console.log(`✅ Set ${provider}.${key} in ${scope} config`);
 
       // Test the connection if we just set an API key
       if (key === 'api_key') {
@@ -325,47 +344,152 @@ async function setConfig(llmManager, configString) {
     console.error(`❌ Unknown configuration key: ${key}`);
     console.error('\n💡 Valid keys are: api_key, enabled, base_url');
     console.error('\nExample:');
-    console.error(`  taskwerk aiconfig set ${provider}.api_key=<your-api-key>`);
+    console.error(`  taskwerk aiconfig --set ${provider}.api_key=<your-api-key>`);
     process.exit(1);
   }
 }
 
-async function showConfig(llmManager) {
-  const config = llmManager.getConfigSummary();
+async function showConfig(llmManager, options = {}) {
+  const { global, local, showOrigin } = options;
 
   console.log('🤖 AI Configuration');
   console.log('─'.repeat(50));
-  console.log(`Current Provider: ${config.current_provider}`);
-  console.log(`Current Model: ${config.current_model}`);
 
-  if (config.providers.length > 0) {
-    console.log('\n📋 Provider Status:');
-    for (const provider of config.providers) {
-      const status = provider.configured ? '✅' : '❌';
-      const enabled = provider.enabled ? '' : ' (disabled)';
-      console.log(`  ${provider.name}: ${status}${enabled}`);
+  // Get configuration manager
+  const configManager = llmManager.configManager;
 
-      if (provider.configured && Object.keys(provider.config).length > 0) {
-        for (const [key, value] of Object.entries(provider.config)) {
-          if (key !== 'enabled') {
-            console.log(`    ${key}: ${value}`);
+  if (showOrigin) {
+    // Show configuration with sources
+    const configWithSources = configManager.getWithSources();
+    console.log('\n📍 Configuration Sources:');
+    showConfigTree(configWithSources, '');
+  } else if (global) {
+    // Show only global config
+    const globalConfig = configManager.getGlobalMasked();
+    if (globalConfig && Object.keys(globalConfig).length > 0) {
+      console.log('\n🌍 Global Configuration:');
+      console.log(JSON.stringify(globalConfig, null, 2));
+    } else {
+      console.log('\n🌍 No global configuration found.');
+    }
+  } else if (local) {
+    // Show only local config
+    const localConfig = configManager.getLocalMasked();
+    if (localConfig && Object.keys(localConfig).length > 0) {
+      console.log('\n📁 Local Configuration:');
+      console.log(JSON.stringify(localConfig, null, 2));
+    } else {
+      console.log('\n📁 No local configuration found.');
+    }
+  } else {
+    // Show merged configuration (default)
+    const config = llmManager.getConfigSummary();
+    console.log(`Current Provider: ${config.current_provider}`);
+    console.log(`Current Model: ${config.current_model}`);
+
+    if (config.providers.length > 0) {
+      console.log('\n📋 Provider Status:');
+      for (const provider of config.providers) {
+        const status = provider.configured ? '✅' : '❌';
+        const enabled = provider.enabled ? '' : ' (disabled)';
+        console.log(`  ${provider.name}: ${status}${enabled}`);
+
+        if (provider.configured && Object.keys(provider.config).length > 0) {
+          for (const [key, value] of Object.entries(provider.config)) {
+            if (key !== 'enabled') {
+              console.log(`    ${key}: ${value}`);
+            }
           }
         }
       }
     }
-  }
 
-  if (config.defaults && Object.keys(config.defaults).length > 0) {
-    console.log('\n⚙️  Default Settings:');
-    for (const [key, value] of Object.entries(config.defaults)) {
-      console.log(`  ${key}: ${value}`);
+    if (config.defaults && Object.keys(config.defaults).length > 0) {
+      console.log('\n⚙️  Default Settings:');
+      for (const [key, value] of Object.entries(config.defaults)) {
+        console.log(`  ${key}: ${value}`);
+      }
     }
+
+    // Show configuration source hints
+    console.log('\n📂 Configuration Locations:');
+    console.log(`  Global: ${configManager.globalPath}`);
+    console.log(`  Local:  ${configManager.localPath}`);
   }
 
   console.log('\n💡 Commands:');
   console.log('  Configure provider:  taskwerk aiconfig --set <provider>.api_key=<key>');
   console.log('  Choose model:        taskwerk aiconfig --choose');
   console.log('  Test connections:    taskwerk aiconfig --test');
+}
+
+function showConfigTree(obj, indent = '', path = '') {
+  const sourceIcons = {
+    default: '⚪',
+    global: '🌍',
+    local: '📁',
+    env: '🔐',
+  };
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (value && typeof value === 'object' && 'value' in value && 'source' in value) {
+      // Leaf node with value and source
+      const icon = sourceIcons[value.source] || '❓';
+      const displayValue =
+        typeof value.value === 'string' && value.value.includes('*')
+          ? value.value
+          : JSON.stringify(value.value);
+      console.log(`${indent}${key}: ${displayValue} ${icon} (${value.source})`);
+    } else if (typeof value === 'object') {
+      // Branch node
+      console.log(`${indent}${key}:`);
+      showConfigTree(value, indent + '  ', path ? `${path}.${key}` : key);
+    }
+  }
+}
+
+async function migrateToGlobal(llmManager) {
+  console.log('📦 Migrating local configuration to global...');
+
+  try {
+    const configManager = llmManager.configManager;
+    await configManager.migrateToGlobal();
+    console.log('✅ Successfully migrated local configuration to global.');
+    console.log(`   Global config: ${configManager.globalPath}`);
+    console.log('\n💡 Your local project config has been cleared.');
+    console.log('   API keys are now available globally across all projects.');
+  } catch (error) {
+    console.error(`❌ Failed to migrate: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+async function copyFromGlobal(llmManager) {
+  console.log('📄 Copying global configuration to local project...');
+
+  try {
+    const configManager = llmManager.configManager;
+    await configManager.copyFromGlobal();
+    console.log('✅ Successfully copied global configuration to local project.');
+    console.log(`   Local config: ${configManager.localPath}`);
+  } catch (error) {
+    console.error(`❌ Failed to copy: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+async function clearConfig(llmManager, isGlobal = false) {
+  const scope = isGlobal ? 'global' : 'local';
+  console.log(`🗑️  Clearing ${scope} configuration...`);
+
+  try {
+    const configManager = llmManager.configManager;
+    configManager.clear(isGlobal);
+    console.log(`✅ Successfully cleared ${scope} configuration.`);
+  } catch (error) {
+    console.error(`❌ Failed to clear: ${error.message}`);
+    process.exit(1);
+  }
 }
 
 async function listTools() {

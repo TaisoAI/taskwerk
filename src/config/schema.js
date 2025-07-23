@@ -265,5 +265,11 @@ export function getSensitiveFields() {
     }
   }
 
+  // Add provider API keys that aren't in the static schema
+  const providers = ['openai', 'anthropic', 'mistral', 'grok', 'ollama', 'lmstudio'];
+  for (const provider of providers) {
+    sensitive.push(`ai.providers.${provider}.api_key`);
+  }
+
   return sensitive;
 }

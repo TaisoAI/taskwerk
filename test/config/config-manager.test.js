@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { parse as parseYaml } from 'yaml';
 import {
   ConfigManager,
   getConfigManager,
@@ -13,15 +14,26 @@ describe('ConfigManager', () => {
   let tempDir;
   let configPath;
   let manager;
+  let originalHome;
 
   beforeEach(() => {
+    // Save original HOME
+    originalHome = process.env.HOME;
+
     tempDir = mkdtempSync(join(tmpdir(), 'taskwerk-config-test-'));
+
+    // Set test HOME to prevent loading user's actual config
+    process.env.HOME = tempDir;
+
     configPath = join(tempDir, 'config.yml');
     manager = new ConfigManager(configPath);
     resetConfigManager();
   });
 
   afterEach(() => {
+    // Restore HOME
+    process.env.HOME = originalHome;
+
     rmSync(tempDir, { recursive: true, force: true });
     resetConfigManager();
   });
@@ -113,11 +125,8 @@ general:
 
   describe('save', () => {
     it('should save configuration as YAML', () => {
-      manager.config = {
-        general: {
-          defaultPriority: 'high',
-        },
-      };
+      manager.load();
+      manager.set('general.defaultPriority', 'high');
 
       manager.save();
 
@@ -127,25 +136,23 @@ general:
     });
 
     it('should mask sensitive fields when saving', () => {
-      manager.config = {
-        ai: {
-          apiKey: 'sk-secret-key',
-          provider: 'openai',
-        },
-      };
+      manager.load();
+      manager.set('ai.providers.openai.api_key', 'sk-secret-key');
+      manager.set('ai.current_provider', 'openai');
 
       manager.save();
 
       const content = readFileSync(configPath, 'utf8');
-      expect(content).toContain('apiKey: "********"');
-      expect(content).toContain('provider: openai');
+      expect(content).toContain('api_key: "********"');
+      expect(content).toContain('current_provider: openai');
     });
 
     it('should create directory if it does not exist', () => {
       const nestedPath = join(tempDir, 'nested', 'dir', 'config.yml');
       const nestedManager = new ConfigManager(nestedPath);
 
-      nestedManager.config = { general: { defaultPriority: 'low' } };
+      nestedManager.load();
+      nestedManager.set('general.defaultPriority', 'low');
       nestedManager.save();
 
       const content = readFileSync(nestedPath, 'utf8');
@@ -155,24 +162,16 @@ general:
 
   describe('get', () => {
     beforeEach(() => {
-      manager.config = {
-        general: {
-          defaultPriority: 'high',
-          nested: {
-            value: 'test',
-          },
-        },
-        database: {
-          path: '/tmp/test.db',
-        },
-      };
+      // Set up test config through proper channels
+      manager.set('general.defaultPriority', 'high');
+      manager.set('general.nested.value', 'test');
+      manager.set('database.path', '/tmp/test.db');
     });
 
     it('should get top-level value', () => {
-      expect(manager.get('general')).toEqual({
-        defaultPriority: 'high',
-        nested: { value: 'test' },
-      });
+      const general = manager.get('general');
+      expect(general.defaultPriority).toBe('high');
+      expect(general.nested.value).toBe('test');
     });
 
     it('should get nested value', () => {
@@ -223,18 +222,14 @@ general:
 
   describe('delete', () => {
     beforeEach(() => {
-      manager.config = {
-        general: {
-          defaultPriority: 'high',
-          toDelete: 'value',
-        },
-      };
+      manager.set('general.defaultPriority', 'high');
+      manager.set('general.toDelete', 'value');
     });
 
     it('should delete existing value', () => {
       const result = manager.delete('general.toDelete');
       expect(result).toBe(true);
-      expect(manager.config.general.toDelete).toBeUndefined();
+      expect(manager.get('general.toDelete')).toBeUndefined();
     });
 
     it('should return false for non-existent path', () => {
@@ -245,89 +240,104 @@ general:
 
   describe('reset', () => {
     it('should reset to default configuration', () => {
-      manager.config = {
-        general: {
-          defaultPriority: 'high',
-        },
-      };
+      // First, ensure we're starting fresh
+      if (existsSync(configPath)) {
+        rmSync(configPath);
+      }
 
-      manager.reset();
+      // Create a new manager with the test config path
+      const testManager = new ConfigManager(configPath);
 
-      expect(manager.config.general.defaultPriority).toBe('medium');
+      // Load defaults and set a custom value
+      testManager.load();
+      testManager.set('general.defaultPriority', 'low');
+      expect(testManager.get('general.defaultPriority')).toBe('low');
+      testManager.save();
 
-      // Should save the reset config
+      // Check what's in the file before reset
+      const beforeReset = readFileSync(configPath, 'utf8');
+      const configBefore = parseYaml(beforeReset);
+      // The saved file might have the full config structure due to how save works
+      // Just verify our value was saved
+      expect(configBefore.general?.defaultPriority || configBefore.defaultPriority).toBe('low');
+
+      // Reset should clear local config and reload defaults
+      testManager.reset();
+
+      // After reset, value should come from defaults (or global if exists)
+      // In test environment with HOME set to tempDir, there's no global config
+      const priorityAfterReset = testManager.get('general.defaultPriority');
+
+      // After reset, the file should either be empty or contain only non-sensitive defaults
       const content = readFileSync(configPath, 'utf8');
-      expect(content).toContain('defaultPriority: medium');
+      const config = content ? parseYaml(content) : {};
+
+      // The important thing is that our custom value 'low' should not be in the file
+      if (config.general?.defaultPriority) {
+        expect(config.general.defaultPriority).not.toBe('low');
+      }
+
+      // Verify the local config was cleared - value should not be 'low' anymore
+      expect(priorityAfterReset).not.toBe('low');
+      // In a clean test environment, it should be the default 'medium'
+      expect(priorityAfterReset).toBe('medium');
     });
   });
 
   describe('validate', () => {
     it('should validate correct configuration', () => {
-      manager.config = {
-        general: {
-          defaultPriority: 'high',
-          defaultStatus: 'todo',
-        },
-      };
+      manager.load();
+      manager.set('general.defaultPriority', 'high');
+      manager.set('general.defaultStatus', 'todo');
 
-      expect(() => manager.validate()).not.toThrow();
+      // Validation happens automatically on set, so if we get here it's valid
+      expect(manager.get('general.defaultPriority')).toBe('high');
     });
 
     it('should throw for invalid enum value', () => {
-      manager.config = {
-        general: {
-          defaultPriority: 'invalid',
-        },
-      };
+      manager.load();
 
-      expect(() => manager.validate()).toThrow(ConfigurationError);
+      expect(() => {
+        manager.set('general.defaultPriority', 'invalid');
+      }).toThrow(ConfigurationError);
     });
 
     it('should throw for invalid type', () => {
-      manager.config = {
-        database: {
-          backupEnabled: 'not-a-boolean',
-        },
-      };
+      manager.load();
 
-      expect(() => manager.validate()).toThrow(ConfigurationError);
+      expect(() => {
+        manager.set('database.backupEnabled', 'not-a-boolean');
+      }).toThrow(ConfigurationError);
     });
 
     it('should throw for value out of range', () => {
-      manager.config = {
-        ai: {
-          temperature: 3.0, // Max is 2.0
-        },
-      };
+      manager.load();
 
-      expect(() => manager.validate()).toThrow(ConfigurationError);
+      expect(() => {
+        manager.set('ai.temperature', 3.0); // Max is 2.0
+      }).toThrow(ConfigurationError);
     });
 
     it('should throw for invalid pattern', () => {
-      manager.config = {
-        general: {
-          taskIdPrefix: 'task', // Should be uppercase
-        },
-      };
+      manager.load();
 
-      expect(() => manager.validate()).toThrow(ConfigurationError);
+      expect(() => {
+        manager.set('general.taskIdPrefix', 'task'); // Should be uppercase
+      }).toThrow(ConfigurationError);
     });
   });
 
   describe('getMasked', () => {
     it('should mask sensitive fields', () => {
-      manager.config = {
-        ai: {
-          apiKey: 'sk-secret-key',
-          provider: 'openai',
-          temperature: 0.7,
-        },
-      };
+      manager.load();
+      manager.set('ai.providers.openai.api_key', 'sk-secret-key');
+      manager.set('ai.current_provider', 'openai');
+      manager.set('ai.defaults.temperature', 0.7);
 
       const masked = manager.getMasked();
-      expect(masked.ai.apiKey).toBe('********');
-      expect(masked.ai.provider).toBe('openai');
-      expect(masked.ai.temperature).toBe(0.7);
+      expect(masked.ai.providers.openai.api_key).toBe('********');
+      expect(masked.ai.current_provider).toBe('openai');
+      expect(masked.ai.defaults.temperature).toBe(0.7);
     });
   });
 

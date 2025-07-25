@@ -1,21 +1,40 @@
 import Database from 'better-sqlite3';
 import { existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
+import { homedir } from 'os';
+import { applySchema } from './schema.js';
+import { MigrationRunner } from './migrations.js';
 
 const DEFAULT_DB_DIR = '.taskwerk';
 const DEFAULT_DB_FILE = 'taskwerk.db';
+const GLOBAL_DB_DIR = join(homedir(), '.taskwerk');
 
 export class TaskwerkDatabase {
-  constructor(dbPath = null) {
-    this.dbPath = dbPath || this.getDefaultDbPath();
+  constructor(options = {}) {
+    if (typeof options === 'string') {
+      // Legacy: constructor(dbPath)
+      this.dbPath = options;
+      this.isGlobal = false;
+    } else {
+      const { dbPath, isGlobal = false } = options;
+      this.isGlobal = isGlobal;
+      this.dbPath = dbPath || this.getDefaultDbPath();
+    }
     this.db = null;
   }
 
   getDefaultDbPath() {
-    if (!existsSync(DEFAULT_DB_DIR)) {
-      mkdirSync(DEFAULT_DB_DIR, { recursive: true });
+    if (this.isGlobal) {
+      if (!existsSync(GLOBAL_DB_DIR)) {
+        mkdirSync(GLOBAL_DB_DIR, { recursive: true });
+      }
+      return join(GLOBAL_DB_DIR, DEFAULT_DB_FILE);
+    } else {
+      if (!existsSync(DEFAULT_DB_DIR)) {
+        mkdirSync(DEFAULT_DB_DIR, { recursive: true });
+      }
+      return join(DEFAULT_DB_DIR, DEFAULT_DB_FILE);
     }
-    return join(DEFAULT_DB_DIR, DEFAULT_DB_FILE);
   }
 
   connect() {
@@ -32,6 +51,21 @@ export class TaskwerkDatabase {
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('foreign_keys = ON');
 
+    // Apply schema and migrations for all databases
+    // Global databases get full schema, project databases just get migrations
+    if (this.isGlobal) {
+      applySchema(this.db);
+    }
+
+    // Always run migrations (they are idempotent)
+    const migrationRunner = new MigrationRunner(this.db);
+    try {
+      migrationRunner.runPendingMigrations();
+    } catch (error) {
+      // Log but don't fail if migrations have issues
+      console.warn('Warning: Some migrations failed:', error.message);
+    }
+
     return this.db;
   }
 
@@ -44,6 +78,13 @@ export class TaskwerkDatabase {
 
   isConnected() {
     return this.db !== null && this.db.open;
+  }
+
+  getDB() {
+    if (!this.db) {
+      throw new Error('Database not connected. Call connect() first.');
+    }
+    return this.db;
   }
 
   executeTransaction(fn) {

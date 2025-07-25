@@ -55,9 +55,18 @@ Common Workflows:
     $ twrk splittask 1 -i                  # Full interactive mode
     
   AI/LLM Integration:
+    $ twrk ask "What are my high priority tasks?"  # Query about tasks
+    $ twrk agent "Create subtasks for task 1"      # Make changes
     $ twrk export -t 1 2 3 --stdout | pbcopy      # Copy tasks to clipboard
     $ twrk updatetask 1 -a @ai-agent              # Assign to AI
     $ twrk export -a @ai-agent -o ai-tasks.md     # Export AI's tasks
+    
+  AI Chat Context (New!):
+    • In projects: Conversations are maintained per-project automatically
+    • Outside projects: Uses global context or named contexts
+    $ twrk ask "What did we discuss earlier?"  # Continues previous chat
+    $ twrk ask --context work "Track this idea" # Named global context
+    $ twrk ask --new "Start fresh topic"       # Force new conversation
     
   Bulk Operations:
     $ twrk export -s todo                          # Export all todo tasks
@@ -69,6 +78,7 @@ Key Features:
   • Rich markdown export perfect for LLMs
   • Subtask support with parent-child relationships
   • Comprehensive tagging and filtering
+  • AI Chat Context: Conversations are maintained per-project or globally
 
 For more help:
   $ twrk <command> --help                  # Detailed help for any command

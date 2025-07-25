@@ -197,6 +197,46 @@ taskwerk aiconfig --list-tools
 # - search_code: Search for patterns in code
 ```
 
+### AI Chat Context (New!)
+
+Taskwerk now maintains conversation history for AI interactions, making it easier to have ongoing discussions about your tasks and projects:
+
+#### How Chat Context Works
+
+- **In Projects**: When you're in a directory with initialized taskwerk (`.taskwerk` folder), conversations are automatically maintained per-project
+- **Outside Projects**: Uses a general global context or named contexts
+- **Context Persistence**: All conversations are stored in the SQLite database
+- **No Auto-Expiry**: Conversations are kept indefinitely until manually cleared
+
+#### Examples
+
+```bash
+# Continue a previous conversation
+taskwerk ask "What did we discuss about the auth feature?"
+
+# Use named global contexts for different topics
+taskwerk ask --context work "Track this sprint planning idea"
+taskwerk ask --context learning "What Python concepts should I study next?"
+
+# Start fresh when needed
+taskwerk ask --new "Let's talk about a different topic"
+
+# Agent mode also maintains context
+taskwerk agent "Continue implementing the feature we planned"
+```
+
+#### Context Display
+
+By default, taskwerk shows which context is being used:
+
+```
+[Project: myapp] - When in a project directory
+[Global: general] - Default global context
+[Global: work] - Named global context
+```
+
+Use `--quiet` to hide the context display.
+
 ## 📋 Core Features
 
 ### Task Management

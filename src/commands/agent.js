@@ -7,6 +7,8 @@ import {
   generateToolReference,
   getStandardTaskCommands,
 } from '../utils/command-reference.js';
+import { ContextManager } from '../chat/context-manager.js';
+import { TaskwerkDatabase } from '../db/database.js';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 
@@ -14,18 +16,53 @@ export function agentCommand() {
   const agent = new Command('agent');
 
   agent
-    .description('AI agent that can read, write files and manage tasks')
+    .description('AI agent that can read, write files and manage tasks (maintains chat context)')
     .argument('[instruction...]', 'Task for the agent to complete')
     .option('-f, --file <path>', 'Include file content in context')
     .option('-t, --tasks', 'Include current tasks in context')
+    .option('--context <name>', 'Use named global context (outside projects)')
+    .option('--new', 'Start a new conversation (ignore previous context)')
     .option('--provider <name>', 'Override AI provider')
     .option('--model <name>', 'Override AI model')
     .option('--max-iterations <n>', 'Maximum iterations', parseInt, 10)
     .option('--yolo', 'Skip permission prompts (dangerous!)')
     .option('--verbose', 'Show detailed execution info')
+    .option('--quiet', 'Hide context display')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ twrk agent "Create tasks for the authentication feature"
+  $ twrk agent "Split task 1 into frontend and backend subtasks"
+  $ twrk agent -f spec.md "Create tasks based on this specification"
+  $ twrk agent --yolo "Organize all my TODO tasks by priority"
+  $ twrk agent --context work "Continue implementing the feature we discussed"
+
+Chat Context:
+  • In a project: Conversations are maintained automatically per-project
+  • Outside projects: Uses a general global context by default
+  • Named contexts: Use --context <name> for topic-specific conversations
+  • Fresh start: Use --new to begin a new conversation
+  • Context includes: Previous instructions, tasks created, files modified
+
+The AI agent can:
+  • Create, update, and delete tasks
+  • Read and write files in the working directory
+  • Organize and structure your project
+  • Execute multi-step plans
+  • Remember previous conversations and continue work
+
+Safety:
+  • By default, asks permission before each action
+  • Use --yolo to skip permissions (use with caution!)
+  • Agent is limited to current directory and subdirectories`
+    )
     .action(async (instructionArgs, options) => {
       const logger = new Logger('agent');
       const llmManager = new LLMManager();
+      let db;
+      let contextManager;
+      let context;
 
       try {
         // Get the instruction
@@ -33,6 +70,34 @@ export function agentCommand() {
         if (!instruction) {
           console.error('❌ Please provide an instruction for the agent');
           process.exit(1);
+        }
+
+        // Initialize database and context manager
+        try {
+          // Try project database first
+          db = new TaskwerkDatabase();
+          await db.connect();
+          contextManager = new ContextManager(db.getDB());
+        } catch (error) {
+          // Fall back to global database
+          const globalDb = new TaskwerkDatabase({ isGlobal: true });
+          await globalDb.connect();
+          contextManager = new ContextManager(globalDb.getDB());
+          db = globalDb;
+        }
+
+        // Get or create context
+        const contextOptions = {
+          contextName: options.context,
+          forceNew: options.new,
+          firstPrompt: instruction,
+        };
+
+        context = await contextManager.getOrCreateContext('agent', contextOptions);
+
+        // Display context unless --quiet
+        if (!options.quiet) {
+          console.log(chalk.gray(context.display));
         }
 
         // Warn about yolo mode
@@ -70,20 +135,23 @@ export function agentCommand() {
           },
         });
 
-        // Build initial context
-        let context = '';
+        // Build additional context
+        let additionalContext = '';
 
         if (options.file) {
           const readTool = toolExecutor.registry.get('read_file');
           const result = await readTool.execute({ path: options.file });
-          context += `\nFile content (${options.file}):\n${result.content}\n`;
+          additionalContext += `\nFile content (${options.file}):\n${result.content}\n`;
         }
 
         if (options.tasks) {
           const listTool = toolExecutor.registry.get('list_tasks');
           const tasks = await listTool.execute({ limit: 20 });
-          context += `\nCurrent tasks:\n${JSON.stringify(tasks, null, 2)}\n`;
+          additionalContext += `\nCurrent tasks:\n${JSON.stringify(tasks, null, 2)}\n`;
         }
+
+        // Get conversation history
+        const history = await contextManager.getHistory(context.id, 10); // Last 10 turns
 
         // Generate dynamic command reference
         const commands = getStandardTaskCommands();
@@ -124,7 +192,7 @@ Core principles:
 7. Be proactive in suggesting improvements to workflow and organization
 
 Current working directory: ${process.cwd()}
-${context ? `\nContext:\n${context}` : ''}
+${additionalContext ? `\nContext:\n${additionalContext}` : ''}
 
 Guidelines for execution:
 - Always read and understand the current state before making changes
@@ -139,11 +207,21 @@ Remember: You are not just executing commands, you are helping build better prod
 
 IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually exist in the database. Never create example tasks or fictional task IDs. If there are no tasks, explicitly say "No tasks found" rather than creating examples. Always use the list_tasks tool to get the actual current tasks.`,
           },
-          {
-            role: 'user',
-            content: instruction,
-          },
         ];
+
+        // Add conversation history
+        for (const turn of history) {
+          messages.push({
+            role: turn.role,
+            content: turn.content,
+          });
+        }
+
+        // Add current instruction
+        messages.push({
+          role: 'user',
+          content: instruction,
+        });
 
         // Agent loop
         let iterations = 0;
@@ -251,6 +329,27 @@ IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually ex
           console.log(chalk.yellow(`\n⚠️  Reached maximum iterations (${maxIterations})`));
         }
 
+        // Save the conversation turns
+        // We need to extract just the user instruction and final assistant response
+        // Skip the system message and history that we added
+        const historyLength = history.length;
+        const conversationStart = 1 + historyLength; // Skip system message and history
+
+        // Save initial instruction
+        await contextManager.addTurn(context.id, 'user', instruction);
+
+        // Save final assistant response (combine all assistant messages after the instruction)
+        let finalResponse = '';
+        for (let i = conversationStart + 1; i < messages.length; i++) {
+          if (messages[i].role === 'assistant' && messages[i].content) {
+            finalResponse += messages[i].content + '\n';
+          }
+        }
+
+        if (finalResponse.trim()) {
+          await contextManager.addTurn(context.id, 'assistant', finalResponse.trim());
+        }
+
         if (options.verbose && response.usage) {
           console.error(
             chalk.gray(`\n📊 Total conversation tokens: ${messages.length * 1000} (estimate)`)
@@ -260,6 +359,11 @@ IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually ex
         logger.error('Agent failed:', error);
         console.error('❌ Agent failed:', error.message);
         process.exit(1);
+      } finally {
+        // Clean up database connection
+        if (db) {
+          db.close();
+        }
       }
     });
 

@@ -7,23 +7,54 @@ import {
   generateToolReference,
   getStandardTaskCommands,
 } from '../utils/command-reference.js';
+import { ContextManager } from '../chat/context-manager.js';
+import { TaskwerkDatabase } from '../db/database.js';
 import chalk from 'chalk';
 
 export function askCommand() {
   const ask = new Command('ask');
 
   ask
-    .description('Ask AI assistant about tasks and files (read-only)')
+    .description('Ask AI assistant about tasks and files (read-only, maintains chat context)')
     .argument('[question...]', 'Your question')
     .option('-f, --file <path>', 'Include file content in context')
     .option('-t, --tasks', 'Include current tasks in context')
+    .option('--context <name>', 'Use named global context (outside projects)')
+    .option('--new', 'Start a new conversation (ignore previous context)')
     .option('--provider <name>', 'Override AI provider')
     .option('--model <name>', 'Override AI model')
     .option('--no-tools', 'Disable tool usage')
     .option('--verbose', 'Show detailed execution info')
+    .option('--quiet', 'Hide context display')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ twrk ask "What are my high priority tasks?"
+  $ twrk ask -t "Analyze my task completion rate"
+  $ twrk ask -f README.md "Summarize this file"
+  $ twrk ask --context work "What ideas did we discuss?"
+  $ twrk ask --new "Let's talk about something different"
+
+Chat Context:
+  • In a project: Conversations are maintained automatically per-project
+  • Outside projects: Uses a general global context by default
+  • Named contexts: Use --context <name> for topic-specific conversations
+  • Fresh start: Use --new to begin a new conversation
+
+The AI assistant has read-only access and can help with:
+  • Understanding and analyzing your tasks
+  • Planning and prioritization
+  • Suggesting taskwerk commands
+  • Reading and summarizing files
+  • Answering questions about your project`
+    )
     .action(async (questionArgs, options) => {
       const logger = new Logger('ask');
       const llmManager = new LLMManager();
+      let db;
+      let contextManager;
+      let context;
 
       try {
         // Get the question
@@ -31,6 +62,34 @@ export function askCommand() {
         if (!question) {
           console.error('❌ Please provide a question');
           process.exit(1);
+        }
+
+        // Initialize database and context manager
+        try {
+          // Try project database first
+          db = new TaskwerkDatabase();
+          await db.connect();
+          contextManager = new ContextManager(db.getDB());
+        } catch (error) {
+          // Fall back to global database
+          const globalDb = new TaskwerkDatabase({ isGlobal: true });
+          await globalDb.connect();
+          contextManager = new ContextManager(globalDb.getDB());
+          db = globalDb;
+        }
+
+        // Get or create context
+        const contextOptions = {
+          contextName: options.context,
+          forceNew: options.new,
+          firstPrompt: question,
+        };
+
+        context = await contextManager.getOrCreateContext('ask', contextOptions);
+
+        // Display context unless --quiet
+        if (!options.quiet) {
+          console.log(chalk.gray(context.display));
         }
 
         // Initialize tool executor
@@ -44,20 +103,23 @@ export function askCommand() {
           },
         });
 
-        // Build context
-        let context = '';
+        // Build additional context
+        let additionalContext = '';
 
         if (options.file) {
           const readTool = toolExecutor.registry.get('read_file');
           const result = await readTool.execute({ path: options.file });
-          context += `\nFile content (${options.file}):\n${result.content}\n`;
+          additionalContext += `\nFile content (${options.file}):\n${result.content}\n`;
         }
 
         if (options.tasks) {
           const listTool = toolExecutor.registry.get('list_tasks');
           const tasks = await listTool.execute({ limit: 20 });
-          context += `\nCurrent tasks:\n${JSON.stringify(tasks, null, 2)}\n`;
+          additionalContext += `\nCurrent tasks:\n${JSON.stringify(tasks, null, 2)}\n`;
         }
+
+        // Get conversation history
+        const history = await contextManager.getHistory(context.id, 10); // Last 10 turns
 
         // Build messages
         // Generate dynamic command reference
@@ -95,17 +157,27 @@ Key principles:
 5. When answering general questions, try to relate them back to task management or productivity
 
 Current working directory: ${process.cwd()}
-${context ? `\nContext:\n${context}` : ''}
+${additionalContext ? `\nContext:\n${additionalContext}` : ''}
 
 Remember: You can read and analyze, but cannot modify files or tasks. For modifications, suggest the user use 'taskwerk agent' instead.
 
 IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually exist in the database. Never create example tasks or fictional task IDs. If there are no tasks, explicitly say "No tasks found" rather than creating examples.`,
           },
-          {
-            role: 'user',
-            content: question,
-          },
         ];
+
+        // Add conversation history
+        for (const turn of history) {
+          messages.push({
+            role: turn.role,
+            content: turn.content,
+          });
+        }
+
+        // Add current question
+        messages.push({
+          role: 'user',
+          content: question,
+        });
 
         // Prepare completion parameters
         const completionParams = {
@@ -175,10 +247,19 @@ IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually ex
           });
 
           process.stdout.write(finalResponse.content);
+
+          // Save conversation turns
+          await contextManager.addTurn(context.id, 'user', question);
+          await contextManager.addTurn(context.id, 'assistant', finalResponse.content, {
+            toolCalls: response.tool_calls,
+          });
         } else {
           // No tool calls, just display response
-          // Output just the response content
           process.stdout.write(response.content);
+
+          // Save conversation turns
+          await contextManager.addTurn(context.id, 'user', question);
+          await contextManager.addTurn(context.id, 'assistant', response.content);
         }
 
         if (options.verbose && response.usage) {
@@ -192,6 +273,11 @@ IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually ex
         logger.error('Ask failed:', error);
         console.error('❌ Ask failed:', error.message);
         process.exit(1);
+      } finally {
+        // Clean up database connection
+        if (db) {
+          db.close();
+        }
       }
     });
 

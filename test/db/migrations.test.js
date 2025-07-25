@@ -1,8 +1,34 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { writeFileSync, mkdirSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, rmSync, existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { MigrationRunner } from '../../src/db/migrations.js';
 import { createTestDatabase } from '../helpers/database-test-helper.js';
+
+// Test-specific MigrationRunner that ignores embedded migrations
+class TestMigrationRunner extends MigrationRunner {
+  getMigrationFiles() {
+    // Override to use only filesystem-based migrations for tests
+    if (!existsSync(this.migrationsPath)) {
+      return [];
+    }
+    return readdirSync(this.migrationsPath)
+      .filter(file => file.endsWith('.sql'))
+      .sort();
+  }
+
+  runMigration(filename) {
+    // Override to use only filesystem-based migrations for tests
+    const filepath = join(this.migrationsPath, filename);
+    const sql = readFileSync(filepath, 'utf8');
+
+    this.db.transaction(() => {
+      this.db.exec(sql);
+      this.db.prepare('INSERT INTO migrations (filename) VALUES (?)').run(filename);
+    })();
+
+    return true;
+  }
+}
 
 describe('MigrationRunner', () => {
   let testDb;
@@ -11,7 +37,7 @@ describe('MigrationRunner', () => {
 
   beforeEach(() => {
     testDb = createTestDatabase();
-    runner = new MigrationRunner(testDb.db);
+    runner = new TestMigrationRunner(testDb.db);
     migrationsDir = runner.migrationsPath;
 
     try {

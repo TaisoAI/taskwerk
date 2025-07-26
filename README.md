@@ -197,45 +197,103 @@ taskwerk aiconfig --list-tools
 # - search_code: Search for patterns in code
 ```
 
-### AI Chat Context (New!)
+### AI Chat Context & Conversations
 
-Taskwerk now maintains conversation history for AI interactions, making it easier to have ongoing discussions about your tasks and projects:
+Taskwerk maintains conversation history for AI interactions, enabling continuous discussions about your tasks and projects. Each conversation is stored in SQLite with full history, allowing you to pick up where you left off.
 
-#### How Chat Context Works
+#### How Conversations Work
 
-- **In Projects**: When you're in a directory with initialized taskwerk (`.taskwerk` folder), conversations are automatically maintained per-project
-- **Outside Projects**: Uses a general global context or named contexts
-- **Context Persistence**: All conversations are stored in the SQLite database
-- **No Auto-Expiry**: Conversations are kept indefinitely until manually cleared
+- **Project Conversations**: Automatically created per-project when in a taskwerk directory
+- **Global Conversations**: Available anywhere for general or cross-project discussions
+- **Named Conversations**: Create topic-specific conversations (e.g., "work", "learning")
+- **Smart Continuation**: Automatically continues recent conversations within 1 hour
 
-#### Examples
+#### Visual Context Indicators
+
+Taskwerk clearly shows which conversation is active:
+
+```
+────────────────────────────────────────────────────────────
+📁 💬 Active conversation: myproject project
+   Continuing with 5 messages of history
+   Use --new to start fresh, or twrk context to manage
+────────────────────────────────────────────────────────────
+```
+
+Icons indicate:
+- 📁 Project conversation | 🌍 Global conversation
+- 💬 Ask mode (read-only) | 🤖 Agent mode (can modify)
+
+#### Managing Conversations
 
 ```bash
-# Continue a previous conversation
-taskwerk ask "What did we discuss about the auth feature?"
+# List all your conversations
+taskwerk context list
+taskwerk context list --all  # Include older conversations
 
-# Use named global contexts for different topics
-taskwerk ask --context work "Track this sprint planning idea"
-taskwerk ask --context learning "What Python concepts should I study next?"
+# View conversation history
+taskwerk context show           # Current conversation
+taskwerk context show work      # Specific conversation
+taskwerk context show CHAT-001  # By ID
+
+# Switch between conversations
+taskwerk context switch work    # Shows how to use it
+
+# Manage conversations
+taskwerk context rename CHAT-001 "sprint-planning"
+taskwerk context delete old-discussion
+```
+
+#### Using Conversations
+
+```bash
+# Continue current conversation
+taskwerk ask "What were we discussing?"
+
+# Use named conversations for topics
+taskwerk ask --context work "Remember this sprint idea"
+taskwerk ask --context learning "What should I study next?"
 
 # Start fresh when needed
-taskwerk ask --new "Let's talk about a different topic"
+taskwerk ask --new "Let's discuss something different"
 
-# Agent mode also maintains context
-taskwerk agent "Continue implementing the feature we planned"
+# Agent mode maintains separate conversations
+taskwerk agent "Continue the feature we planned"
 ```
 
-#### Context Display
+#### Context Command Examples
 
-By default, taskwerk shows which context is being used:
+```bash
+# See what conversations you have
+$ taskwerk context list
+🗨️  Your Chat Conversations
 
+📁 Current Project (myapp)
+  🟢 💬 auth-implementation (myapp) [CHAT-003]
+     Last active: 2 hours ago • 12 messages
+     Started with: "Help me implement JWT authentication"
+
+🌍 Global Conversations  
+  🟢 💬 work (Global) [CHAT-001]
+     Last active: 1 hour ago • 8 messages
+
+# Review a conversation
+$ taskwerk context show auth-implementation
+🗨️  Conversation Details
+
+📁 💬 auth-implementation
+ID: CHAT-003
+Project: myapp
+Created: 2024-01-15 10:30:00
+Messages: 12
+
+────────────────────────────────────────────────────────────
+👤 You [10:30:15]
+Help me implement JWT authentication for the user API
+
+🤖 Assistant [10:30:18]
+I'll help you implement JWT authentication. Let me break this down...
 ```
-[Project: myapp] - When in a project directory
-[Global: general] - Default global context
-[Global: work] - Named global context
-```
-
-Use `--quiet` to hide the context display.
 
 ## 📋 Core Features
 
@@ -350,6 +408,13 @@ ai:
 ```
 
 Environment variables are supported using `${VAR_NAME}` syntax.
+
+## 📚 Documentation
+
+- [CLI Reference](docs/cli-reference.md) - Complete command reference
+- [Chat Contexts Guide](docs/chat-contexts.md) - Conversation management in detail
+- [LLM Examples](docs/llm-examples.md) - Advanced AI usage examples
+- [Build Guide](docs/BUILD.md) - Building from source
 
 ## 📚 Advanced Usage
 

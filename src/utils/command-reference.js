@@ -69,6 +69,10 @@ export function generateCommandReference(commands) {
     ].includes(cmd.name)
   );
 
+  const aiCommands = commands.filter(cmd =>
+    ['ask', 'agent', 'llm', 'aiconfig', 'context'].includes(cmd.name)
+  );
+
   let reference = 'IMPORTANT taskwerk command reference:\n';
 
   // Group by common operations
@@ -87,6 +91,18 @@ export function generateCommandReference(commands) {
         reference += `- ${cmd.usage} - ${cmd.description}\n`;
       }
     }
+  }
+
+  // Add AI commands section
+  if (aiCommands.length > 0) {
+    reference += '\nAI & Chat Commands:\n';
+    reference +=
+      '- taskwerk ask [question] - Ask AI questions (read-only, maintains chat context)\n';
+    reference += '- taskwerk agent [instruction] - AI agent that can modify files/tasks\n';
+    reference +=
+      '- taskwerk llm [prompt] - Send prompt directly to LLM (no context, can pipe input/output)\n';
+    reference += '- taskwerk context - Manage chat conversations\n';
+    reference += '- taskwerk aiconfig - Configure AI providers and models\n';
   }
 
   reference += '\nNEVER suggest non-existent commands. Only use the commands listed above.';
@@ -182,6 +198,32 @@ export function getStandardTaskCommands() {
       name: 'statustask',
       description: 'Change task status',
       usage: 'taskwerk statustask <id> <status>',
+    },
+    // AI Commands
+    {
+      name: 'ask',
+      description: 'Ask AI questions (read-only, maintains chat context)',
+      usage: 'taskwerk ask [question]',
+    },
+    {
+      name: 'agent',
+      description: 'AI agent that can modify files/tasks',
+      usage: 'taskwerk agent [instruction]',
+    },
+    {
+      name: 'llm',
+      description: 'Send prompt directly to LLM (no context, can pipe input/output)',
+      usage: 'taskwerk llm [prompt]',
+    },
+    {
+      name: 'context',
+      description: 'Manage chat conversations',
+      usage: 'taskwerk context',
+    },
+    {
+      name: 'aiconfig',
+      description: 'Configure AI providers and models',
+      usage: 'taskwerk aiconfig',
     },
   ];
 }

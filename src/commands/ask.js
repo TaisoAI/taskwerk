@@ -9,6 +9,7 @@ import {
 } from '../utils/command-reference.js';
 import { ContextManager } from '../chat/context-manager.js';
 import { TaskwerkDatabase } from '../db/database.js';
+import { displayActiveContext } from './context-display.js';
 import chalk from 'chalk';
 
 export function askCommand() {
@@ -89,7 +90,7 @@ The AI assistant has read-only access and can help with:
 
         // Display context unless --quiet
         if (!options.quiet) {
-          console.log(chalk.gray(context.display));
+          displayActiveContext(context);
         }
 
         // Initialize tool executor
@@ -247,6 +248,9 @@ IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually ex
           });
 
           process.stdout.write(finalResponse.content);
+          if (!finalResponse.content.endsWith('\n')) {
+            process.stdout.write('\n');
+          }
 
           // Save conversation turns
           await contextManager.addTurn(context.id, 'user', question);
@@ -256,6 +260,9 @@ IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually ex
         } else {
           // No tool calls, just display response
           process.stdout.write(response.content);
+          if (!response.content.endsWith('\n')) {
+            process.stdout.write('\n');
+          }
 
           // Save conversation turns
           await contextManager.addTurn(context.id, 'user', question);

@@ -113,6 +113,9 @@ export function llmCommand() {
         // Handle output - always raw
         if (!options.stream) {
           process.stdout.write(result.content);
+          if (!result.content.endsWith('\n')) {
+            process.stdout.write('\n');
+          }
         }
 
         // Show usage stats only if verbose

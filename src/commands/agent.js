@@ -9,6 +9,7 @@ import {
 } from '../utils/command-reference.js';
 import { ContextManager } from '../chat/context-manager.js';
 import { TaskwerkDatabase } from '../db/database.js';
+import { displayActiveContext } from './context-display.js';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 
@@ -97,7 +98,7 @@ Safety:
 
         // Display context unless --quiet
         if (!options.quiet) {
-          console.log(chalk.gray(context.display));
+          displayActiveContext(context);
         }
 
         // Warn about yolo mode

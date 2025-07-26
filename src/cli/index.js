@@ -9,6 +9,7 @@ import { aiconfigCommand } from '../commands/aiconfig.js';
 import { llmCommand } from '../commands/llm.js';
 import { askCommand } from '../commands/ask.js';
 import { agentCommand } from '../commands/agent.js';
+import { contextCommand } from '../commands/context/index.js';
 // Import individual task commands directly
 import { taskAddCommand } from '../commands/task/add.js';
 import { taskListCommand } from '../commands/task/list.js';
@@ -110,6 +111,7 @@ program.addCommand(aiconfigCommand());
 program.addCommand(llmCommand());
 program.addCommand(askCommand());
 program.addCommand(agentCommand());
+program.addCommand(contextCommand());
 
 // Add task commands as root-level commands with 'task' suffix
 const addTask = taskAddCommand();

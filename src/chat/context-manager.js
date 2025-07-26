@@ -84,6 +84,7 @@ export class ContextManager {
       first_prompt: firstPrompt,
       scope: 'project',
       display: `[Project: ${projectId}]`,
+      turn_count: 0,
     };
 
     await this.createContext(context);
@@ -119,6 +120,7 @@ export class ContextManager {
       first_prompt: firstPrompt || 'General conversation',
       scope: 'global',
       display: `[Global: ${name}]`,
+      turn_count: 0,
     };
 
     await this.createContext(context);
@@ -151,6 +153,7 @@ export class ContextManager {
       first_prompt: firstPrompt || `Named context: ${name}`,
       scope: 'global',
       display: `[Global: ${name}]`,
+      turn_count: 0,
     };
 
     await this.createContext(context);
@@ -173,7 +176,8 @@ export class ContextManager {
         CASE 
           WHEN project_id = 'GLOBAL' THEN '[Global: ' || name || ']'
           ELSE '[Project: ' || project_id || ']'
-        END as display
+        END as display,
+        turn_count
       FROM chat_contexts
       WHERE project_id = ? 
         AND type = ?
@@ -202,7 +206,8 @@ export class ContextManager {
         CASE 
           WHEN project_id = 'GLOBAL' THEN '[Global: ' || name || ']'
           ELSE '[Project: ' || project_id || ']'
-        END as display
+        END as display,
+        turn_count
       FROM chat_contexts
       WHERE name = ? AND project_id = ?
     `);
@@ -443,5 +448,45 @@ export class ContextManager {
       task_count: taskCount.count,
       recent_turns: recentTurns,
     };
+  }
+
+  /**
+   * Get a context by ID
+   */
+  async getContext(contextId) {
+    return this.db
+      .prepare(
+        `
+      SELECT *,
+        CASE WHEN project_id = 'GLOBAL' THEN 'global' ELSE 'project' END as scope
+      FROM chat_contexts
+      WHERE id = ?
+    `
+      )
+      .get(contextId);
+  }
+
+  /**
+   * Delete a context and all its turns
+   */
+  async deleteContext(contextId) {
+    const deleteContext = this.db.transaction(() => {
+      // Delete turns first
+      this.db.prepare('DELETE FROM chat_turns WHERE context_id = ?').run(contextId);
+
+      // Delete context
+      this.db.prepare('DELETE FROM chat_contexts WHERE id = ?').run(contextId);
+    });
+
+    deleteContext();
+  }
+
+  /**
+   * Get current context (for display purposes)
+   */
+  async getCurrentContext() {
+    // This is a placeholder - in reality, we'd need to track the current context
+    // For now, return null
+    return null;
   }
 }

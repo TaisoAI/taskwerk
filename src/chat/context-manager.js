@@ -100,10 +100,10 @@ export class ContextManager {
    */
   async getOrCreateGlobalContext(type, forceNew, firstPrompt) {
     if (!forceNew) {
-      // Use default 'general' context
-      const general = await this.findContextByName('general', 'GLOBAL');
+      // Use default 'general' context for the specific type
+      const general = await this.findContextByNameAndType('general', 'GLOBAL', type);
       if (general) {
-        this.logger.debug('Using general global context');
+        this.logger.debug('Using general global context', { type });
         return general;
       }
     }
@@ -135,10 +135,10 @@ export class ContextManager {
    * Get or create named global context
    */
   async getOrCreateNamedContext(name, type, firstPrompt) {
-    // Check if it exists
-    const existing = await this.findContextByName(name, 'GLOBAL');
+    // Check if it exists for this type
+    const existing = await this.findContextByNameAndType(name, 'GLOBAL', type);
     if (existing) {
-      this.logger.debug('Using existing named context', { name });
+      this.logger.debug('Using existing named context', { name, type });
       return existing;
     }
 
@@ -213,6 +213,25 @@ export class ContextManager {
     `);
 
     return stmt.get(name, projectId);
+  }
+
+  /**
+   * Find context by name and type
+   */
+  async findContextByNameAndType(name, projectId, type) {
+    const stmt = this.db.prepare(`
+      SELECT *,
+        CASE WHEN project_id = 'GLOBAL' THEN 'global' ELSE 'project' END as scope,
+        CASE 
+          WHEN project_id = 'GLOBAL' THEN '[Global: ' || name || ']'
+          ELSE '[Project: ' || project_id || ']'
+        END as display,
+        turn_count
+      FROM chat_contexts
+      WHERE name = ? AND project_id = ? AND type = ?
+    `);
+
+    return stmt.get(name, projectId, type);
   }
 
   /**

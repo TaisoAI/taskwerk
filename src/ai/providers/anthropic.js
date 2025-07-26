@@ -331,6 +331,10 @@ export class AnthropicProvider extends BaseProvider {
   }
 
   parseError(error) {
+    // Handle specific error patterns
+    if (error.message?.includes('invalid x-api-key')) {
+      return 'Invalid Anthropic API key';
+    }
     if (error.message?.includes('api_key')) {
       return 'Invalid API key. Please check your Anthropic API key.';
     }

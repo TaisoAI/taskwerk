@@ -186,7 +186,17 @@ export class LLMManager {
 
       return result;
     } catch (error) {
-      this.logger.error(`Completion failed:`, error);
+      // Only log errors in verbose mode or for non-configuration errors
+      const isConfigError =
+        error.message?.includes('api_key') ||
+        error.message?.includes('API key') ||
+        error.message?.includes('x-api-key') ||
+        error.message?.includes('No AI provider') ||
+        error.message?.includes('No model');
+
+      if (verbose || !isConfigError) {
+        this.logger.error(`Completion failed:`, error);
+      }
       throw new Error(provider.parseError(error));
     }
   }

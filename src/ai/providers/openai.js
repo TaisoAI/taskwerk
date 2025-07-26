@@ -157,13 +157,31 @@ export class OpenAIProvider extends BaseProvider {
         this.cacheExpiry = Date.now() + this.cacheTimeout;
 
         return chatModels;
+      } else {
+        // API returned an error
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: { message: 'Unknown error' } }));
+        const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
+
+        return [
+          {
+            id: 'connection-error',
+            name: 'Connection Error',
+            description: errorMessage,
+          },
+        ];
       }
     } catch (error) {
-      // Return empty array on error since we don't have fallback models
-      return [];
+      // Network or other error
+      return [
+        {
+          id: 'connection-error',
+          name: 'Connection Error',
+          description: error.message || 'Failed to connect to OpenAI',
+        },
+      ];
     }
-
-    return [];
   }
 
   async complete({

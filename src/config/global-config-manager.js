@@ -6,6 +6,7 @@ import { getConfigSchema, getDefaultConfig, getSensitiveFields } from './schema.
 import { ConfigurationError } from '../errors/index.js';
 import { mergeEnvConfig } from './env-loader.js';
 import { Logger } from '../logging/logger.js';
+import { obfuscateObject, deobfuscateObject } from './crypto.js';
 
 const CONFIG_DIR = '.taskwerk';
 const CONFIG_FILE = 'config.yml';
@@ -126,19 +127,23 @@ export class GlobalConfigManager {
   loadConfigFile(filePath) {
     const content = readFileSync(filePath, 'utf8');
 
+    let config;
     // Support both YAML and JSON
     if (filePath.endsWith('.yml') || filePath.endsWith('.yaml')) {
-      return parseYaml(content);
+      config = parseYaml(content);
     } else if (filePath.endsWith('.json')) {
-      return JSON.parse(content);
+      config = JSON.parse(content);
     } else {
       // Try YAML first, then JSON
       try {
-        return parseYaml(content);
+        config = parseYaml(content);
       } catch {
-        return JSON.parse(content);
+        config = JSON.parse(content);
       }
     }
+
+    // Deobfuscate sensitive fields after loading
+    return deobfuscateObject(config, this.sensitiveFields);
   }
 
   /**
@@ -164,18 +169,18 @@ export class GlobalConfigManager {
         mkdirSync(dir, { recursive: true });
       }
 
-      // Mask sensitive fields
-      const masked = this.maskSensitiveFields(configToSave);
+      // Obfuscate sensitive fields before saving
+      const obfuscatedConfig = obfuscateObject(configToSave, this.sensitiveFields);
 
       // Serialize based on file extension
       let content;
       if (configPath.endsWith('.yml') || configPath.endsWith('.yaml')) {
-        content = stringifyYaml(masked, {
+        content = stringifyYaml(obfuscatedConfig, {
           indent: 2,
           lineWidth: 80,
         });
       } else {
-        content = JSON.stringify(masked, null, 2);
+        content = JSON.stringify(obfuscatedConfig, null, 2);
       }
 
       writeFileSync(configPath, content, 'utf8');

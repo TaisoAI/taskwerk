@@ -69,12 +69,12 @@ The AI assistant has read-only access and can help with:
           // Try project database first
           db = new TaskwerkDatabase();
           await db.connect();
-          contextManager = new ContextManager(db.getDB());
+          contextManager = new ContextManager(db.getDB(), { verbose: options.verbose });
         } catch (error) {
           // Fall back to global database
           const globalDb = new TaskwerkDatabase({ isGlobal: true });
           await globalDb.connect();
-          contextManager = new ContextManager(globalDb.getDB());
+          contextManager = new ContextManager(globalDb.getDB(), { verbose: options.verbose });
           db = globalDb;
         }
 
@@ -270,8 +270,62 @@ IMPORTANT: When listing or describing tasks, ONLY mention tasks that actually ex
           );
         }
       } catch (error) {
-        logger.error('Ask failed:', error);
-        console.error('❌ Ask failed:', error.message);
+        // Only log technical errors in verbose mode
+        if (options.verbose) {
+          logger.error('Ask failed:', error);
+        }
+
+        // Provide specific guidance for common errors
+        if (error.message?.includes('No AI provider configured')) {
+          console.error('❌ No AI provider configured');
+          console.error('\n💡 To fix this, run:');
+          console.error('   twrk aiconfig --choose');
+          console.error('\nThis will help you select and configure an AI provider.');
+        } else if (
+          error.message?.toLowerCase().includes('api key') ||
+          error.message?.includes('x-api-key')
+        ) {
+          console.error(`❌ ${error.message}`);
+
+          // Try to get current provider name from config
+          try {
+            const currentProvider = llmManager.configManager.get('ai.current_provider');
+            if (currentProvider) {
+              console.error(`⚠️  Current provider: ${currentProvider}`);
+            }
+          } catch (e) {
+            // Ignore if we can't get provider name
+          }
+
+          console.error('\n💡 To fix this:');
+          console.error('1. Check your API key is correct');
+          console.error('2. Run: twrk aiconfig --set <provider>.api_key=<your-key>');
+          console.error('3. Or run: twrk aiconfig --choose to select a different provider');
+          console.error(
+            '4. To use a different provider once: twrk ask --provider <name> "your question"'
+          );
+          console.error('5. View current config: twrk aiconfig --show');
+        } else if (error.message?.includes('No model selected')) {
+          console.error('❌ No AI model selected');
+          console.error('\n💡 To fix this, run:');
+          console.error('   twrk aiconfig --choose');
+          console.error('\nThis will help you select a model.');
+        } else if (error.message?.includes('rate_limit') || error.message?.includes('Rate limit')) {
+          console.error('❌ Rate limit exceeded');
+          console.error('\n💡 Try again in a few minutes, or:');
+          console.error('1. Use a different provider: twrk ask --provider <name> "your question"');
+          console.error('2. Check your usage limits with your AI provider');
+        } else if (error.message?.includes('model') && error.message?.includes('Invalid')) {
+          console.error('❌ Invalid model selected');
+          console.error('\n💡 To fix this:');
+          console.error('1. Run: twrk aiconfig --choose to select a valid model');
+          console.error('2. Or specify a model: twrk ask --model <model-name> "your question"');
+        } else {
+          console.error('❌ Ask failed:', error.message);
+          console.error('\n💡 For help with AI configuration, run:');
+          console.error('   twrk aiconfig --help');
+        }
+
         process.exit(1);
       } finally {
         // Clean up database connection

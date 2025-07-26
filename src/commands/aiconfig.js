@@ -223,28 +223,45 @@ async function chooseProviderAndModel(llmManager, isGlobal = false) {
   }
 
   const workingProviders = availableProviders.filter(p => !p.disabled);
+  const problemProviders = availableProviders.filter(p => p.disabled);
+
+  // Include providers that have connection errors but are configured
+  const selectableProviders = availableProviders.filter(p => {
+    // Include working providers
+    if (!p.disabled) {
+      return true;
+    }
+    // Include providers with connection errors (they have models, just error models)
+    if (p.models.length > 0 && p.models[0].id === 'connection-error') {
+      return true;
+    }
+    // Exclude truly unconfigured providers
+    return false;
+  });
+
   console.log(`Found models from ${workingProviders.length} providers\n`);
 
-  if (workingProviders.length === 0) {
-    console.log('❌ No working providers found.');
-
-    // Show status of problematic providers
-    const problemProviders = availableProviders.filter(p => p.disabled);
-    if (problemProviders.length > 0) {
-      console.log('\n⚠️  Provider issues:');
-      for (const p of problemProviders) {
-        console.log(`   ${p.provider}: ${p.status}`);
-      }
+  // Show status of problematic providers if any
+  if (problemProviders.length > 0) {
+    console.log('⚠️  Provider issues:');
+    for (const p of problemProviders) {
+      console.log(`   ${p.provider}: ${p.status}`);
     }
+    console.log('');
+  }
 
+  if (selectableProviders.length === 0) {
+    console.log('❌ No providers available.');
     console.log('\n💡 Configure a provider first:');
     console.log('   taskwerk aiconfig --set <provider>.api_key=<your-key>');
     return;
   }
 
   // Choose provider
-  const providerChoices = workingProviders.map(p => ({
-    name: `${p.provider} (${p.models.length} models)`,
+  const providerChoices = selectableProviders.map(p => ({
+    name: p.disabled
+      ? `${p.provider} (⚠️  ${p.status})`
+      : `${p.provider} (${p.models.length} models)`,
     value: p.provider,
   }));
 
@@ -258,7 +275,18 @@ async function chooseProviderAndModel(llmManager, isGlobal = false) {
   ]);
 
   // Choose model
-  const providerData = workingProviders.find(p => p.provider === selectedProvider);
+  const providerData = selectableProviders.find(p => p.provider === selectedProvider);
+
+  // Check if this provider has connection errors
+  if (providerData.disabled && providerData.models[0]?.id === 'connection-error') {
+    console.log(`\n❌ Cannot use ${selectedProvider}: ${providerData.status}`);
+    console.log('\n💡 To fix this:');
+    console.log(`   1. Ensure your API key is correct`);
+    console.log(`   2. Run: taskwerk aiconfig --set ${selectedProvider}.api_key=<your-key>`);
+    console.log(`   3. Test connection: taskwerk aiconfig --test`);
+    return;
+  }
+
   const modelChoices = providerData.models.map(m => ({
     name: `${m.name}${m.description ? ` - ${m.description}` : ''}`,
     value: m.id,

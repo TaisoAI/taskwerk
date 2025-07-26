@@ -135,7 +135,7 @@ general:
       expect(content).toContain('defaultPriority: high');
     });
 
-    it('should mask sensitive fields when saving', () => {
+    it('should obfuscate sensitive fields when saving', () => {
       manager.load();
       manager.set('ai.providers.openai.api_key', 'sk-secret-key');
       manager.set('ai.current_provider', 'openai');
@@ -143,8 +143,14 @@ general:
       manager.save();
 
       const content = readFileSync(configPath, 'utf8');
-      expect(content).toContain('api_key: "********"');
+      expect(content).toContain('api_key: "@obf:');
+      expect(content).not.toContain('api_key: sk-secret-key');
       expect(content).toContain('current_provider: openai');
+
+      // Verify we can load and retrieve the original value
+      const newManager = new ConfigManager(configPath);
+      newManager.load();
+      expect(newManager.get('ai.providers.openai.api_key')).toBe('sk-secret-key');
     });
 
     it('should create directory if it does not exist', () => {

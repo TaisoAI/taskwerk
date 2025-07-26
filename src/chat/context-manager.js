@@ -12,6 +12,7 @@ export class ContextManager {
     this.config = {
       autoCreateGeneral: true,
       continuationWindow: 3600 * 1000, // 1 hour in milliseconds
+      verbose: false,
       ...config,
     };
   }
@@ -86,7 +87,9 @@ export class ContextManager {
     };
 
     await this.createContext(context);
-    this.logger.info('Created new project context', { id, name, projectId });
+    if (this.config.verbose) {
+      this.logger.info('Created new project context', { id, name, projectId });
+    }
 
     return context;
   }
@@ -119,7 +122,9 @@ export class ContextManager {
     };
 
     await this.createContext(context);
-    this.logger.info('Created new global context', { id, name });
+    if (this.config.verbose) {
+      this.logger.info('Created new global context', { id, name });
+    }
 
     return context;
   }
@@ -149,7 +154,9 @@ export class ContextManager {
     };
 
     await this.createContext(context);
-    this.logger.info('Created new named global context', { id, name });
+    if (this.config.verbose) {
+      this.logger.info('Created new named global context', { id, name });
+    }
 
     return context;
   }
@@ -352,7 +359,9 @@ export class ContextManager {
       throw new Error(`Context not found: ${contextId}`);
     }
 
-    this.logger.info('Renamed context', { contextId, newName });
+    if (this.config.verbose) {
+      this.logger.info('Renamed context', { contextId, newName });
+    }
   }
 
   /**
@@ -386,7 +395,9 @@ export class ContextManager {
 
     deleteMany(toDelete);
 
-    this.logger.info('Cleaned up old contexts', { count: toDelete.length });
+    if (this.config.verbose) {
+      this.logger.info('Cleaned up old contexts', { count: toDelete.length });
+    }
     return { count: toDelete.length, contexts: toDelete };
   }
 
